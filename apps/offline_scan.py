@@ -27,6 +27,8 @@ from core.object_associator import ObjectAssociator
 from core.coverage_map import CoverageMap
 from core.status_panel import StatusPanel
 from core.report_generator import ReportGenerator
+from core.evidence_extractor import EvidenceExtractor
+from core.session_store import SessionStore
 
 
 def build_raw_detections(
@@ -245,6 +247,15 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
 
     gen = ReportGenerator(object_map=associator.map)
     gen.find_evidence_frames(associator.map.get_all())
+
+    # Evidence extraction
+    extractor = EvidenceExtractor()
+    extractor.extract(video_path, associator.map.get_all(), output_dir)
+
+    # Session save
+    store = SessionStore(output_dir)
+    store.create_session(video_path)
+    store.save_objects(gen.generate_json_report()["objects"])
 
     out = Path(output_dir)
     (out / "reports").mkdir(parents=True, exist_ok=True)
