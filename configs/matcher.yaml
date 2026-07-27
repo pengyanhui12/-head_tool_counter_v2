@@ -1,0 +1,13 @@
+matcher:
+  mode: sift
+  ratio_test: 0.75
+  ransac_threshold_px: 3.0
+  min_good_matches: 20
+  min_inliers: 30
+  min_inlier_ratio: 0.30
+  max_reprojection_error_px: 3.0
+  min_occupied_quadrants: 3
+  min_inlier_bbox_area_ratio: 0.15
+  roi_center_ratio: 0.70
+  max_projected_area_ratio: 10.0
+  min_projected_area_ratio: 0.10

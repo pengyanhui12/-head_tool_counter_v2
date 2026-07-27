@@ -1,0 +1,7 @@
+pipeline:
+  max_input_fps: 30
+  l2_interval_frames: 3
+  max_keyframe_interval_frames: 30
+  end_window_frames: 30
+  save_debug_artifacts: true
+  random_seed: 42

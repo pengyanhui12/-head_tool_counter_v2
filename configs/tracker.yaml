@@ -1,0 +1,8 @@
+tracker:
+  type: simple_hungarian
+  max_missed_detection_frames: 5
+  lost_reactivation_frames: 10
+  min_iou: 0.20
+  max_center_distance_ratio: 0.20
+  iou_weight: 0.60
+  center_weight: 0.40

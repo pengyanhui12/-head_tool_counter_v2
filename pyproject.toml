@@ -1,0 +1,19 @@
+[project]
+name = "head_tool_counter"
+version = "0.1.0"
+description = "轨道交通作业工器具检测计数系统"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "opencv-python-headless",
+    "scipy",
+    "scikit-learn",
+    "pyyaml",
+    "shapely",
+    "ultralytics",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]

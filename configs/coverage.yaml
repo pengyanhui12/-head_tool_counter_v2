@@ -1,0 +1,4 @@
+coverage:
+  grid_resolution: 100
+  minimum_valid_polygon_area: 100.0
+  target_coverage_ratio: 0.95

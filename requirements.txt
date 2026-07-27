@@ -1,0 +1,8 @@
+numpy
+opencv-python-headless
+scipy
+scikit-learn
+pyyaml
+shapely
+ultralytics
+pytest

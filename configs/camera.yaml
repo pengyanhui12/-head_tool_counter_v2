@@ -1,0 +1,8 @@
+camera:
+  calibration_mode: none
+  profile_id: uncalibrated
+  central_roi_ratio: 0.70
+  allow_edge_detection: true
+  allow_edge_mapping: false
+  edge_observation_weight: 0.25
+  distortion_warning: true

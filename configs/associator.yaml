@@ -1,0 +1,19 @@
+association:
+  max_position_distance_px: 120.0
+  position_weight: 0.55
+  overlap_weight: 0.20
+  size_weight: 0.10
+  class_weight: 0.15
+  max_cost: 0.75
+  min_observations_confirmed: 3
+  min_keyframes_confirmed: 2
+  min_top_class_ratio: 0.60
+  max_votes_per_track: 3
+
+class_compatibility:
+  flashlight:
+    - flashlight
+    - telescopic_voltage_detector
+  telescopic_voltage_detector:
+    - telescopic_voltage_detector
+    - flashlight

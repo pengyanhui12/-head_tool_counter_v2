@@ -1,0 +1,19 @@
+# environment.yaml
+  name: head_tool_counter
+  channels:
+    - pytorch
+    - conda-forge
+  dependencies:
+    - python=3.10
+    - pip
+    - pip:
+      - numpy
+      - opencv-python-headless
+      - scipy
+      - scikit-learn
+      - pyyaml
+      - shapely
+      - ultralytics
+      - torch
+      - torchvision
+      - pytest
