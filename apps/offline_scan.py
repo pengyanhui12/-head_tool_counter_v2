@@ -287,7 +287,7 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Head Tool Counter - Offline Scan")
-    parser.add_argument("--video",default=r"D:\杭州供电段\头戴设备作业工具识别\01公司拍摄数据20260717\测试用\test_first_30s.mp4")
+    parser.add_argument("--video",default=r"D:\杭州供电段\头戴设备作业工具识别\01公司拍摄数据20260717\测试用\test_42s_to_end_trimmed.mp4")
     parser.add_argument("--config-dir", default="configs")
     parser.add_argument("--output-dir", default="outputs")
     args = parser.parse_args()
