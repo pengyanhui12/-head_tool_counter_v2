@@ -3,5 +3,6 @@ pipeline:
   l2_interval_frames: 3
   max_keyframe_interval_frames: 30
   end_window_frames: 30
+  sharpness_threshold: 20.0
   save_debug_artifacts: true
   random_seed: 42

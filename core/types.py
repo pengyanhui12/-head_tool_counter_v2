@@ -169,6 +169,7 @@ class GlobalDetection:
     size_quality: float
     transform_version: int
     source: str
+    bbox_pixels: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 0.0)  # 原始像素坐标 bbox，用于证据帧绘制和 IoU 共现判定
 
 
 @dataclass

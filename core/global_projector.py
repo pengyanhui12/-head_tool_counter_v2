@@ -58,6 +58,7 @@ class GlobalProjector:
             size_quality=1.0,
             transform_version=transform_version,
             source=detection.source,
+            bbox_pixels=detection.bbox,  # 保留原始像素坐标供证据帧绘制
         )
 
     @staticmethod

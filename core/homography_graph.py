@@ -8,6 +8,7 @@ class HomographyGraph:
     def __init__(self):
         self._local_edges: dict[int, np.ndarray] = {}
         self._global_transforms: dict[int, np.ndarray] = {}
+        self._frame_ids: dict[int, int] = {}  # node_id → frame_id
         self._loop_constraints: list[LoopConstraint] = []
         self._current_id: int = -1
         self.transform_version: int = 0
@@ -23,6 +24,7 @@ class HomographyGraph:
     def _add_node(self, frame_id: int, H_curr_to_prev: np.ndarray) -> int:
         node_id = self._current_id + 1
         self._local_edges[node_id] = H_curr_to_prev
+        self._frame_ids[node_id] = frame_id
         self._current_id = node_id
 
         if node_id == 0:
@@ -65,3 +67,12 @@ class HomographyGraph:
     @property
     def loop_constraints(self) -> list[LoopConstraint]:
         return list(self._loop_constraints)
+
+    def get_frame_id(self, node_id: int) -> int | None:
+        return self._frame_ids.get(node_id)
+
+    @property
+    def nodes(self) -> list[tuple[int, int, np.ndarray]]:
+        """返回所有节点: [(node_id, frame_id, H_to_global), ...]"""
+        return [(nid, self._frame_ids.get(nid, -1), self._global_transforms.get(nid, np.eye(3)))
+                for nid in sorted(self._frame_ids.keys())]
