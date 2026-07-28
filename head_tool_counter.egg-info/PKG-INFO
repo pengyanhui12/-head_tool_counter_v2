@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: head_tool_counter
+Version: 0.1.0
+Summary: 轨道交通作业工器具检测计数系统
+Requires-Python: >=3.10
+Requires-Dist: numpy
+Requires-Dist: opencv-python-headless
+Requires-Dist: scipy
+Requires-Dist: scikit-learn
+Requires-Dist: pyyaml
+Requires-Dist: shapely
+Requires-Dist: ultralytics
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"

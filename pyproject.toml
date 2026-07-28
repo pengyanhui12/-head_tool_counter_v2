@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "head_tool_counter"
 version = "0.1.0"
@@ -17,3 +21,7 @@ dependencies = [
 dev = [
     "pytest",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["core*", "apps*"]
