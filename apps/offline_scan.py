@@ -77,10 +77,12 @@ def select_l3_regions(l2_candidates):
 
 
 def run_pipeline(video_path: str, config_dir: str, output_dir: str):
-    # Config
-    cfg_path = Path(config_dir)
+    # Config — resolve relative to project root, not CWD
+    _proj_root = Path(__file__).resolve().parent.parent
+    cfg_path = (Path(config_dir) if Path(config_dir).is_absolute()
+                else _proj_root / config_dir)
     if not cfg_path.exists():
-        raise FileNotFoundError(f"Config directory not found: {cfg_path.resolve()}")
+        raise FileNotFoundError(f"Config directory not found: {cfg_path}")
 
     with open(cfg_path / "pipeline.yaml") as f:
         cfg = yaml.safe_load(f)["pipeline"]
