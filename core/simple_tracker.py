@@ -1,4 +1,4 @@
-"""简化检测跟踪器 — IoU + 中心距离 Hungarian 匹配
+"""简化检测跟踪器 — IoU + 中心距离 Hungarian 匹配 + inactive 重激活
 
 不称为 ByteTrack 或 BoT-SORT。
 preview() 不修改状态，用于在关键帧判定之前收集触发信号。
@@ -60,20 +60,22 @@ class SimpleDetectionTracker:
             self._image_h = detections[0].image_height
 
         active_tracks = {tid: t for tid, t in self._tracks.items() if t.state != "lost"}
+        inactive_tracks = {tid: t for tid, t in self._tracks.items()
+                           if t.state == "inactive"}
         results: list[TrackedDetection] = []
         matched_det_indices: set[int] = set()
+        diag = np.sqrt(self._image_w**2 + self._image_h**2)
 
+        # Phase 1: match active tracks to detections
         if active_tracks and detections:
             track_ids = list(active_tracks.keys())
             cost = np.full((len(track_ids), len(detections)), 1e9)
-            diag = np.sqrt(self._image_w**2 + self._image_h**2)
 
             for ti, tid in enumerate(track_ids):
                 t = active_tracks[tid]
                 for di, det in enumerate(detections):
                     c_cls = self._class_cost(t.class_id, det.class_id)
                     if c_cls >= 1e9:
-                        cost[ti, di] = 1e9
                         continue
                     iou = self._compute_iou(t.bbox, det.bbox)
                     center_dist = self._center_distance(t.bbox, det.bbox) / diag
@@ -99,7 +101,49 @@ class SimpleDetectionTracker:
                     track_age=t.age, is_new_track=False,
                 ))
 
-        # Create new tracks for unmatched detections
+        # Phase 2: reactivate inactive tracks for remaining detections
+        remaining_det = [(di, det) for di, det in enumerate(detections)
+                         if di not in matched_det_indices]
+        if inactive_tracks and remaining_det:
+            inactive_ids = list(inactive_tracks.keys())
+            react_cost = np.full((len(inactive_ids), len(remaining_det)), 1e9)
+            for ti, tid in enumerate(inactive_ids):
+                t = inactive_tracks[tid]
+                for dj, (_, det) in enumerate(remaining_det):
+                    if t.class_id != det.class_id:
+                        continue
+                    iou = self._compute_iou(t.bbox, det.bbox)
+                    center_dist = self._center_distance(t.bbox, det.bbox) / diag
+                    if iou >= self.min_iou and center_dist <= self.max_center_dist_ratio:
+                        react_cost[ti, dj] = (
+                            self.iou_weight * (1.0 - iou)
+                            + self.center_weight * center_dist
+                        )
+
+            ri2, ci2 = linear_sum_assignment(react_cost)
+            for r, c in zip(ri2, ci2):
+                if react_cost[r, c] >= 1e9:
+                    continue
+                tid = inactive_ids[r]
+                det_idx, det = remaining_det[c]
+                # reuse old track_id
+                t = self._tracks[tid]
+                t.state = "active"
+                t.missed_frames = 0
+                t.bbox = det.bbox
+                t.confidence = det.confidence
+                t.class_id = det.class_id
+                t.class_name = det.class_name
+                t.age += 1
+                t.confidence_history.append(det.confidence)
+                t.detection_history.append(det)
+                results.append(TrackedDetection(
+                    candidate=det, track_id=tid,
+                    track_age=t.age, is_new_track=False,
+                ))
+                matched_det_indices.add(det_idx)
+
+        # Phase 3: create new tracks for still-unmatched detections
         for di, det in enumerate(detections):
             if di in matched_det_indices:
                 continue
@@ -122,17 +166,17 @@ class SimpleDetectionTracker:
                 track_age=1, is_new_track=True,
             ))
 
-        # Mark unmatched tracks as missed
+        # Mark unmatched active tracks as missed
         matched_tids = {td.track_id for td in results}
         for tid in list(active_tracks.keys()):
             if tid in matched_tids:
                 continue
-                t = self._tracks[tid]
-                t.missed_frames += 1
-                if t.missed_frames > self.lost_reactivation:
-                    t.state = "lost"
-                elif t.missed_frames > self.max_missed:
-                    t.state = "inactive"
+            t = self._tracks[tid]
+            t.missed_frames += 1
+            if t.missed_frames > self.lost_reactivation:
+                t.state = "lost"
+            elif t.missed_frames > self.max_missed:
+                t.state = "inactive"
 
         return results
 
@@ -164,7 +208,6 @@ class SimpleDetectionTracker:
     def _unmatched_indices(self, detections: list[DetectionCandidate]) -> list[int]:
         active = {tid: t for tid, t in self._tracks.items() if t.state == "active"}
         unmatched = []
-        diag = np.sqrt(self._image_w**2 + self._image_h**2)
         for di, det in enumerate(detections):
             matched = False
             for tid, t in active.items():
@@ -181,12 +224,13 @@ class SimpleDetectionTracker:
     def _class_cost(self, cid_a: int, cid_b: int) -> float:
         if cid_a == cid_b:
             return 0.0
-        # Check compatibility if class names match
-        name_a = self._tracks.get(cid_a, None)
-        name_b = self._tracks.get(cid_b, None)
-        if name_a is not None and name_b is not None:
-            compat = self._class_compat.get(name_a.class_name, [])
-            if name_b.class_name in compat:
+        a_name = self._tracks.get(cid_a)
+        b_name = self._tracks.get(cid_b)
+        if a_name is not None and b_name is not None:
+            if a_name.class_name == b_name.class_name:
+                return 0.0
+            compat = self._class_compat.get(a_name.class_name, [])
+            if b_name.class_name in compat:
                 return 0.5
         return 1e9
 

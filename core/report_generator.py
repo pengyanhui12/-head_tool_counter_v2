@@ -20,8 +20,11 @@ class ReportGenerator:
 
     def generate_json_report(self) -> dict:
         objects = self.object_map.get_all() if self.object_map else []
+        # 过滤已合并（REJECTED）的对象
+        active_objects = [o for o in objects
+                          if o.confirmation_status.value not in ("rejected",)]
         return {
-            "total_objects": len(objects),
+            "total_objects": len(active_objects),
             "objects": [
                 {
                     "persistent_id": obj.persistent_id,
@@ -40,7 +43,7 @@ class ReportGenerator:
                     "best_frame_id": obj.best_frame_id,
                     "uncertainty_reasons": obj.uncertainty_reasons,
                 }
-                for obj in objects
+                for obj in active_objects
             ],
         }
 

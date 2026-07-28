@@ -99,7 +99,7 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
 
     # Modules
     reader = VideoReader(video_path, max_fps=cfg.get("max_input_fps", 30))
-    quality = QualityEvaluator()
+    quality = QualityEvaluator(sharpness_threshold=cfg.get("sharpness_threshold", 20.0))
     frame_buffer = FrameBuffer(max_size=end_window)
     matcher = FeatureMatcher(
         min_good_matches=mcfg.get("min_good_matches", 20),
@@ -181,11 +181,16 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
         if keyframe_result.decision == KeyframeDecision.ACCEPTED:
             if last_keyframe is None:
                 keyframe_id = graph.add_first_keyframe(frame_id=frame.frame_id)
+                # 首帧 mapping_quality 固定 1.0（无匹配过程）
+                frame.mapping_quality = 1.0
             else:
                 keyframe_id = graph.add_keyframe(
                     frame_id=frame.frame_id,
                     H_current_to_previous=keyframe_result.H_current_to_previous,
                 )
+                # 从匹配结果的 inlier_ratio 获取 mapping_quality
+                if keyframe_result.match_result is not None:
+                    frame.mapping_quality = float(keyframe_result.match_result.inlier_ratio)
 
             H_kf_to_global = graph.get_transform(keyframe_id)
 
@@ -233,6 +238,49 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
             last_keyframe = frame
             last_keyframe_frame_id = frame.frame_id
 
+        # RECOVERY: 匹配失败但触发信号存在，降级使用 identity H，低质量标记
+        elif keyframe_result.decision == KeyframeDecision.RECOVERY:
+            if last_keyframe is not None:
+                # 使用 identity H（即当前帧坐标 ≈ 全局坐标），mapping_quality 很低
+                keyframe_id = graph.add_keyframe(
+                    frame_id=frame.frame_id,
+                    H_current_to_previous=np.eye(3),
+                )
+                frame.mapping_quality = 0.15  # RECOVERY 降级质量
+
+                H_kf_to_global = graph.get_transform(keyframe_id)
+
+                l1_candidates = detector.detect(
+                    image=frame.image, level="L1", frame_id=frame.frame_id,
+                )
+
+                fused_candidates = fusion.fuse(l1=l1_candidates, l3=[])
+                tracked = tracker.update(fused_candidates)
+
+                raw_detections = build_raw_detections(
+                    tracked_detections=tracked,
+                    keyframe_id=keyframe_id,
+                    sharpness=frame.sharpness_score,
+                    mapping_quality=frame.mapping_quality,
+                )
+
+                global_detections = [
+                    projector.project(
+                        detection=rd,
+                        H_keyframe_to_global=H_kf_to_global,
+                        transform_version=graph.transform_version,
+                    )
+                    for rd in raw_detections
+                ]
+
+                associator.ingest_frame(
+                    frame_id=frame.frame_id,
+                    global_detections=global_detections,
+                )
+
+                last_keyframe = frame
+                last_keyframe_frame_id = frame.frame_id
+
         elif l2_candidates:
             tracker.update(l2_candidates)
 
@@ -254,7 +302,25 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
     gen = ReportGenerator(object_map=associator.map)
     gen.find_evidence_frames(associator.map.get_all())
 
-    # Evidence extraction
+    # 保存图结构到 session 供全局拼接使用
+    node_data = []
+    for node_id, frame_id, H in graph.nodes:
+        node_data.append({
+            "node_id": node_id,
+            "frame_id": frame_id,
+            "H_to_global": H.tolist(),
+        })
+
+    # Global mosaic — 全局拼接可视化
+    from core.global_mosaic import generate_global_mosaic
+    generate_global_mosaic(
+        video_path=video_path,
+        graph=graph,
+        objects=associator.map.get_all(),
+        output_dir=output_dir,
+    )
+
+    # Evidence extraction — 像素空间证据帧
     extractor = EvidenceExtractor()
     extractor.extract(video_path, associator.map.get_all(), output_dir)
 
@@ -287,7 +353,7 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Head Tool Counter - Offline Scan")
-    parser.add_argument("--video",default=r"D:\杭州供电段\头戴设备作业工具识别\01公司拍摄数据20260717\测试用\test_42s_to_end_trimmed.mp4")
+    parser.add_argument("--video",default=r"D:\杭州供电段\头戴设备作业工具识别\01公司拍摄数据20260717\测试用\test_cut.mp4")
     parser.add_argument("--config-dir", default="configs")
     parser.add_argument("--output-dir", default="outputs")
     args = parser.parse_args()
