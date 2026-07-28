@@ -78,13 +78,17 @@ def select_l3_regions(l2_candidates):
 
 def run_pipeline(video_path: str, config_dir: str, output_dir: str):
     # Config
-    with open(Path(config_dir) / "pipeline.yaml") as f:
+    cfg_path = Path(config_dir)
+    if not cfg_path.exists():
+        raise FileNotFoundError(f"Config directory not found: {cfg_path.resolve()}")
+
+    with open(cfg_path / "pipeline.yaml") as f:
         cfg = yaml.safe_load(f)["pipeline"]
-    with open(Path(config_dir) / "matcher.yaml") as f:
+    with open(cfg_path / "matcher.yaml") as f:
         mcfg = yaml.safe_load(f)["matcher"]
-    with open(Path(config_dir) / "associator.yaml") as f:
+    with open(cfg_path / "associator.yaml") as f:
         acfg = yaml.safe_load(f)["association"]
-    with open(Path(config_dir) / "tracker.yaml") as f:
+    with open(cfg_path / "tracker.yaml") as f:
         tcfg = yaml.safe_load(f)["tracker"]
 
     l2_interval = cfg.get("l2_interval_frames", 3)
@@ -281,7 +285,7 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Head Tool Counter - Offline Scan")
-    parser.add_argument("--video", required=True)
+    parser.add_argument("--video",default=r"D:\杭州供电段\头戴设备作业工具识别\01公司拍摄数据20260717\测试用\test_first_30s.mp4")
     parser.add_argument("--config-dir", default="configs")
     parser.add_argument("--output-dir", default="outputs")
     args = parser.parse_args()
