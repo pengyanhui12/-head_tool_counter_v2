@@ -93,8 +93,12 @@ class ObjectAssociator:
                 self._update_object(matched, gd)
                 affected.append(matched.provisional_id)
 
-        # Record co-occurrence for this frame
-        all_pids = {obj.provisional_id for gd, _ in pids_in_frame}
+        # Record co-occurrence for this frame — only among objects created/matched
+        all_pids: set[str] = set()
+        for gd, _ in pids_in_frame:
+            for obj in self.map.get_all():
+                if gd in obj.observations:
+                    all_pids.add(obj.provisional_id)
         for gd, _ in pids_in_frame:
             for obj in self.map.get_all():
                 if gd in obj.observations and obj.provisional_id in all_pids:
