@@ -40,8 +40,8 @@ class Detector:
             self._load_model(model_path, device)
 
     def _load_model(self, path: str, device: str) -> None:
-        import os
-        if not os.path.exists(path):
+        from pathlib import Path
+        if not Path(path).exists():
             raise FileNotFoundError(
                 f"Model file not found: {path}. "
                 f"Place your YOLO weights at models/best.pt"
