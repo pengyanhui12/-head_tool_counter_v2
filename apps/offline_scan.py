@@ -112,7 +112,7 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
     )
     graph = HomographyGraph()
     selector = KeyframeSelector(max_interval=max_interval, end_window_frames=end_window, matcher=matcher)
-    detector = Detector(model_path="models/best.pt")
+    detector = Detector(model_path=str(_proj_root / "models" / "best.pt"))
     fusion = DetectionFusion()
     tracker = SimpleDetectionTracker(
         max_missed_detection_frames=tcfg.get("max_missed_detection_frames", 5),
