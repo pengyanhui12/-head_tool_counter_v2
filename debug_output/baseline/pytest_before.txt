@@ -1,0 +1,20 @@
+============================= test session starts =============================
+platform win32 -- Python 3.10.20, pytest-9.1.1, pluggy-1.6.0
+rootdir: D:\PycharmProjects\head_tool_counter
+configfile: pytest.ini
+plugins: anyio-4.14.2
+collected 48 items
+
+tests\test_coverage_map.py ...                                           [  6%]
+tests\test_detection_fusion.py ...                                       [ 12%]
+tests\test_feature_matcher.py ......                                     [ 25%]
+tests\test_frame_buffer.py ....                                          [ 33%]
+tests\test_global_object_map.py ......                                   [ 45%]
+tests\test_global_projector.py ...                                       [ 52%]
+tests\test_homography_graph.py ....                                      [ 60%]
+tests\test_keyframe_selector.py ....                                     [ 68%]
+tests\test_quality_evaluator.py ....                                     [ 77%]
+tests\test_simple_tracker.py ......                                      [ 89%]
+tests\test_video_reader.py .....                                         [100%]
+
+============================= 48 passed in 1.50s ==============================

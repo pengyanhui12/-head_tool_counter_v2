@@ -1,4 +1,4 @@
-"""全局对象地图 — confirmation/visibility 双轴状态 + 双 ID"""
+"""全局对象地图 — confirmation/visibility 双轴状态 + 双 ID + 审计字段"""
 from core.types import (
     GlobalObject,
     GlobalDetection,
@@ -42,8 +42,16 @@ class GlobalObjectMap:
                 return obj
         return None
 
+    def get_reportable(self) -> list[GlobalObject]:
+        """只返回非 REJECTED 对象（R4: persistent ID 只分配给 reportable）。"""
+        return [o for o in self._objects
+                if o.confirmation_status != ConfirmationStatus.REJECTED]
+
     def assign_persistent_ids(self) -> None:
+        """只为非 REJECTED 对象分配 persistent ID（R4）。"""
         for obj in self._objects:
+            if obj.confirmation_status == ConfirmationStatus.REJECTED:
+                continue
             if obj.persistent_id is None:
                 self._persistent_counter += 1
                 obj.persistent_id = f"GO-{self._persistent_counter:04d}"

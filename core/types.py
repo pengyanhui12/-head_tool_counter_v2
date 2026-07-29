@@ -33,6 +33,45 @@ class ReviewFlag(str, Enum):
     EDGE_ONLY = "edge_only"
     LOW_CONFIDENCE = "low_confidence"
     MAPPING_UNSTABLE = "mapping_unstable"
+    TRACK_CONFLICT = "track_conflict"
+
+
+class RecoveryState(str, Enum):
+    RECOVERED = "recovered"
+    FAILED = "failed"
+    LOST = "lost"
+
+
+@dataclass
+class RecoveryResult:
+    state: RecoveryState
+    anchor_node_id: int | None = None
+    H_current_to_anchor: np.ndarray | None = None
+    match_result: MatchResult | None = None
+
+
+@dataclass
+class HomographyNode:
+    """单应图节点——显式记录 parent 和变换。"""
+    node_id: int
+    frame_id: int
+    parent_node_id: int | None
+    H_to_parent: np.ndarray
+    H_to_global: np.ndarray
+
+
+@dataclass
+class MergeAudit:
+    """合并审计记录。"""
+    primary_id: str
+    secondary_id: str
+    decision: str  # "merged" | "blocked" | "marked_duplicate"
+    reason: str
+    shared_track_keys: list = field(default_factory=list)
+    position_distance: float | None = None
+    normalized_distance: float | None = None
+    overlapping_frame_ids: list[int] = field(default_factory=list)
+    co_occurred: bool = False
 
 
 @dataclass
@@ -149,6 +188,9 @@ class Track:
     detection_history: list[DetectionCandidate] = field(
         default_factory=list
     )
+    last_update_frame_id: int = 0
+    last_detection_frame_id: int = 0
+    generation: int = 0  # logical key = (track_id, generation)
 
 
 @dataclass
@@ -195,6 +237,9 @@ class GlobalObject:
     uncertainty_reasons: list[str] = field(default_factory=list)
     best_frame_id: int | None = None
     map_version: int = 0
+    rejected_reason: str | None = None
+    merged_into_id: str | None = None
+    rejection_evidence: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

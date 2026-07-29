@@ -26,17 +26,15 @@ from core.global_projector import GlobalProjector
 from core.object_associator import ObjectAssociator
 from core.coverage_map import CoverageMap
 from core.status_panel import StatusPanel
-from core.report_generator import ReportGenerator
+from core.report_generator import ReportGenerator, get_reportable_objects
 from core.evidence_extractor import EvidenceExtractor
 from core.session_store import SessionStore
+from core.config_loader import ConfigLoader
+from core.recovery_manager import RecoveryManager, RecoveryState
 
 
-def build_raw_detections(
-    tracked_detections,
-    keyframe_id: int,
-    sharpness: float,
-    mapping_quality: float,
-):
+def build_raw_detections(tracked_detections, keyframe_id: int,
+                          sharpness: float, mapping_quality: float):
     from core.types import RawDetection
     raw = []
     for td in tracked_detections:
@@ -59,47 +57,36 @@ def build_raw_detections(
     return raw
 
 
-def should_run_l2(frame_id: int, interval: int = 3) -> bool:
-    return frame_id % interval == 0
-
-
-def should_trigger_l3(l2_candidates) -> bool:
-    return any(
-        c.confidence < 0.35 for c in l2_candidates
-    )
-
-
-def select_l3_regions(l2_candidates):
-    return [
-        tuple(int(v) for v in c.bbox)
-        for c in l2_candidates if c.confidence < 0.35
-    ]
+def should_run_l2(fc: int, interval: int = 3) -> bool:
+    return fc % interval == 0
 
 
 def run_pipeline(video_path: str, config_dir: str, output_dir: str):
-    # Config — resolve relative to project root, not CWD
     _proj_root = Path(__file__).resolve().parent.parent
     cfg_path = (Path(config_dir) if Path(config_dir).is_absolute()
                 else _proj_root / config_dir)
     if not cfg_path.exists():
         raise FileNotFoundError(f"Config directory not found: {cfg_path}")
 
-    with open(cfg_path / "pipeline.yaml") as f:
-        cfg = yaml.safe_load(f)["pipeline"]
-    with open(cfg_path / "matcher.yaml") as f:
-        mcfg = yaml.safe_load(f)["matcher"]
-    with open(cfg_path / "associator.yaml") as f:
-        acfg = yaml.safe_load(f)["association"]
-    with open(cfg_path / "tracker.yaml") as f:
-        tcfg = yaml.safe_load(f)["tracker"]
+    # 使用统一的 ConfigLoader
+    loader = ConfigLoader(cfg_path)
+    cfg = loader.pipeline
+    mcfg = loader.matcher
+    acfg = loader.associator
+    tcfg = loader.tracker
 
     l2_interval = cfg.get("l2_interval_frames", 3)
     max_interval = cfg.get("max_keyframe_interval_frames", 30)
     end_window = cfg.get("end_window_frames", 30)
+    min_kf_interval = cfg.get("min_keyframe_interval_frames", 5)
 
     # Modules
     reader = VideoReader(video_path, max_fps=cfg.get("max_input_fps", 30))
-    quality = QualityEvaluator(sharpness_threshold=cfg.get("sharpness_threshold", 20.0))
+    quality = QualityEvaluator(
+        sharpness_threshold=cfg.get("sharpness_threshold", 20.0),
+        dark_pixel_threshold=cfg.get("dark_pixel_threshold", 10),
+        bright_pixel_threshold=cfg.get("bright_pixel_threshold", 245),
+    )
     frame_buffer = FrameBuffer(max_size=end_window)
     matcher = FeatureMatcher(
         min_good_matches=mcfg.get("min_good_matches", 20),
@@ -109,9 +96,17 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
         min_occupied_quadrants=mcfg.get("min_occupied_quadrants", 3),
         min_inlier_bbox_area_ratio=mcfg.get("min_inlier_bbox_area_ratio", 0.15),
         roi_center_ratio=mcfg.get("roi_center_ratio", 0.70),
+        max_projected_area_ratio=mcfg.get("max_projected_area_ratio", 50.0),
+        min_projected_area_ratio=mcfg.get("min_projected_area_ratio", 0.01),
     )
     graph = HomographyGraph()
-    selector = KeyframeSelector(max_interval=max_interval, end_window_frames=end_window, matcher=matcher)
+    selector = KeyframeSelector(
+        max_interval=max_interval,
+        end_window_frames=end_window,
+        matcher=matcher,
+        min_keyframe_interval_frames=min_kf_interval,
+        emergency_keyframe_interval_frames=cfg.get("emergency_keyframe_interval_frames", 2),
+    )
     detector = Detector(model_path=str(_proj_root / "models" / "best.pt"))
     fusion = DetectionFusion()
     tracker = SimpleDetectionTracker(
@@ -121,6 +116,11 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
         iou_weight=tcfg.get("iou_weight", 0.60),
         center_weight=tcfg.get("center_weight", 0.40),
         class_compatibility=acfg.get("class_compatibility", {}),
+        inactive_min_iou=tcfg.get("inactive_min_iou", 0.30),
+        inactive_max_center_distance_ratio=tcfg.get("inactive_max_center_distance_ratio", 0.12),
+        quality_drop_trigger_ratio=tcfg.get("quality_drop_trigger_ratio", 0.70),
+        quality_drop_rearm_ratio=tcfg.get("quality_drop_rearm_ratio", 0.85),
+        quality_drop_min_history=tcfg.get("quality_drop_min_history", 5),
     )
     projector = GlobalProjector()
     associator = ObjectAssociator(
@@ -135,14 +135,18 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
         min_top_class_ratio=acfg.get("min_top_class_ratio", 0.60),
         max_votes_per_track=acfg.get("max_votes_per_track", 3),
         class_compatibility=acfg.get("class_compatibility", {}),
+        debug_mode=False,
     )
     coverage = CoverageMap(grid_resolution=100)
     status = StatusPanel()
+    recovery_mgr = RecoveryManager(matcher=matcher)
 
     # State
     last_keyframe: Frame | None = None
     last_keyframe_frame_id: int = -1
+    last_keyframe_node_id: int | None = None
     end_window_deque: deque[Frame] = deque(maxlen=end_window)
+    processed_keyframe_frame_ids: set[int] = set()
     fc = 0
 
     print(f"Processing: {video_path}")
@@ -150,26 +154,34 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
         fc += 1
         frame = quality.evaluate(frame)
         if not quality.is_acceptable(frame):
+            tracker.advance_frame(frame.frame_id)
+            recovery_mgr.cache_frame(frame)
             continue
 
         frame_buffer.push(frame)
         end_window_deque.append(frame)
 
         # L2 detection
+        l2_was_run = should_run_l2(fc, l2_interval)
         l2_candidates = []
-        if should_run_l2(fc, l2_interval):
+        if l2_was_run:
             l2_candidates = detector.detect(
                 image=frame.image, level="L2", frame_id=frame.frame_id,
             )
 
-        preview = tracker.preview(l2_candidates)
+        preview = tracker.preview(l2_candidates, l2_was_run=l2_was_run)
 
         trigger_context = KeyframeTriggerContext(
             max_interval_reached=(frame.frame_id - last_keyframe_frame_id >= max_interval),
             l2_new_unmatched_detection=preview.l2_new_unmatched_detection,
             track_quality_drop=preview.track_quality_drop,
-            l3_required=should_trigger_l3(l2_candidates),
-            l3_regions=select_l3_regions(l2_candidates),
+            l3_required=(
+                any(c.confidence < 0.35 for c in l2_candidates) if l2_candidates else False
+            ),
+            l3_regions=[
+                tuple(int(v) for v in c.bbox)
+                for c in l2_candidates if c.confidence < 0.35
+            ] if l2_candidates else [],
         )
 
         keyframe_result = selector.evaluate(
@@ -181,14 +193,13 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
         if keyframe_result.decision == KeyframeDecision.ACCEPTED:
             if last_keyframe is None:
                 keyframe_id = graph.add_first_keyframe(frame_id=frame.frame_id)
-                # 首帧 mapping_quality 固定 1.0（无匹配过程）
                 frame.mapping_quality = 1.0
             else:
                 keyframe_id = graph.add_keyframe(
                     frame_id=frame.frame_id,
-                    H_current_to_previous=keyframe_result.H_current_to_previous,
+                    H_current_to_parent=keyframe_result.H_current_to_previous,
+                    parent_node_id=last_keyframe_node_id,
                 )
-                # 从匹配结果的 inlier_ratio 获取 mapping_quality
                 if keyframe_result.match_result is not None:
                     frame.mapping_quality = float(keyframe_result.match_result.inlier_ratio)
 
@@ -206,7 +217,7 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
                 )
 
             fused_candidates = fusion.fuse(l1=l1_candidates, l3=l3_candidates)
-            tracked = tracker.update(fused_candidates)
+            tracked = tracker.update(fused_candidates, frame_id=frame.frame_id)
 
             raw_detections = build_raw_detections(
                 tracked_detections=tracked,
@@ -235,27 +246,34 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
             )
             coverage.update(frame.frame_id, projected_fov)
 
+            processed_keyframe_frame_ids.add(frame.frame_id)
+            recovery_mgr.reset()
             last_keyframe = frame
             last_keyframe_frame_id = frame.frame_id
+            last_keyframe_node_id = keyframe_id
 
-        # RECOVERY: 匹配失败但触发信号存在，降级使用 identity H，低质量标记
         elif keyframe_result.decision == KeyframeDecision.RECOVERY:
-            if last_keyframe is not None:
-                # 使用 identity H（即当前帧坐标 ≈ 全局坐标），mapping_quality 很低
+            recovery_result = recovery_mgr.recover(
+                current_frame=frame, previous_keyframe=last_keyframe,
+                frame_buffer=frame_buffer, graph=graph,
+                keyframe_images=None,
+            )
+
+            if recovery_result.state == RecoveryState.RECOVERED and recovery_result.H_current_to_anchor is not None:
+                parent_id = recovery_result.anchor_node_id or last_keyframe_node_id
                 keyframe_id = graph.add_keyframe(
                     frame_id=frame.frame_id,
-                    H_current_to_previous=np.eye(3),
+                    H_current_to_parent=recovery_result.H_current_to_anchor,
+                    parent_node_id=parent_id,
                 )
-                frame.mapping_quality = 0.15  # RECOVERY 降级质量
-
+                frame.mapping_quality = 0.5
                 H_kf_to_global = graph.get_transform(keyframe_id)
 
                 l1_candidates = detector.detect(
                     image=frame.image, level="L1", frame_id=frame.frame_id,
                 )
-
                 fused_candidates = fusion.fuse(l1=l1_candidates, l3=[])
-                tracked = tracker.update(fused_candidates)
+                tracked = tracker.update(fused_candidates, frame_id=frame.frame_id)
 
                 raw_detections = build_raw_detections(
                     tracked_detections=tracked,
@@ -263,7 +281,6 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
                     sharpness=frame.sharpness_score,
                     mapping_quality=frame.mapping_quality,
                 )
-
                 global_detections = [
                     projector.project(
                         detection=rd,
@@ -272,28 +289,57 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
                     )
                     for rd in raw_detections
                 ]
-
                 associator.ingest_frame(
                     frame_id=frame.frame_id,
                     global_detections=global_detections,
                 )
-
+                processed_keyframe_frame_ids.add(frame.frame_id)
+                recovery_mgr.reset()
                 last_keyframe = frame
                 last_keyframe_frame_id = frame.frame_id
+                last_keyframe_node_id = keyframe_id
+            else:
+                recovery_mgr.cache_frame(frame)
+                recovery_mgr.cache_detections(frame.frame_id, l2_candidates, frame.sharpness_score)
 
-        elif l2_candidates:
-            tracker.update(l2_candidates)
+        elif l2_was_run:
+            tracker.update(l2_candidates, frame_id=frame.frame_id)
 
     # Post-video
     print(f"\nProcessed {fc} frames, {graph.num_keyframes} keyframes accepted.")
 
-    # End window: select best 1-2 frames
+    # End window
     end_kfs = selector.select_end_keyframes(list(end_window_deque))
     for ekf in end_kfs:
+        if ekf.frame_id in processed_keyframe_frame_ids:
+            continue
         result = selector.evaluate(ekf, last_keyframe,
                                    KeyframeTriggerContext(force_end_candidate=True))
         if result.decision == KeyframeDecision.ACCEPTED:
-            graph.add_keyframe(ekf.frame_id, result.H_current_to_previous)
+            try:
+                keyframe_id = graph.add_keyframe(
+                    frame_id=ekf.frame_id,
+                    H_current_to_parent=result.H_current_to_previous,
+                    parent_node_id=last_keyframe_node_id,
+                )
+                H_kf_to_global = graph.get_transform(keyframe_id)
+                l1_candidates = detector.detect(image=ekf.image, level="L1", frame_id=ekf.frame_id)
+                fused_candidates = fusion.fuse(l1=l1_candidates, l3=[])
+                tracked = tracker.update(fused_candidates, frame_id=ekf.frame_id)
+                raw_detections = build_raw_detections(tracked, keyframe_id,
+                                                      ekf.sharpness_score, ekf.mapping_quality)
+                global_detections = [
+                    projector.project(detection=rd, H_keyframe_to_global=H_kf_to_global,
+                                      transform_version=graph.transform_version)
+                    for rd in raw_detections
+                ]
+                associator.ingest_frame(frame_id=ekf.frame_id, global_detections=global_detections)
+                processed_keyframe_frame_ids.add(ekf.frame_id)
+                last_keyframe = ekf
+                last_keyframe_frame_id = ekf.frame_id
+                last_keyframe_node_id = keyframe_id
+            except (ValueError, KeyError) as e:
+                print(f"  End KF failed: frame {ekf.frame_id} — {e}")
 
     # Final review
     associator.final_review()
@@ -302,7 +348,7 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
     gen = ReportGenerator(object_map=associator.map)
     gen.find_evidence_frames(associator.map.get_all())
 
-    # 保存图结构到 session 供全局拼接使用
+    # Save graph
     node_data = []
     for node_id, frame_id, H in graph.nodes:
         node_data.append({
@@ -311,7 +357,6 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
             "H_to_global": H.tolist(),
         })
 
-    # Global mosaic — 全局拼接可视化
     from core.global_mosaic import generate_global_mosaic
     generate_global_mosaic(
         video_path=video_path,
@@ -320,11 +365,9 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
         output_dir=output_dir,
     )
 
-    # Evidence extraction — 像素空间证据帧
     extractor = EvidenceExtractor()
     extractor.extract(video_path, associator.map.get_all(), output_dir)
 
-    # Session save
     store = SessionStore(output_dir)
     store.create_session(video_path)
     store.save_objects(gen.generate_json_report()["objects"])
@@ -332,28 +375,27 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
     out = Path(output_dir)
     (out / "reports").mkdir(parents=True, exist_ok=True)
 
+    # 统一的报告：get_reportable_objects
+    reportable = associator.get_reportable_objects()
     json_path = out / "reports" / "report.json"
-    json_path.write_text(json.dumps(gen.generate_json_report(), indent=2))
+    json_path.write_text(json.dumps(gen.generate_json_report(), indent=2, ensure_ascii=False), encoding="utf-8")
     csv_path = out / "reports" / "report.csv"
-    csv_path.write_text(gen.generate_csv_report(associator.map.get_all()))
+    csv_path.write_text(gen.generate_csv_report(associator.map.get_all()), encoding="utf-8")
 
-    total = len(associator.map.get_all())
-    confirmed = sum(
-        1 for o in associator.map.get_all()
-        if o.confirmation_status == ConfirmationStatus.CONFIRMED
-    )
-    uncertain = sum(
-        1 for o in associator.map.get_all()
-        if o.confirmation_status == ConfirmationStatus.UNCERTAIN
-    )
-
-    print(f"\nDone. {total} objects: {confirmed} CONFIRMED, {uncertain} UNCERTAIN")
+    json_report = gen.generate_json_report()
+    print(f"\nDone.")
+    print(f"  Total objects: {len(associator.map.get_all())}")
+    print(f"  Reportable: {json_report['total_objects']}")
+    print(f"  CONFIRMED: {json_report['confirmed_count']}")
+    print(f"  TENTATIVE: {json_report['tentative_count']}")
+    print(f"  UNCERTAIN: {json_report['uncertain_count']}")
+    print(f"  REJECTED: {json_report['rejected_count']}")
     print(f"Reports: {out}/reports/")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Head Tool Counter - Offline Scan")
-    parser.add_argument("--video",default=r"D:\杭州供电段\头戴设备作业工具识别\01公司拍摄数据20260717\测试用\test_cut.mp4")
+    parser.add_argument("--video", default=r"D:\杭州供电段\头戴设备作业工具识别\01公司拍摄数据20260717\测试用\test_cut.mp4")
     parser.add_argument("--config-dir", default="configs")
     parser.add_argument("--output-dir", default="outputs")
     args = parser.parse_args()

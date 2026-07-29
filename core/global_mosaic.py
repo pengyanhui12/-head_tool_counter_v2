@@ -167,9 +167,10 @@ def generate_global_mosaic(
 
         # Warp frames if needed
         if not skip_warp:
+            cap2 = cv2.VideoCapture(video_path)
             for _node_id, frame_id, H_to_global in nodes[::step]:
-                cap.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
-                ok, frame = cap.read()
+                cap2.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
+                ok, frame = cap2.read()
                 if not ok:
                     continue
                 T = np.array([
@@ -188,6 +189,7 @@ def generate_global_mosaic(
                 canvas2[mask] = cv2.addWeighted(
                     canvas2[mask], 1 - alpha, warped[mask], alpha, 0
                 ).astype(np.uint8)
+            cap2.release()
 
         # Draw objects on zoomed canvas
         # Draw objects on zoomed canvas

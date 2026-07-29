@@ -1,0 +1,12 @@
+ M .idea/head_tool_counter.iml
+ M core/global_mosaic.py
+A  debug_pipeline.py
+A  head_tool_counter_debug_fix_plan_v2_1.md
+?? debug_output/
+master
+23c0871f35a2e4ea7c921bff8ee09c377b72cbf2
+23c0871 (HEAD -> master, origin/master, origin/HEAD) Merge remote-tracking branch 'origin/master'
+846b2cf fix: voting=0, sparse KFs, evidence bbox, object fragmentation — pipeline now produces 12 CONFIRMED + 3 TENTATIVE
+f33ac5a fix: voting=0, sparse KFs, evidence bbox, object fragmentation — pipeline now produces 12 CONFIRMED + 3 TENTATIVE
+1502f50 docs: add CLAUDE.md with architecture overview and conventions
+8d7f68a 修改

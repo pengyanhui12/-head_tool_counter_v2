@@ -6,3 +6,8 @@ tracker:
   max_center_distance_ratio: 0.20
   iou_weight: 0.60
   center_weight: 0.40
+  inactive_min_iou: 0.30
+  inactive_max_center_distance_ratio: 0.12
+  quality_drop_trigger_ratio: 0.70
+  quality_drop_rearm_ratio: 0.85
+  quality_drop_min_history: 5
