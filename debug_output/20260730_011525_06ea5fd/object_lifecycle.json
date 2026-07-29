@@ -1,0 +1,580 @@
+[
+  {
+    "provisional_id": "P-0001",
+    "persistent_id": "GO-0001",
+    "class_name": "electrical_tape",
+    "status": "confirmed",
+    "observation_count": 21,
+    "unique_frame_count": 21,
+    "keyframe_count": 21,
+    "track_count": 4,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1010.4016741532552,
+      257.5112601991121
+    ]
+  },
+  {
+    "provisional_id": "P-0002",
+    "persistent_id": "GO-0002",
+    "class_name": "electrical_tape",
+    "status": "confirmed",
+    "observation_count": 21,
+    "unique_frame_count": 21,
+    "keyframe_count": 21,
+    "track_count": 5,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1028.9494815600399,
+      350.79365310695476
+    ]
+  },
+  {
+    "provisional_id": "P-0003",
+    "persistent_id": "GO-0003",
+    "class_name": "telescopic_voltage_detector",
+    "status": "confirmed",
+    "observation_count": 23,
+    "unique_frame_count": 23,
+    "keyframe_count": 23,
+    "track_count": 2,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1142.5493958600268,
+      298.19670211765356
+    ]
+  },
+  {
+    "provisional_id": "P-0004",
+    "persistent_id": "GO-0004",
+    "class_name": "headlamp",
+    "status": "confirmed",
+    "observation_count": 23,
+    "unique_frame_count": 23,
+    "keyframe_count": 23,
+    "track_count": 8,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1291.7156423783722,
+      450.8924616398953
+    ]
+  },
+  {
+    "provisional_id": "P-0005",
+    "persistent_id": "GO-0005",
+    "class_name": "insulating_glove",
+    "status": "confirmed",
+    "observation_count": 17,
+    "unique_frame_count": 17,
+    "keyframe_count": 17,
+    "track_count": 2,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1477.8897056732471,
+      334.6717435898698
+    ]
+  },
+  {
+    "provisional_id": "P-0006",
+    "persistent_id": "GO-0006",
+    "class_name": "insulating_glove",
+    "status": "confirmed",
+    "observation_count": 14,
+    "unique_frame_count": 14,
+    "keyframe_count": 14,
+    "track_count": 2,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1411.4319069224127,
+      329.4914023955921
+    ]
+  },
+  {
+    "provisional_id": "P-0007",
+    "persistent_id": "GO-0007",
+    "class_name": "headlamp",
+    "status": "confirmed",
+    "observation_count": 22,
+    "unique_frame_count": 22,
+    "keyframe_count": 22,
+    "track_count": 4,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1367.0249237680719,
+      513.6022502323968
+    ]
+  },
+  {
+    "provisional_id": "P-0008",
+    "persistent_id": "GO-0008",
+    "class_name": "headlamp",
+    "status": "confirmed",
+    "observation_count": 18,
+    "unique_frame_count": 18,
+    "keyframe_count": 18,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1289.367003268428,
+      504.94873226647644
+    ]
+  },
+  {
+    "provisional_id": "P-0009",
+    "persistent_id": "GO-0009",
+    "class_name": "insulating_glove",
+    "status": "confirmed",
+    "observation_count": 14,
+    "unique_frame_count": 14,
+    "keyframe_count": 14,
+    "track_count": 4,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1357.2077207679154,
+      322.36542802758777
+    ]
+  },
+  {
+    "provisional_id": "P-0010",
+    "persistent_id": "GO-0010",
+    "class_name": "telescopic_voltage_detector",
+    "status": "tentative",
+    "observation_count": 2,
+    "unique_frame_count": 2,
+    "keyframe_count": 2,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1442.1276640188648,
+      535.0917869410397
+    ]
+  },
+  {
+    "provisional_id": "P-0011",
+    "persistent_id": "GO-0011",
+    "class_name": "headlamp",
+    "status": "confirmed",
+    "observation_count": 16,
+    "unique_frame_count": 16,
+    "keyframe_count": 16,
+    "track_count": 5,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1219.1594550668883,
+      533.8075753599662
+    ]
+  },
+  {
+    "provisional_id": "P-0012",
+    "persistent_id": "GO-0012",
+    "class_name": "pliers",
+    "status": "confirmed",
+    "observation_count": 16,
+    "unique_frame_count": 16,
+    "keyframe_count": 16,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1643.5230536474546,
+      600.8181789877203
+    ]
+  },
+  {
+    "provisional_id": "P-0013",
+    "persistent_id": "GO-0013",
+    "class_name": "pliers",
+    "status": "confirmed",
+    "observation_count": 13,
+    "unique_frame_count": 13,
+    "keyframe_count": 13,
+    "track_count": 8,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1563.579394903693,
+      576.650492124348
+    ]
+  },
+  {
+    "provisional_id": "P-0014",
+    "persistent_id": "GO-0014",
+    "class_name": "tape_measure",
+    "status": "confirmed",
+    "observation_count": 17,
+    "unique_frame_count": 17,
+    "keyframe_count": 17,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1594.4759604085073,
+      352.3551675446684
+    ]
+  },
+  {
+    "provisional_id": "P-0015",
+    "persistent_id": "GO-0015",
+    "class_name": "tape_measure",
+    "status": "confirmed",
+    "observation_count": 17,
+    "unique_frame_count": 17,
+    "keyframe_count": 17,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1639.2726336183703,
+      405.9938348249201
+    ]
+  },
+  {
+    "provisional_id": "P-0016",
+    "persistent_id": "GO-0016",
+    "class_name": "flashlight",
+    "status": "tentative",
+    "observation_count": 1,
+    "unique_frame_count": 1,
+    "keyframe_count": 1,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1602.0346809885432,
+      578.6644944285977
+    ]
+  },
+  {
+    "provisional_id": "P-0017",
+    "persistent_id": "GO-0017",
+    "class_name": "tape_measure",
+    "status": "tentative",
+    "observation_count": 2,
+    "unique_frame_count": 2,
+    "keyframe_count": 2,
+    "track_count": 2,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1645.7388718675575,
+      371.0630462764947
+    ]
+  },
+  {
+    "provisional_id": "P-0018",
+    "persistent_id": "GO-0018",
+    "class_name": "pliers",
+    "status": "confirmed",
+    "observation_count": 9,
+    "unique_frame_count": 9,
+    "keyframe_count": 9,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1701.6127639476108,
+      601.7426289914463
+    ]
+  },
+  {
+    "provisional_id": "P-0019",
+    "persistent_id": "GO-0019",
+    "class_name": "cordless_drill",
+    "status": "confirmed",
+    "observation_count": 14,
+    "unique_frame_count": 14,
+    "keyframe_count": 14,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1736.0035440461756,
+      380.9034198717328
+    ]
+  },
+  {
+    "provisional_id": "P-0020",
+    "persistent_id": "GO-0020",
+    "class_name": "pliers",
+    "status": "tentative",
+    "observation_count": 1,
+    "unique_frame_count": 1,
+    "keyframe_count": 1,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1769.4463420230213,
+      578.2442197525327
+    ]
+  },
+  {
+    "provisional_id": "P-0021",
+    "persistent_id": "GO-0021",
+    "class_name": "pliers",
+    "status": "confirmed",
+    "observation_count": 6,
+    "unique_frame_count": 6,
+    "keyframe_count": 6,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1744.269336421301,
+      599.5891979023729
+    ]
+  },
+  {
+    "provisional_id": "P-0022",
+    "persistent_id": "GO-0022",
+    "class_name": "hammer",
+    "status": "confirmed",
+    "observation_count": 12,
+    "unique_frame_count": 12,
+    "keyframe_count": 12,
+    "track_count": 2,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1871.3123862600808,
+      570.4353630385624
+    ]
+  },
+  {
+    "provisional_id": "P-0023",
+    "persistent_id": "GO-0023",
+    "class_name": "screwdriver",
+    "status": "confirmed",
+    "observation_count": 7,
+    "unique_frame_count": 7,
+    "keyframe_count": 7,
+    "track_count": 4,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1913.3768421196924,
+      359.45861867019363
+    ]
+  },
+  {
+    "provisional_id": "P-0024",
+    "persistent_id": "GO-0024",
+    "class_name": "screwdriver",
+    "status": "confirmed",
+    "observation_count": 11,
+    "unique_frame_count": 11,
+    "keyframe_count": 11,
+    "track_count": 7,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1885.2795424617702,
+      379.1799341206743
+    ]
+  },
+  {
+    "provisional_id": "P-0025",
+    "persistent_id": "GO-0025",
+    "class_name": "screwdriver",
+    "status": "confirmed",
+    "observation_count": 11,
+    "unique_frame_count": 11,
+    "keyframe_count": 11,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1966.8037043677955,
+      360.5238220739366
+    ]
+  },
+  {
+    "provisional_id": "P-0026",
+    "persistent_id": "GO-0026",
+    "class_name": "flashlight",
+    "status": "confirmed",
+    "observation_count": 9,
+    "unique_frame_count": 9,
+    "keyframe_count": 9,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1962.3157274504083,
+      538.9031166753075
+    ]
+  },
+  {
+    "provisional_id": "P-0027",
+    "persistent_id": "GO-0027",
+    "class_name": "pliers",
+    "status": "confirmed",
+    "observation_count": 10,
+    "unique_frame_count": 10,
+    "keyframe_count": 10,
+    "track_count": 2,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1524.1205420659558,
+      571.458114736625
+    ]
+  },
+  {
+    "provisional_id": "P-0028",
+    "persistent_id": "GO-0028",
+    "class_name": "headlamp",
+    "status": "tentative",
+    "observation_count": 3,
+    "unique_frame_count": 3,
+    "keyframe_count": 3,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1393.868125059076,
+      506.96741025121014
+    ]
+  },
+  {
+    "provisional_id": "P-0029",
+    "persistent_id": "GO-0029",
+    "class_name": "pliers",
+    "status": "confirmed",
+    "observation_count": 7,
+    "unique_frame_count": 7,
+    "keyframe_count": 7,
+    "track_count": 2,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1715.3124503179765,
+      601.0470039999618
+    ]
+  },
+  {
+    "provisional_id": "P-0030",
+    "persistent_id": "GO-0030",
+    "class_name": "screwdriver",
+    "status": "tentative",
+    "observation_count": 3,
+    "unique_frame_count": 3,
+    "keyframe_count": 3,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1663.976240166966,
+      606.9075467065784
+    ]
+  },
+  {
+    "provisional_id": "P-0031",
+    "persistent_id": "GO-0031",
+    "class_name": "headlamp",
+    "status": "confirmed",
+    "observation_count": 7,
+    "unique_frame_count": 7,
+    "keyframe_count": 7,
+    "track_count": 2,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1242.1247144277058,
+      508.4717540666422
+    ]
+  },
+  {
+    "provisional_id": "P-0032",
+    "persistent_id": "GO-0032",
+    "class_name": "screwdriver",
+    "status": "tentative",
+    "observation_count": 4,
+    "unique_frame_count": 4,
+    "keyframe_count": 4,
+    "track_count": 4,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1926.002349894707,
+      365.3395990219618
+    ]
+  }
+]

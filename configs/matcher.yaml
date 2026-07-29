@@ -7,7 +7,8 @@ matcher:
   min_inlier_ratio: 0.30
   max_reprojection_error_px: 3.0
   min_occupied_quadrants: 2
-  min_inlier_bbox_area_ratio: 0.10
+  min_inlier_bbox_area_ratio: 0.015
   roi_center_ratio: 0.70
-  max_projected_area_ratio: 10.0
-  min_projected_area_ratio: 0.10
+  max_projected_area_ratio: 50.0
+  min_projected_area_ratio: 0.01
+  max_condition_number: 500000

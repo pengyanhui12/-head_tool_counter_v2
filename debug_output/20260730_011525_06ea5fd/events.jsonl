@@ -1,0 +1,841 @@
+{"event_type": "FRAME_QUALITY", "frame_id": 0, "sharpness": 15.6, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 1, "sharpness": 14.9, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 2, "sharpness": 14.9, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 3, "sharpness": 14.8, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 4, "sharpness": 14.8, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 5, "sharpness": 15.0, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 6, "sharpness": 14.4, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 7, "sharpness": 14.5, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 8, "sharpness": 14.7, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 9, "sharpness": 15.0, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 10, "sharpness": 15.7, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 11, "sharpness": 15.3, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 12, "sharpness": 16.0, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 13, "sharpness": 16.5, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 14, "sharpness": 16.3, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 15, "sharpness": 17.4, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 16, "sharpness": 17.2, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 17, "sharpness": 18.1, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 18, "sharpness": 17.7, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 19, "sharpness": 18.4, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 20, "sharpness": 19.3, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 21, "sharpness": 19.0, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 22, "sharpness": 19.4, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 23, "sharpness": 20.3, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 23, "count": 7, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 23, "l2_was_run": true, "unmatched_count": 7, "quality_drop": false}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 23, "reason": "first_frame", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 23, "keyframe_id": 0, "parent_node_id": null, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 23, "keyframe_id": 0, "l1_count": 6, "l3_count": 7, "fused_count": 6, "objects_affected": 6}
+{"event_type": "FRAME_QUALITY", "frame_id": 24, "sharpness": 20.2, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 24}
+{"event_type": "TRACK_PREVIEW", "frame_id": 24, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 24}
+{"event_type": "FRAME_QUALITY", "frame_id": 25, "sharpness": 20.6, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 25}
+{"event_type": "TRACK_PREVIEW", "frame_id": 25, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 25}
+{"event_type": "FRAME_QUALITY", "frame_id": 26, "sharpness": 20.0, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 26, "count": 7, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 26, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 26}
+{"event_type": "FRAME_QUALITY", "frame_id": 27, "sharpness": 19.4, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 28, "sharpness": 19.4, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 29, "sharpness": 18.7, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 30, "sharpness": 20.4, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 30}
+{"event_type": "TRACK_PREVIEW", "frame_id": 30, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 30}
+{"event_type": "FRAME_QUALITY", "frame_id": 31, "sharpness": 21.6, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 31}
+{"event_type": "TRACK_PREVIEW", "frame_id": 31, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 31}
+{"event_type": "FRAME_QUALITY", "frame_id": 32, "sharpness": 20.9, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 32, "count": 8, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 32, "l2_was_run": true, "unmatched_count": 2, "quality_drop": false}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 32, "reason": "l2_new_unmatched_detection", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 32, "keyframe_id": 1, "parent_node_id": 0, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 32, "keyframe_id": 1, "l1_count": 8, "l3_count": 8, "fused_count": 7, "objects_affected": 7}
+{"event_type": "FRAME_QUALITY", "frame_id": 33, "sharpness": 20.5, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 33}
+{"event_type": "TRACK_PREVIEW", "frame_id": 33, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 33}
+{"event_type": "FRAME_QUALITY", "frame_id": 34, "sharpness": 20.5, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 34}
+{"event_type": "TRACK_PREVIEW", "frame_id": 34, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 34}
+{"event_type": "FRAME_QUALITY", "frame_id": 35, "sharpness": 21.6, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 35, "count": 9, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 35, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 35}
+{"event_type": "FRAME_QUALITY", "frame_id": 36, "sharpness": 22.5, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 36}
+{"event_type": "TRACK_PREVIEW", "frame_id": 36, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 36}
+{"event_type": "FRAME_QUALITY", "frame_id": 37, "sharpness": 22.7, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 37}
+{"event_type": "TRACK_PREVIEW", "frame_id": 37, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 37}
+{"event_type": "FRAME_QUALITY", "frame_id": 38, "sharpness": 22.6, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 38, "count": 8, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 38, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 38}
+{"event_type": "FRAME_QUALITY", "frame_id": 39, "sharpness": 23.1, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 39}
+{"event_type": "TRACK_PREVIEW", "frame_id": 39, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 39}
+{"event_type": "FRAME_QUALITY", "frame_id": 40, "sharpness": 23.5, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 40}
+{"event_type": "TRACK_PREVIEW", "frame_id": 40, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 40}
+{"event_type": "FRAME_QUALITY", "frame_id": 41, "sharpness": 22.1, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 41, "count": 9, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 41, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 41}
+{"event_type": "FRAME_QUALITY", "frame_id": 42, "sharpness": 23.3, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 42}
+{"event_type": "TRACK_PREVIEW", "frame_id": 42, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 42}
+{"event_type": "FRAME_QUALITY", "frame_id": 43, "sharpness": 24.3, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 43}
+{"event_type": "TRACK_PREVIEW", "frame_id": 43, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 43}
+{"event_type": "FRAME_QUALITY", "frame_id": 44, "sharpness": 24.9, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 44, "count": 10, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 44, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 44}
+{"event_type": "FRAME_QUALITY", "frame_id": 45, "sharpness": 26.6, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 45}
+{"event_type": "TRACK_PREVIEW", "frame_id": 45, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 45}
+{"event_type": "FRAME_QUALITY", "frame_id": 46, "sharpness": 26.4, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 46}
+{"event_type": "TRACK_PREVIEW", "frame_id": 46, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 46}
+{"event_type": "FRAME_QUALITY", "frame_id": 47, "sharpness": 27.3, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 47, "count": 9, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 47, "l2_was_run": true, "unmatched_count": 0, "quality_drop": true}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 47, "reason": "track_quality_drop", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 47, "keyframe_id": 2, "parent_node_id": 1, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 47, "keyframe_id": 2, "l1_count": 8, "l3_count": 10, "fused_count": 8, "objects_affected": 8}
+{"event_type": "FRAME_QUALITY", "frame_id": 48, "sharpness": 26.9, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 48}
+{"event_type": "TRACK_PREVIEW", "frame_id": 48, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 48}
+{"event_type": "FRAME_QUALITY", "frame_id": 49, "sharpness": 28.1, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 49}
+{"event_type": "TRACK_PREVIEW", "frame_id": 49, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 49}
+{"event_type": "FRAME_QUALITY", "frame_id": 50, "sharpness": 27.6, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 50, "count": 11, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 50, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 50}
+{"event_type": "FRAME_QUALITY", "frame_id": 51, "sharpness": 27.7, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 51}
+{"event_type": "TRACK_PREVIEW", "frame_id": 51, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 51}
+{"event_type": "FRAME_QUALITY", "frame_id": 52, "sharpness": 28.5, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 52}
+{"event_type": "TRACK_PREVIEW", "frame_id": 52, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 52}
+{"event_type": "FRAME_QUALITY", "frame_id": 53, "sharpness": 28.4, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 53, "count": 10, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 53, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 53}
+{"event_type": "FRAME_QUALITY", "frame_id": 54, "sharpness": 27.3, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 54}
+{"event_type": "TRACK_PREVIEW", "frame_id": 54, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 54}
+{"event_type": "FRAME_QUALITY", "frame_id": 55, "sharpness": 28.5, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 55}
+{"event_type": "TRACK_PREVIEW", "frame_id": 55, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 55}
+{"event_type": "FRAME_QUALITY", "frame_id": 56, "sharpness": 28.5, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 56, "count": 9, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 56, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 56}
+{"event_type": "FRAME_QUALITY", "frame_id": 57, "sharpness": 29.8, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 57}
+{"event_type": "TRACK_PREVIEW", "frame_id": 57, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 57}
+{"event_type": "FRAME_QUALITY", "frame_id": 58, "sharpness": 30.9, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 58}
+{"event_type": "TRACK_PREVIEW", "frame_id": 58, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 58}
+{"event_type": "FRAME_QUALITY", "frame_id": 59, "sharpness": 31.1, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 59, "count": 13, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 59, "l2_was_run": true, "unmatched_count": 1, "quality_drop": false}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 59, "reason": "l2_new_unmatched_detection", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 59, "keyframe_id": 3, "parent_node_id": 2, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 59, "keyframe_id": 3, "l1_count": 11, "l3_count": 12, "fused_count": 9, "objects_affected": 9}
+{"event_type": "FRAME_QUALITY", "frame_id": 60, "sharpness": 39.0, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 60}
+{"event_type": "TRACK_PREVIEW", "frame_id": 60, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 60}
+{"event_type": "FRAME_QUALITY", "frame_id": 61, "sharpness": 34.3, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 61}
+{"event_type": "TRACK_PREVIEW", "frame_id": 61, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 61}
+{"event_type": "FRAME_QUALITY", "frame_id": 62, "sharpness": 32.3, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 62, "count": 11, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 62, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 62}
+{"event_type": "FRAME_QUALITY", "frame_id": 63, "sharpness": 32.4, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 63}
+{"event_type": "TRACK_PREVIEW", "frame_id": 63, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 63}
+{"event_type": "FRAME_QUALITY", "frame_id": 64, "sharpness": 34.2, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 64}
+{"event_type": "TRACK_PREVIEW", "frame_id": 64, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 64}
+{"event_type": "FRAME_QUALITY", "frame_id": 65, "sharpness": 34.5, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 65, "count": 9, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 65, "l2_was_run": true, "unmatched_count": 1, "quality_drop": false}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 65, "reason": "l2_new_unmatched_detection", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 65, "keyframe_id": 4, "parent_node_id": 3, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 65, "keyframe_id": 4, "l1_count": 10, "l3_count": 11, "fused_count": 10, "objects_affected": 10}
+{"event_type": "FRAME_QUALITY", "frame_id": 66, "sharpness": 35.4, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 66}
+{"event_type": "TRACK_PREVIEW", "frame_id": 66, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 66}
+{"event_type": "FRAME_QUALITY", "frame_id": 67, "sharpness": 33.6, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 67}
+{"event_type": "TRACK_PREVIEW", "frame_id": 67, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 67}
+{"event_type": "FRAME_QUALITY", "frame_id": 68, "sharpness": 32.3, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 68, "count": 10, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 68, "l2_was_run": true, "unmatched_count": 1, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 68}
+{"event_type": "FRAME_QUALITY", "frame_id": 69, "sharpness": 31.2, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 69}
+{"event_type": "TRACK_PREVIEW", "frame_id": 69, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 69}
+{"event_type": "FRAME_QUALITY", "frame_id": 70, "sharpness": 30.5, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 70}
+{"event_type": "TRACK_PREVIEW", "frame_id": 70, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 70}
+{"event_type": "FRAME_QUALITY", "frame_id": 71, "sharpness": 29.7, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 71, "count": 9, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 71, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 71}
+{"event_type": "FRAME_QUALITY", "frame_id": 72, "sharpness": 29.9, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 72}
+{"event_type": "TRACK_PREVIEW", "frame_id": 72, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 72}
+{"event_type": "FRAME_QUALITY", "frame_id": 73, "sharpness": 27.6, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 73}
+{"event_type": "TRACK_PREVIEW", "frame_id": 73, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 73}
+{"event_type": "FRAME_QUALITY", "frame_id": 74, "sharpness": 27.3, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 74, "count": 11, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 74, "l2_was_run": true, "unmatched_count": 2, "quality_drop": false}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 74, "reason": "l2_new_unmatched_detection", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 74, "keyframe_id": 5, "parent_node_id": 4, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 74, "keyframe_id": 5, "l1_count": 10, "l3_count": 10, "fused_count": 9, "objects_affected": 9}
+{"event_type": "FRAME_QUALITY", "frame_id": 75, "sharpness": 26.9, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 75}
+{"event_type": "TRACK_PREVIEW", "frame_id": 75, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 75}
+{"event_type": "FRAME_QUALITY", "frame_id": 76, "sharpness": 26.9, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 76}
+{"event_type": "TRACK_PREVIEW", "frame_id": 76, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 76}
+{"event_type": "FRAME_QUALITY", "frame_id": 77, "sharpness": 27.5, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 77, "count": 15, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 77, "l2_was_run": true, "unmatched_count": 4, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 77}
+{"event_type": "FRAME_QUALITY", "frame_id": 78, "sharpness": 26.8, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 78}
+{"event_type": "TRACK_PREVIEW", "frame_id": 78, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 78}
+{"event_type": "FRAME_QUALITY", "frame_id": 79, "sharpness": 27.8, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 79}
+{"event_type": "TRACK_PREVIEW", "frame_id": 79, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 79}
+{"event_type": "FRAME_QUALITY", "frame_id": 80, "sharpness": 27.1, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 80, "count": 14, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 80, "l2_was_run": true, "unmatched_count": 2, "quality_drop": false}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 80, "reason": "l2_new_unmatched_detection", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 80, "keyframe_id": 6, "parent_node_id": 5, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 80, "keyframe_id": 6, "l1_count": 14, "l3_count": 16, "fused_count": 13, "objects_affected": 13}
+{"event_type": "FRAME_QUALITY", "frame_id": 81, "sharpness": 27.8, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 81}
+{"event_type": "TRACK_PREVIEW", "frame_id": 81, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 81}
+{"event_type": "FRAME_QUALITY", "frame_id": 82, "sharpness": 27.2, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 82}
+{"event_type": "TRACK_PREVIEW", "frame_id": 82, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 82}
+{"event_type": "FRAME_QUALITY", "frame_id": 83, "sharpness": 27.3, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 83, "count": 14, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 83, "l2_was_run": true, "unmatched_count": 1, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 83}
+{"event_type": "FRAME_QUALITY", "frame_id": 84, "sharpness": 27.6, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 84}
+{"event_type": "TRACK_PREVIEW", "frame_id": 84, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 84}
+{"event_type": "FRAME_QUALITY", "frame_id": 85, "sharpness": 28.1, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 85}
+{"event_type": "TRACK_PREVIEW", "frame_id": 85, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 85}
+{"event_type": "FRAME_QUALITY", "frame_id": 86, "sharpness": 30.5, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 86, "count": 18, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 86, "l2_was_run": true, "unmatched_count": 2, "quality_drop": false}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 86, "reason": "l2_new_unmatched_detection", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 86, "keyframe_id": 7, "parent_node_id": 6, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 86, "keyframe_id": 7, "l1_count": 16, "l3_count": 18, "fused_count": 14, "objects_affected": 14}
+{"event_type": "FRAME_QUALITY", "frame_id": 87, "sharpness": 32.9, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 87}
+{"event_type": "TRACK_PREVIEW", "frame_id": 87, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 87}
+{"event_type": "FRAME_QUALITY", "frame_id": 88, "sharpness": 31.3, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 88}
+{"event_type": "TRACK_PREVIEW", "frame_id": 88, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 88}
+{"event_type": "FRAME_QUALITY", "frame_id": 89, "sharpness": 30.3, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 89, "count": 17, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 89, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 89}
+{"event_type": "FRAME_QUALITY", "frame_id": 90, "sharpness": 46.8, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 90}
+{"event_type": "TRACK_PREVIEW", "frame_id": 90, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 90}
+{"event_type": "FRAME_QUALITY", "frame_id": 91, "sharpness": 41.8, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 91}
+{"event_type": "TRACK_PREVIEW", "frame_id": 91, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 91}
+{"event_type": "FRAME_QUALITY", "frame_id": 92, "sharpness": 40.6, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 92, "count": 19, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 92, "l2_was_run": true, "unmatched_count": 1, "quality_drop": false}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 92, "reason": "l2_new_unmatched_detection", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 92, "keyframe_id": 8, "parent_node_id": 7, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 92, "keyframe_id": 8, "l1_count": 16, "l3_count": 17, "fused_count": 14, "objects_affected": 14}
+{"event_type": "FRAME_QUALITY", "frame_id": 93, "sharpness": 39.5, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 93}
+{"event_type": "TRACK_PREVIEW", "frame_id": 93, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 93}
+{"event_type": "FRAME_QUALITY", "frame_id": 94, "sharpness": 38.3, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 94}
+{"event_type": "TRACK_PREVIEW", "frame_id": 94, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 94}
+{"event_type": "FRAME_QUALITY", "frame_id": 95, "sharpness": 36.7, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 95, "count": 17, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 95, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 95}
+{"event_type": "FRAME_QUALITY", "frame_id": 96, "sharpness": 36.5, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 96}
+{"event_type": "TRACK_PREVIEW", "frame_id": 96, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 96}
+{"event_type": "FRAME_QUALITY", "frame_id": 97, "sharpness": 37.9, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 97}
+{"event_type": "TRACK_PREVIEW", "frame_id": 97, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 97}
+{"event_type": "FRAME_QUALITY", "frame_id": 98, "sharpness": 38.4, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 98, "count": 16, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 98, "l2_was_run": true, "unmatched_count": 1, "quality_drop": true}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 98, "reason": "l2_new_unmatched_detection", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 98, "keyframe_id": 9, "parent_node_id": 8, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 98, "keyframe_id": 9, "l1_count": 13, "l3_count": 16, "fused_count": 13, "objects_affected": 13}
+{"event_type": "FRAME_QUALITY", "frame_id": 99, "sharpness": 37.6, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 99}
+{"event_type": "TRACK_PREVIEW", "frame_id": 99, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 99}
+{"event_type": "FRAME_QUALITY", "frame_id": 100, "sharpness": 36.7, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 100}
+{"event_type": "TRACK_PREVIEW", "frame_id": 100, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 100}
+{"event_type": "FRAME_QUALITY", "frame_id": 101, "sharpness": 36.5, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 101, "count": 20, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 101, "l2_was_run": true, "unmatched_count": 1, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 101}
+{"event_type": "FRAME_QUALITY", "frame_id": 102, "sharpness": 37.9, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 102}
+{"event_type": "TRACK_PREVIEW", "frame_id": 102, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 102}
+{"event_type": "FRAME_QUALITY", "frame_id": 103, "sharpness": 38.2, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 103}
+{"event_type": "TRACK_PREVIEW", "frame_id": 103, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 103}
+{"event_type": "FRAME_QUALITY", "frame_id": 104, "sharpness": 39.2, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 104, "count": 18, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 104, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 104}
+{"event_type": "FRAME_QUALITY", "frame_id": 105, "sharpness": 40.2, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 105}
+{"event_type": "TRACK_PREVIEW", "frame_id": 105, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 105}
+{"event_type": "FRAME_QUALITY", "frame_id": 106, "sharpness": 40.4, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 106}
+{"event_type": "TRACK_PREVIEW", "frame_id": 106, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 106}
+{"event_type": "FRAME_QUALITY", "frame_id": 107, "sharpness": 39.9, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 107, "count": 22, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 107, "l2_was_run": true, "unmatched_count": 3, "quality_drop": false}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 107, "reason": "l2_new_unmatched_detection", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 107, "keyframe_id": 10, "parent_node_id": 9, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 107, "keyframe_id": 10, "l1_count": 20, "l3_count": 21, "fused_count": 17, "objects_affected": 17}
+{"event_type": "FRAME_QUALITY", "frame_id": 108, "sharpness": 38.8, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 108}
+{"event_type": "TRACK_PREVIEW", "frame_id": 108, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 108}
+{"event_type": "FRAME_QUALITY", "frame_id": 109, "sharpness": 37.3, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 109}
+{"event_type": "TRACK_PREVIEW", "frame_id": 109, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 109}
+{"event_type": "FRAME_QUALITY", "frame_id": 110, "sharpness": 39.3, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 110, "count": 19, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 110, "l2_was_run": true, "unmatched_count": 2, "quality_drop": true}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 110}
+{"event_type": "FRAME_QUALITY", "frame_id": 111, "sharpness": 37.7, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 111}
+{"event_type": "TRACK_PREVIEW", "frame_id": 111, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 111}
+{"event_type": "FRAME_QUALITY", "frame_id": 112, "sharpness": 36.5, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 112}
+{"event_type": "TRACK_PREVIEW", "frame_id": 112, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 112}
+{"event_type": "FRAME_QUALITY", "frame_id": 113, "sharpness": 34.2, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 113, "count": 15, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 113, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 113}
+{"event_type": "FRAME_QUALITY", "frame_id": 114, "sharpness": 33.0, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 114}
+{"event_type": "TRACK_PREVIEW", "frame_id": 114, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 114}
+{"event_type": "FRAME_QUALITY", "frame_id": 115, "sharpness": 32.2, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 115}
+{"event_type": "TRACK_PREVIEW", "frame_id": 115, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 115}
+{"event_type": "FRAME_QUALITY", "frame_id": 116, "sharpness": 31.6, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 116, "count": 18, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 116, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 116}
+{"event_type": "FRAME_QUALITY", "frame_id": 117, "sharpness": 30.7, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 117}
+{"event_type": "TRACK_PREVIEW", "frame_id": 117, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 117}
+{"event_type": "FRAME_QUALITY", "frame_id": 118, "sharpness": 29.8, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 118}
+{"event_type": "TRACK_PREVIEW", "frame_id": 118, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 118}
+{"event_type": "FRAME_QUALITY", "frame_id": 119, "sharpness": 28.4, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 119, "count": 20, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 119, "l2_was_run": true, "unmatched_count": 3, "quality_drop": false}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 119, "reason": "l2_new_unmatched_detection", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 119, "keyframe_id": 11, "parent_node_id": 10, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 119, "keyframe_id": 11, "l1_count": 18, "l3_count": 20, "fused_count": 17, "objects_affected": 17}
+{"event_type": "FRAME_QUALITY", "frame_id": 120, "sharpness": 37.4, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 120}
+{"event_type": "TRACK_PREVIEW", "frame_id": 120, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 120}
+{"event_type": "FRAME_QUALITY", "frame_id": 121, "sharpness": 32.9, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 121}
+{"event_type": "TRACK_PREVIEW", "frame_id": 121, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 121}
+{"event_type": "FRAME_QUALITY", "frame_id": 122, "sharpness": 31.2, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 122, "count": 23, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 122, "l2_was_run": true, "unmatched_count": 4, "quality_drop": true}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 122}
+{"event_type": "FRAME_QUALITY", "frame_id": 123, "sharpness": 30.9, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 123}
+{"event_type": "TRACK_PREVIEW", "frame_id": 123, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 123}
+{"event_type": "FRAME_QUALITY", "frame_id": 124, "sharpness": 28.8, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 124}
+{"event_type": "TRACK_PREVIEW", "frame_id": 124, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 124}
+{"event_type": "FRAME_QUALITY", "frame_id": 125, "sharpness": 28.6, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 125, "count": 24, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 125, "l2_was_run": true, "unmatched_count": 0, "quality_drop": true}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 125, "reason": "track_quality_drop", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 125, "keyframe_id": 12, "parent_node_id": 11, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 125, "keyframe_id": 12, "l1_count": 25, "l3_count": 26, "fused_count": 21, "objects_affected": 21}
+{"event_type": "FRAME_QUALITY", "frame_id": 126, "sharpness": 27.8, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 126}
+{"event_type": "TRACK_PREVIEW", "frame_id": 126, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 126}
+{"event_type": "FRAME_QUALITY", "frame_id": 127, "sharpness": 27.0, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 127}
+{"event_type": "TRACK_PREVIEW", "frame_id": 127, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 127}
+{"event_type": "FRAME_QUALITY", "frame_id": 128, "sharpness": 28.5, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 128, "count": 30, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 128, "l2_was_run": true, "unmatched_count": 2, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 128}
+{"event_type": "FRAME_QUALITY", "frame_id": 129, "sharpness": 29.0, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 129}
+{"event_type": "TRACK_PREVIEW", "frame_id": 129, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 129}
+{"event_type": "FRAME_QUALITY", "frame_id": 130, "sharpness": 29.4, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 130}
+{"event_type": "TRACK_PREVIEW", "frame_id": 130, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 130}
+{"event_type": "FRAME_QUALITY", "frame_id": 131, "sharpness": 28.8, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 131, "count": 25, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 131, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 131}
+{"event_type": "FRAME_QUALITY", "frame_id": 132, "sharpness": 29.3, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 132}
+{"event_type": "TRACK_PREVIEW", "frame_id": 132, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 132}
+{"event_type": "FRAME_QUALITY", "frame_id": 133, "sharpness": 30.6, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 133}
+{"event_type": "TRACK_PREVIEW", "frame_id": 133, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 133}
+{"event_type": "FRAME_QUALITY", "frame_id": 134, "sharpness": 32.7, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 134, "count": 27, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 134, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 134}
+{"event_type": "FRAME_QUALITY", "frame_id": 135, "sharpness": 34.4, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 135}
+{"event_type": "TRACK_PREVIEW", "frame_id": 135, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 135}
+{"event_type": "FRAME_QUALITY", "frame_id": 136, "sharpness": 32.8, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 136}
+{"event_type": "TRACK_PREVIEW", "frame_id": 136, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 136}
+{"event_type": "FRAME_QUALITY", "frame_id": 137, "sharpness": 31.9, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 137, "count": 25, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 137, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 137}
+{"event_type": "FRAME_QUALITY", "frame_id": 138, "sharpness": 31.3, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 138}
+{"event_type": "TRACK_PREVIEW", "frame_id": 138, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 138}
+{"event_type": "FRAME_QUALITY", "frame_id": 139, "sharpness": 33.0, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 139}
+{"event_type": "TRACK_PREVIEW", "frame_id": 139, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 139}
+{"event_type": "FRAME_QUALITY", "frame_id": 140, "sharpness": 33.7, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 140, "count": 26, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 140, "l2_was_run": true, "unmatched_count": 0, "quality_drop": true}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 140, "reason": "track_quality_drop", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 140, "keyframe_id": 13, "parent_node_id": 12, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 140, "keyframe_id": 13, "l1_count": 23, "l3_count": 25, "fused_count": 21, "objects_affected": 21}
+{"event_type": "FRAME_QUALITY", "frame_id": 141, "sharpness": 34.0, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 141}
+{"event_type": "TRACK_PREVIEW", "frame_id": 141, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 141}
+{"event_type": "FRAME_QUALITY", "frame_id": 142, "sharpness": 33.8, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 142}
+{"event_type": "TRACK_PREVIEW", "frame_id": 142, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 142}
+{"event_type": "FRAME_QUALITY", "frame_id": 143, "sharpness": 33.5, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 143, "count": 26, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 143, "l2_was_run": true, "unmatched_count": 1, "quality_drop": true}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 143}
+{"event_type": "FRAME_QUALITY", "frame_id": 144, "sharpness": 33.5, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 144}
+{"event_type": "TRACK_PREVIEW", "frame_id": 144, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 144}
+{"event_type": "FRAME_QUALITY", "frame_id": 145, "sharpness": 35.3, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 145}
+{"event_type": "TRACK_PREVIEW", "frame_id": 145, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 145}
+{"event_type": "FRAME_QUALITY", "frame_id": 146, "sharpness": 34.1, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 146, "count": 26, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 146, "l2_was_run": true, "unmatched_count": 0, "quality_drop": true}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 146, "reason": "track_quality_drop", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 146, "keyframe_id": 14, "parent_node_id": 13, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 146, "keyframe_id": 14, "l1_count": 23, "l3_count": 27, "fused_count": 22, "objects_affected": 22}
+{"event_type": "FRAME_QUALITY", "frame_id": 147, "sharpness": 34.0, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 147}
+{"event_type": "TRACK_PREVIEW", "frame_id": 147, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 147}
+{"event_type": "FRAME_QUALITY", "frame_id": 148, "sharpness": 34.9, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 148}
+{"event_type": "TRACK_PREVIEW", "frame_id": 148, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 148}
+{"event_type": "FRAME_QUALITY", "frame_id": 149, "sharpness": 35.6, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 149, "count": 27, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 149, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 149}
+{"event_type": "FRAME_QUALITY", "frame_id": 150, "sharpness": 51.8, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 150}
+{"event_type": "TRACK_PREVIEW", "frame_id": 150, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 150}
+{"event_type": "FRAME_QUALITY", "frame_id": 151, "sharpness": 44.3, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 151}
+{"event_type": "TRACK_PREVIEW", "frame_id": 151, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 151}
+{"event_type": "FRAME_QUALITY", "frame_id": 152, "sharpness": 40.8, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 152, "count": 28, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 152, "l2_was_run": true, "unmatched_count": 1, "quality_drop": false}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 152, "reason": "l2_new_unmatched_detection", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 152, "keyframe_id": 15, "parent_node_id": 14, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 152, "keyframe_id": 15, "l1_count": 23, "l3_count": 27, "fused_count": 23, "objects_affected": 23}
+{"event_type": "FRAME_QUALITY", "frame_id": 153, "sharpness": 38.3, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 153}
+{"event_type": "TRACK_PREVIEW", "frame_id": 153, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 153}
+{"event_type": "FRAME_QUALITY", "frame_id": 154, "sharpness": 37.7, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 154}
+{"event_type": "TRACK_PREVIEW", "frame_id": 154, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 154}
+{"event_type": "FRAME_QUALITY", "frame_id": 155, "sharpness": 37.4, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 155, "count": 26, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 155, "l2_was_run": true, "unmatched_count": 2, "quality_drop": true}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 155}
+{"event_type": "FRAME_QUALITY", "frame_id": 156, "sharpness": 37.2, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 156}
+{"event_type": "TRACK_PREVIEW", "frame_id": 156, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 156}
+{"event_type": "FRAME_QUALITY", "frame_id": 157, "sharpness": 34.9, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 157}
+{"event_type": "TRACK_PREVIEW", "frame_id": 157, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 157}
+{"event_type": "FRAME_QUALITY", "frame_id": 158, "sharpness": 33.4, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 158, "count": 27, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 158, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 158}
+{"event_type": "FRAME_QUALITY", "frame_id": 159, "sharpness": 32.0, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 159}
+{"event_type": "TRACK_PREVIEW", "frame_id": 159, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 159}
+{"event_type": "FRAME_QUALITY", "frame_id": 160, "sharpness": 32.4, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 160}
+{"event_type": "TRACK_PREVIEW", "frame_id": 160, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 160}
+{"event_type": "FRAME_QUALITY", "frame_id": 161, "sharpness": 32.3, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 161, "count": 22, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 161, "l2_was_run": true, "unmatched_count": 0, "quality_drop": true}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 161, "reason": "track_quality_drop", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 161, "keyframe_id": 16, "parent_node_id": 15, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 161, "keyframe_id": 16, "l1_count": 23, "l3_count": 26, "fused_count": 21, "objects_affected": 21}
+{"event_type": "FRAME_QUALITY", "frame_id": 162, "sharpness": 32.1, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 162}
+{"event_type": "TRACK_PREVIEW", "frame_id": 162, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 162}
+{"event_type": "FRAME_QUALITY", "frame_id": 163, "sharpness": 31.3, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 163}
+{"event_type": "TRACK_PREVIEW", "frame_id": 163, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 163}
+{"event_type": "FRAME_QUALITY", "frame_id": 164, "sharpness": 31.0, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 164, "count": 25, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 164, "l2_was_run": true, "unmatched_count": 2, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 164}
+{"event_type": "FRAME_QUALITY", "frame_id": 165, "sharpness": 31.4, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 165}
+{"event_type": "TRACK_PREVIEW", "frame_id": 165, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 165}
+{"event_type": "FRAME_QUALITY", "frame_id": 166, "sharpness": 31.0, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 166}
+{"event_type": "TRACK_PREVIEW", "frame_id": 166, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 166}
+{"event_type": "FRAME_QUALITY", "frame_id": 167, "sharpness": 29.8, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 167, "count": 24, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 167, "l2_was_run": true, "unmatched_count": 1, "quality_drop": false}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 167, "reason": "l2_new_unmatched_detection", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 167, "keyframe_id": 17, "parent_node_id": 16, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 167, "keyframe_id": 17, "l1_count": 22, "l3_count": 24, "fused_count": 22, "objects_affected": 22}
+{"event_type": "FRAME_QUALITY", "frame_id": 168, "sharpness": 29.3, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 168}
+{"event_type": "TRACK_PREVIEW", "frame_id": 168, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 168}
+{"event_type": "FRAME_QUALITY", "frame_id": 169, "sharpness": 30.6, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 169}
+{"event_type": "TRACK_PREVIEW", "frame_id": 169, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 169}
+{"event_type": "FRAME_QUALITY", "frame_id": 170, "sharpness": 31.0, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 170, "count": 32, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 170, "l2_was_run": true, "unmatched_count": 4, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 170}
+{"event_type": "FRAME_QUALITY", "frame_id": 171, "sharpness": 29.5, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 171}
+{"event_type": "TRACK_PREVIEW", "frame_id": 171, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 171}
+{"event_type": "FRAME_QUALITY", "frame_id": 172, "sharpness": 28.4, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 172}
+{"event_type": "TRACK_PREVIEW", "frame_id": 172, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 172}
+{"event_type": "FRAME_QUALITY", "frame_id": 173, "sharpness": 28.0, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 173, "count": 23, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 173, "l2_was_run": true, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 173}
+{"event_type": "FRAME_QUALITY", "frame_id": 174, "sharpness": 28.4, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 174}
+{"event_type": "TRACK_PREVIEW", "frame_id": 174, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 174}
+{"event_type": "FRAME_QUALITY", "frame_id": 175, "sharpness": 30.9, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 175}
+{"event_type": "TRACK_PREVIEW", "frame_id": 175, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 175}
+{"event_type": "FRAME_QUALITY", "frame_id": 176, "sharpness": 31.5, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 176, "count": 30, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 176, "l2_was_run": true, "unmatched_count": 1, "quality_drop": true}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 176, "reason": "l2_new_unmatched_detection", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 176, "keyframe_id": 18, "parent_node_id": 17, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 176, "keyframe_id": 18, "l1_count": 23, "l3_count": 28, "fused_count": 24, "objects_affected": 24}
+{"event_type": "FRAME_QUALITY", "frame_id": 177, "sharpness": 30.2, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 177}
+{"event_type": "TRACK_PREVIEW", "frame_id": 177, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 177}
+{"event_type": "FRAME_QUALITY", "frame_id": 178, "sharpness": 29.9, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 178}
+{"event_type": "TRACK_PREVIEW", "frame_id": 178, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 178}
+{"event_type": "FRAME_QUALITY", "frame_id": 179, "sharpness": 30.4, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 179, "count": 29, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 179, "l2_was_run": true, "unmatched_count": 1, "quality_drop": true}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 179}
+{"event_type": "FRAME_QUALITY", "frame_id": 180, "sharpness": 43.7, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 180}
+{"event_type": "TRACK_PREVIEW", "frame_id": 180, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 180}
+{"event_type": "FRAME_QUALITY", "frame_id": 181, "sharpness": 38.4, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 181}
+{"event_type": "TRACK_PREVIEW", "frame_id": 181, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 181}
+{"event_type": "FRAME_QUALITY", "frame_id": 182, "sharpness": 34.8, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 182, "count": 24, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 182, "l2_was_run": true, "unmatched_count": 0, "quality_drop": true}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 182, "reason": "track_quality_drop", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 182, "keyframe_id": 19, "parent_node_id": 18, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 182, "keyframe_id": 19, "l1_count": 23, "l3_count": 26, "fused_count": 22, "objects_affected": 22}
+{"event_type": "FRAME_QUALITY", "frame_id": 183, "sharpness": 34.6, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 183}
+{"event_type": "TRACK_PREVIEW", "frame_id": 183, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 183}
+{"event_type": "FRAME_QUALITY", "frame_id": 184, "sharpness": 33.0, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 184}
+{"event_type": "TRACK_PREVIEW", "frame_id": 184, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 184}
+{"event_type": "FRAME_QUALITY", "frame_id": 185, "sharpness": 31.3, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 185, "count": 23, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 185, "l2_was_run": true, "unmatched_count": 0, "quality_drop": true}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 185}
+{"event_type": "FRAME_QUALITY", "frame_id": 186, "sharpness": 29.0, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 186}
+{"event_type": "TRACK_PREVIEW", "frame_id": 186, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 186}
+{"event_type": "FRAME_QUALITY", "frame_id": 187, "sharpness": 27.1, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 187}
+{"event_type": "TRACK_PREVIEW", "frame_id": 187, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 187}
+{"event_type": "FRAME_QUALITY", "frame_id": 188, "sharpness": 25.5, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 188, "count": 26, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 188, "l2_was_run": true, "unmatched_count": 0, "quality_drop": true}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 188, "reason": "track_quality_drop", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 188, "keyframe_id": 20, "parent_node_id": 19, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 188, "keyframe_id": 20, "l1_count": 22, "l3_count": 26, "fused_count": 21, "objects_affected": 21}
+{"event_type": "FRAME_QUALITY", "frame_id": 189, "sharpness": 25.3, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 189}
+{"event_type": "TRACK_PREVIEW", "frame_id": 189, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 189}
+{"event_type": "FRAME_QUALITY", "frame_id": 190, "sharpness": 24.0, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 190}
+{"event_type": "TRACK_PREVIEW", "frame_id": 190, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 190}
+{"event_type": "FRAME_QUALITY", "frame_id": 191, "sharpness": 22.9, "exposure": 0.999}
+{"event_type": "L2_RESULT", "frame_id": 191, "count": 27, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 191, "l2_was_run": true, "unmatched_count": 2, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 191}
+{"event_type": "FRAME_QUALITY", "frame_id": 192, "sharpness": 22.6, "exposure": 0.999}
+{"event_type": "L2_NOT_RUN", "frame_id": 192}
+{"event_type": "TRACK_PREVIEW", "frame_id": 192, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 192}
+{"event_type": "FRAME_QUALITY", "frame_id": 193, "sharpness": 21.8, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 193}
+{"event_type": "TRACK_PREVIEW", "frame_id": 193, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 193}
+{"event_type": "FRAME_QUALITY", "frame_id": 194, "sharpness": 21.8, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 194, "count": 23, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 194, "l2_was_run": true, "unmatched_count": 0, "quality_drop": true}
+{"event_type": "KEYFRAME_TRIGGER", "frame_id": 194, "reason": "track_quality_drop", "decision": "accepted"}
+{"event_type": "HOMOGRAPHY_MATCH", "frame_id": 194, "keyframe_id": 21, "parent_node_id": 20, "valid": true}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 194, "keyframe_id": 21, "l1_count": 20, "l3_count": 20, "fused_count": 17, "objects_affected": 17}
+{"event_type": "FRAME_QUALITY", "frame_id": 195, "sharpness": 21.3, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 195}
+{"event_type": "TRACK_PREVIEW", "frame_id": 195, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 195}
+{"event_type": "FRAME_QUALITY", "frame_id": 196, "sharpness": 21.5, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 196}
+{"event_type": "TRACK_PREVIEW", "frame_id": 196, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 196}
+{"event_type": "FRAME_QUALITY", "frame_id": 197, "sharpness": 20.9, "exposure": 1.0}
+{"event_type": "L2_RESULT", "frame_id": 197, "count": 20, "was_run": true}
+{"event_type": "TRACK_PREVIEW", "frame_id": 197, "l2_was_run": true, "unmatched_count": 1, "quality_drop": true}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 197}
+{"event_type": "FRAME_QUALITY", "frame_id": 198, "sharpness": 20.7, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 198}
+{"event_type": "TRACK_PREVIEW", "frame_id": 198, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 198}
+{"event_type": "FRAME_QUALITY", "frame_id": 199, "sharpness": 19.9, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 200, "sharpness": 19.5, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 201, "sharpness": 18.6, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 202, "sharpness": 17.9, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 203, "sharpness": 17.9, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 204, "sharpness": 18.3, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 205, "sharpness": 17.8, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 206, "sharpness": 16.9, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 207, "sharpness": 16.5, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 208, "sharpness": 16.6, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 209, "sharpness": 17.6, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 210, "sharpness": 24.5, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 210}
+{"event_type": "TRACK_PREVIEW", "frame_id": 210, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 210}
+{"event_type": "FRAME_QUALITY", "frame_id": 211, "sharpness": 21.3, "exposure": 1.0}
+{"event_type": "L2_NOT_RUN", "frame_id": 211}
+{"event_type": "TRACK_PREVIEW", "frame_id": 211, "l2_was_run": false, "unmatched_count": 0, "quality_drop": false}
+{"event_type": "KEYFRAME_SKIP", "frame_id": 211}
+{"event_type": "FRAME_QUALITY", "frame_id": 212, "sharpness": 19.4, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 213, "sharpness": 18.2, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 214, "sharpness": 18.2, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 215, "sharpness": 17.1, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 216, "sharpness": 16.1, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 217, "sharpness": 16.6, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 218, "sharpness": 17.1, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 219, "sharpness": 17.9, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 220, "sharpness": 16.5, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 221, "sharpness": 16.1, "exposure": 0.999}
+{"event_type": "FRAME_QUALITY", "frame_id": 222, "sharpness": 15.6, "exposure": 0.999}
+{"event_type": "FRAME_QUALITY", "frame_id": 223, "sharpness": 16.3, "exposure": 0.999}
+{"event_type": "FRAME_QUALITY", "frame_id": 224, "sharpness": 16.8, "exposure": 0.999}
+{"event_type": "FRAME_QUALITY", "frame_id": 225, "sharpness": 16.5, "exposure": 0.999}
+{"event_type": "FRAME_QUALITY", "frame_id": 226, "sharpness": 15.7, "exposure": 0.999}
+{"event_type": "FRAME_QUALITY", "frame_id": 227, "sharpness": 15.4, "exposure": 0.999}
+{"event_type": "FRAME_QUALITY", "frame_id": 228, "sharpness": 15.0, "exposure": 0.999}
+{"event_type": "FRAME_QUALITY", "frame_id": 229, "sharpness": 15.2, "exposure": 0.999}
+{"event_type": "FRAME_QUALITY", "frame_id": 230, "sharpness": 15.2, "exposure": 0.998}
+{"event_type": "FRAME_QUALITY", "frame_id": 231, "sharpness": 15.1, "exposure": 0.998}
+{"event_type": "FRAME_QUALITY", "frame_id": 232, "sharpness": 14.8, "exposure": 0.998}
+{"event_type": "FRAME_QUALITY", "frame_id": 233, "sharpness": 15.6, "exposure": 0.997}
+{"event_type": "FRAME_QUALITY", "frame_id": 234, "sharpness": 15.6, "exposure": 0.997}
+{"event_type": "FRAME_QUALITY", "frame_id": 235, "sharpness": 15.9, "exposure": 0.997}
+{"event_type": "FRAME_QUALITY", "frame_id": 236, "sharpness": 15.5, "exposure": 0.997}
+{"event_type": "FRAME_QUALITY", "frame_id": 237, "sharpness": 15.5, "exposure": 0.996}
+{"event_type": "FRAME_QUALITY", "frame_id": 238, "sharpness": 15.9, "exposure": 0.996}
+{"event_type": "FRAME_QUALITY", "frame_id": 239, "sharpness": 15.9, "exposure": 0.996}
+{"event_type": "FRAME_QUALITY", "frame_id": 240, "sharpness": 19.6, "exposure": 0.996}
+{"event_type": "FRAME_QUALITY", "frame_id": 241, "sharpness": 17.0, "exposure": 0.995}
+{"event_type": "FRAME_QUALITY", "frame_id": 242, "sharpness": 15.5, "exposure": 0.996}
+{"event_type": "FRAME_QUALITY", "frame_id": 243, "sharpness": 14.6, "exposure": 0.996}
+{"event_type": "FRAME_QUALITY", "frame_id": 244, "sharpness": 14.3, "exposure": 0.996}
+{"event_type": "FRAME_QUALITY", "frame_id": 245, "sharpness": 13.4, "exposure": 0.996}
+{"event_type": "FRAME_QUALITY", "frame_id": 246, "sharpness": 12.1, "exposure": 0.997}
+{"event_type": "FRAME_QUALITY", "frame_id": 247, "sharpness": 11.0, "exposure": 0.997}
+{"event_type": "FRAME_QUALITY", "frame_id": 248, "sharpness": 10.3, "exposure": 0.997}
+{"event_type": "FRAME_QUALITY", "frame_id": 249, "sharpness": 9.5, "exposure": 0.998}
+{"event_type": "FRAME_QUALITY", "frame_id": 250, "sharpness": 9.0, "exposure": 0.999}
+{"event_type": "FRAME_QUALITY", "frame_id": 251, "sharpness": 8.6, "exposure": 0.999}
+{"event_type": "FRAME_QUALITY", "frame_id": 252, "sharpness": 8.2, "exposure": 0.999}
+{"event_type": "FRAME_QUALITY", "frame_id": 253, "sharpness": 7.6, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 254, "sharpness": 7.0, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 255, "sharpness": 6.3, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 256, "sharpness": 6.3, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 257, "sharpness": 5.8, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 258, "sharpness": 5.6, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 259, "sharpness": 5.8, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 260, "sharpness": 6.1, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 261, "sharpness": 6.4, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 262, "sharpness": 6.5, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 263, "sharpness": 9.6, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 264, "sharpness": 9.7, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 265, "sharpness": 9.9, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 266, "sharpness": 9.3, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 267, "sharpness": 9.6, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 268, "sharpness": 9.1, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 269, "sharpness": 10.1, "exposure": 1.0}
+{"event_type": "FRAME_QUALITY", "frame_id": 270, "sharpness": 17.6, "exposure": 1.0}
+{"event_type": "KEYFRAME_ACCEPT", "frame_id": 193, "keyframe_id": 22, "l1_count": 20, "l3_count": 0, "fused_count": 20, "objects_affected": 20}

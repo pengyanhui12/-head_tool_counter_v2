@@ -1,0 +1,16 @@
+event,primary_id,secondary_id,decision,reason
+merge_audit,P-0004,P-0011,blocked,co_occurrence
+merge_audit,P-0007,P-0028,blocked,observation_frame_overlap
+merge_audit,P-0008,P-0011,blocked,co_occurrence
+merge_audit,P-0008,P-0031,blocked,co_occurrence
+merge_audit,P-0008,P-0028,blocked,co_occurrence
+merge_audit,P-0011,P-0031,blocked,observation_frame_overlap
+merge_audit,P-0011,P-0028,blocked,observation_frame_overlap
+merge_audit,P-0006,P-0009,blocked,observation_frame_overlap
+merge_audit,P-0012,P-0013,blocked,co_occurrence
+merge_audit,P-0012,P-0027,blocked,co_occurrence
+merge_audit,P-0013,P-0027,blocked,co_occurrence
+merge_audit,P-0013,P-0018,blocked,co_occurrence
+merge_audit,P-0013,P-0021,blocked,co_occurrence
+merge_audit,P-0024,P-0023,blocked,observation_frame_overlap
+merge_audit,P-0024,P-0032,blocked,observation_frame_overlap

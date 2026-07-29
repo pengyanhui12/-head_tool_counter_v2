@@ -20,6 +20,7 @@ class FeatureMatcher:
         roi_center_ratio: float = 0.70,
         max_projected_area_ratio: float = 10.0,
         min_projected_area_ratio: float = 0.10,
+        max_condition_number: float = 5e5,
     ):
         self.mode = mode
         self.ratio_test = ratio_test
@@ -33,6 +34,7 @@ class FeatureMatcher:
         self.roi_center_ratio = roi_center_ratio
         self.max_projected_area_ratio = max_projected_area_ratio
         self.min_projected_area_ratio = min_projected_area_ratio
+        self.max_condition_number = max_condition_number
         self._detector = cv2.SIFT_create()
 
     def _to_gray(self, image: np.ndarray) -> np.ndarray:
@@ -206,7 +208,7 @@ class FeatureMatcher:
             return f"det(H) too small: {det:.2e}"
 
         cond = np.linalg.cond(H)
-        if cond > 1e5:
+        if cond > self.max_condition_number:
             return f"condition number too large: {cond:.1f}"
 
         if abs(H[2, 0]) > 0.1 or abs(H[2, 1]) > 0.1:

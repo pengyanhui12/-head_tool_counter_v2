@@ -1,0 +1,51 @@
+association:
+  class_weight: 0.15
+  max_cost: 0.75
+  max_position_distance_px: 250.0
+  max_votes_per_track: 3
+  min_keyframes_confirmed: 3
+  min_observations_confirmed: 5
+  min_top_class_ratio: 0.6
+  overlap_weight: 0.2
+  position_weight: 0.55
+  size_weight: 0.1
+git_sha: 06ea5fd
+matcher:
+  max_condition_number: 500000
+  max_projected_area_ratio: 50.0
+  max_reprojection_error_px: 3.0
+  min_good_matches: 20
+  min_inlier_bbox_area_ratio: 0.015
+  min_inlier_ratio: 0.3
+  min_inliers: 30
+  min_occupied_quadrants: 2
+  min_projected_area_ratio: 0.01
+  mode: sift
+  ransac_threshold_px: 3.0
+  ratio_test: 0.75
+  roi_center_ratio: 0.7
+model_hash: 04a946f2a50fbfc6
+pipeline:
+  emergency_keyframe_interval_frames: 2
+  end_window_frames: 30
+  l2_interval_frames: 3
+  max_input_fps: 30
+  max_keyframe_interval_frames: 30
+  min_keyframe_interval_frames: 5
+  random_seed: 42
+  save_debug_artifacts: true
+  sharpness_threshold: 20.0
+tracker:
+  center_weight: 0.4
+  inactive_max_center_distance_ratio: 0.12
+  inactive_min_iou: 0.3
+  iou_weight: 0.6
+  lost_reactivation_frames: 10
+  max_center_distance_ratio: 0.2
+  max_missed_detection_frames: 5
+  min_iou: 0.2
+  quality_drop_min_history: 5
+  quality_drop_rearm_ratio: 0.85
+  quality_drop_trigger_ratio: 0.7
+  type: simple_hungarian
+video_hash: c882296eea2de051

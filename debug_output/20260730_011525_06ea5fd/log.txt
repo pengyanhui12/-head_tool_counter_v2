@@ -1,0 +1,295 @@
+================================================================================
+HEAD TOOL COUNTER — DEBUG PIPELINE V2
+================================================================================
+Video: D:\杭州供电段\头戴设备作业工具识别\01公司拍摄数据20260717\测试用\test_cut.mp4
+Output: D:\PycharmProjects\head_tool_counter\debug_output\20260730_011525_06ea5fd
+Git SHA: 06ea5fd
+Max frames: ALL
+
+Config loaded:
+  matcher: min_good=20, min_inliers=30, min_ratio=0.3, max_reproj=3.0
+  associator: max_pos=250.0, min_obs_confirm=5
+  tracker: max_missed=5, min_iou=0.2, inactive_min_iou=0.3
+  pipeline: l2_interval=3, min_kf_interval=5
+
+Initializing modules...
+  All modules initialized in 1.56s
+
+
+================================================================================
+STARTING FRAME-BY-FRAME PROCESSING
+================================================================================
+
+F0000 | QUALITY REJECT | sharpness=15.6
+F0001 | QUALITY REJECT | sharpness=14.9
+F0002 | QUALITY REJECT | sharpness=14.9
+F0003 | QUALITY REJECT | sharpness=14.8
+F0004 | QUALITY REJECT | sharpness=14.8
+F0005 | QUALITY REJECT | sharpness=15.0
+F0006 | QUALITY REJECT | sharpness=14.4
+F0007 | QUALITY REJECT | sharpness=14.5
+F0008 | QUALITY REJECT | sharpness=14.7
+F0009 | QUALITY REJECT | sharpness=15.0
+F0010 | QUALITY REJECT | sharpness=15.7
+F0011 | QUALITY REJECT | sharpness=15.3
+F0012 | QUALITY REJECT | sharpness=16.0
+F0013 | QUALITY REJECT | sharpness=16.5
+F0014 | QUALITY REJECT | sharpness=16.3
+F0015 | QUALITY REJECT | sharpness=17.4
+F0016 | QUALITY REJECT | sharpness=17.2
+F0017 | QUALITY REJECT | sharpness=18.1
+F0018 | QUALITY REJECT | sharpness=17.7
+F0019 | QUALITY REJECT | sharpness=18.4
+F0020 | QUALITY REJECT | sharpness=19.3
+F0021 | QUALITY REJECT | sharpness=19.0
+F0022 | QUALITY REJECT | sharpness=19.4
+  (quality reject interval: 0..22, length=23)
+  [KEYFRAME #0] L1=6 L3=7 fused=6 tracked=6 objects_affected=6
+F0023 | ACCEPTED (first_frame) | sharp=20 L2=7 MAX_INTERVAL NEW_DET FIRST KF | 0.594s
+F0027 | QUALITY REJECT | sharpness=19.4
+F0028 | QUALITY REJECT | sharpness=19.4
+F0029 | QUALITY REJECT | sharpness=18.7
+  (quality reject interval: 27..29, length=3)
+  [KEYFRAME #1] L1=8 L3=8 fused=7 tracked=7 objects_affected=7
+F0032 | ACCEPTED (l2_new_unmatched_detection) | sharp=21 L2=8 NEW_DET MATCH OK KF#1 | 0.314s
+  [KEYFRAME #2] L1=8 L3=10 fused=8 tracked=8 objects_affected=8
+F0047 | ACCEPTED (track_quality_drop) | sharp=27 L2=9 QUAL_DROP MATCH OK KF#2 | 0.273s
+  [KEYFRAME #3] L1=11 L3=12 fused=9 tracked=9 objects_affected=9
+F0059 | ACCEPTED (l2_new_unmatched_detection) | sharp=31 L2=13 NEW_DET MATCH OK KF#3 | 0.270s
+  [KEYFRAME #4] L1=10 L3=11 fused=10 tracked=10 objects_affected=10
+F0065 | ACCEPTED (l2_new_unmatched_detection) | sharp=34 L2=9 NEW_DET MATCH OK KF#4 | 0.261s
+  [KEYFRAME #5] L1=10 L3=10 fused=9 tracked=9 objects_affected=9
+F0074 | ACCEPTED (l2_new_unmatched_detection) | sharp=27 L2=11 NEW_DET MATCH OK KF#5 | 0.264s
+  [KEYFRAME #6] L1=14 L3=16 fused=13 tracked=13 objects_affected=13
+F0080 | ACCEPTED (l2_new_unmatched_detection) | sharp=27 L2=14 NEW_DET MATCH OK KF#6 | 0.263s
+  [KEYFRAME #7] L1=16 L3=18 fused=14 tracked=14 objects_affected=14
+F0086 | ACCEPTED (l2_new_unmatched_detection) | sharp=30 L2=18 NEW_DET MATCH OK KF#7 | 0.257s
+  [KEYFRAME #8] L1=16 L3=17 fused=14 tracked=14 objects_affected=14
+F0092 | ACCEPTED (l2_new_unmatched_detection) | sharp=41 L2=19 NEW_DET MATCH OK KF#8 | 0.274s
+  [KEYFRAME #9] L1=13 L3=16 fused=13 tracked=13 objects_affected=13
+F0098 | ACCEPTED (l2_new_unmatched_detection) | sharp=38 L2=16 NEW_DET QUAL_DROP MATCH OK KF#9 | 0.279s
+  [KEYFRAME #10] L1=20 L3=21 fused=17 tracked=17 objects_affected=17
+F0107 | ACCEPTED (l2_new_unmatched_detection) | sharp=40 L2=22 NEW_DET MATCH OK KF#10 | 0.272s
+  [KEYFRAME #11] L1=18 L3=20 fused=17 tracked=17 objects_affected=17
+F0119 | ACCEPTED (l2_new_unmatched_detection) | sharp=28 L2=20 NEW_DET MATCH OK KF#11 | 0.285s
+  [KEYFRAME #12] L1=25 L3=26 fused=21 tracked=21 objects_affected=21
+F0125 | ACCEPTED (track_quality_drop) | sharp=29 L2=24 QUAL_DROP MATCH OK KF#12 | 0.283s
+  [KEYFRAME #13] L1=23 L3=25 fused=21 tracked=21 objects_affected=21
+F0140 | ACCEPTED (track_quality_drop) | sharp=34 L2=26 QUAL_DROP MATCH OK KF#13 | 0.281s
+  [KEYFRAME #14] L1=23 L3=27 fused=22 tracked=22 objects_affected=22
+F0146 | ACCEPTED (track_quality_drop) | sharp=34 L2=26 QUAL_DROP MATCH OK KF#14 | 0.288s
+  [KEYFRAME #15] L1=23 L3=27 fused=23 tracked=23 objects_affected=23
+F0152 | ACCEPTED (l2_new_unmatched_detection) | sharp=41 L2=28 NEW_DET MATCH OK KF#15 | 0.302s
+  [KEYFRAME #16] L1=23 L3=26 fused=21 tracked=21 objects_affected=21
+F0161 | ACCEPTED (track_quality_drop) | sharp=32 L2=22 QUAL_DROP MATCH OK KF#16 | 0.295s
+  [KEYFRAME #17] L1=22 L3=24 fused=22 tracked=22 objects_affected=22
+F0167 | ACCEPTED (l2_new_unmatched_detection) | sharp=30 L2=24 NEW_DET MATCH OK KF#17 | 0.300s
+  [KEYFRAME #18] L1=23 L3=28 fused=24 tracked=24 objects_affected=24
+F0176 | ACCEPTED (l2_new_unmatched_detection) | sharp=31 L2=30 NEW_DET QUAL_DROP MATCH OK KF#18 | 0.287s
+  [KEYFRAME #19] L1=23 L3=26 fused=22 tracked=22 objects_affected=22
+F0182 | ACCEPTED (track_quality_drop) | sharp=35 L2=24 QUAL_DROP MATCH OK KF#19 | 0.301s
+  [KEYFRAME #20] L1=22 L3=26 fused=21 tracked=21 objects_affected=21
+F0188 | ACCEPTED (track_quality_drop) | sharp=26 L2=26 QUAL_DROP MATCH OK KF#20 | 0.383s
+  [KEYFRAME #21] L1=20 L3=20 fused=17 tracked=17 objects_affected=17
+F0194 | ACCEPTED (track_quality_drop) | sharp=22 L2=23 QUAL_DROP MATCH OK KF#21 | 1.189s
+F0199 | QUALITY REJECT | sharpness=19.9
+F0200 | QUALITY REJECT | sharpness=19.5
+F0201 | QUALITY REJECT | sharpness=18.6
+F0202 | QUALITY REJECT | sharpness=17.9
+F0203 | QUALITY REJECT | sharpness=17.9
+F0204 | QUALITY REJECT | sharpness=18.3
+F0205 | QUALITY REJECT | sharpness=17.8
+F0206 | QUALITY REJECT | sharpness=16.9
+F0207 | QUALITY REJECT | sharpness=16.5
+F0208 | QUALITY REJECT | sharpness=16.6
+F0209 | QUALITY REJECT | sharpness=17.6
+  (quality reject interval: 199..209, length=11)
+F0212 | QUALITY REJECT | sharpness=19.4
+F0213 | QUALITY REJECT | sharpness=18.2
+F0214 | QUALITY REJECT | sharpness=18.2
+F0215 | QUALITY REJECT | sharpness=17.1
+F0216 | QUALITY REJECT | sharpness=16.1
+F0217 | QUALITY REJECT | sharpness=16.6
+F0218 | QUALITY REJECT | sharpness=17.1
+F0219 | QUALITY REJECT | sharpness=17.9
+F0220 | QUALITY REJECT | sharpness=16.5
+F0221 | QUALITY REJECT | sharpness=16.1
+F0222 | QUALITY REJECT | sharpness=15.6
+F0223 | QUALITY REJECT | sharpness=16.3
+F0224 | QUALITY REJECT | sharpness=16.8
+F0225 | QUALITY REJECT | sharpness=16.5
+F0226 | QUALITY REJECT | sharpness=15.7
+F0227 | QUALITY REJECT | sharpness=15.4
+F0228 | QUALITY REJECT | sharpness=15.0
+F0229 | QUALITY REJECT | sharpness=15.2
+F0230 | QUALITY REJECT | sharpness=15.2
+F0231 | QUALITY REJECT | sharpness=15.1
+F0232 | QUALITY REJECT | sharpness=14.8
+F0233 | QUALITY REJECT | sharpness=15.6
+F0234 | QUALITY REJECT | sharpness=15.6
+F0235 | QUALITY REJECT | sharpness=15.9
+F0236 | QUALITY REJECT | sharpness=15.5
+F0237 | QUALITY REJECT | sharpness=15.5
+F0238 | QUALITY REJECT | sharpness=15.9
+F0239 | QUALITY REJECT | sharpness=15.9
+F0240 | QUALITY REJECT | sharpness=19.6
+F0241 | QUALITY REJECT | sharpness=17.0
+F0242 | QUALITY REJECT | sharpness=15.5
+F0243 | QUALITY REJECT | sharpness=14.6
+F0244 | QUALITY REJECT | sharpness=14.3
+F0245 | QUALITY REJECT | sharpness=13.4
+F0246 | QUALITY REJECT | sharpness=12.1
+F0247 | QUALITY REJECT | sharpness=11.0
+F0248 | QUALITY REJECT | sharpness=10.3
+F0249 | QUALITY REJECT | sharpness=9.5
+F0250 | QUALITY REJECT | sharpness=9.0
+F0251 | QUALITY REJECT | sharpness=8.6
+F0252 | QUALITY REJECT | sharpness=8.2
+F0253 | QUALITY REJECT | sharpness=7.6
+F0254 | QUALITY REJECT | sharpness=7.0
+F0255 | QUALITY REJECT | sharpness=6.3
+F0256 | QUALITY REJECT | sharpness=6.3
+F0257 | QUALITY REJECT | sharpness=5.8
+F0258 | QUALITY REJECT | sharpness=5.6
+F0259 | QUALITY REJECT | sharpness=5.8
+F0260 | QUALITY REJECT | sharpness=6.1
+F0261 | QUALITY REJECT | sharpness=6.4
+F0262 | QUALITY REJECT | sharpness=6.5
+F0263 | QUALITY REJECT | sharpness=9.6
+F0264 | QUALITY REJECT | sharpness=9.7
+F0265 | QUALITY REJECT | sharpness=9.9
+F0266 | QUALITY REJECT | sharpness=9.3
+F0267 | QUALITY REJECT | sharpness=9.6
+F0268 | QUALITY REJECT | sharpness=9.1
+F0269 | QUALITY REJECT | sharpness=10.1
+F0270 | QUALITY REJECT | sharpness=17.6
+
+================================================================================
+POST-PROCESSING
+================================================================================
+End-window keyframes: 2 candidates
+  Adding end KF: frame 193 → node 22 (parent=21)
+  [KEYFRAME #22] L1=20 L3=0 fused=20 tracked=20 objects_affected=20
+
+Running final_review()...
+  final_review done, merged=0 blocked_cooccur=9 blocked_overlap=6
+
+================================================================================
+SUMMARY
+================================================================================
+Run ID: 20260730_011525_06ea5fd
+Pipeline time: 12.0s
+Frames processed: 271
+  L2 run frames: 23
+  L2 empty frames: 0
+  Keyframe accepted: 22
+  Keyframe skipped (cooldown): 153
+  Max consecutive keyframes: 1
+Graph nodes: 23
+  Invalid homography nodes: 0
+
+Recovery:
+  Attempts: 0
+  Success: 0
+  Failed: 0
+
+Object statistics:
+  Provisional objects: 32
+  CONFIRMED: 25
+  TENTATIVE: 7
+  UNCERTAIN: 0
+  REJECTED: 0
+  Reportable (R1=True): 32
+
+Rejected reasons:
+  unexplained: 0
+
+Merges:
+  Total merges: 0
+  Blocked by co-occurrence: 9
+  Blocked by frame overlap: 6
+
+Invariants:
+  track_binding_conflicts: 0
+  same_frame_duplicate_observations: 0
+  unexplained_rejected_objects: 0
+  invalid_homography_nodes: 0
+  report_count_inconsistency: 1
+
+FPS:
+  Core algorithm: 26.2 FPS
+  Total (inc I/O): 22.6 FPS
+  Quality: 2674ms
+  L2 inference: 1288ms
+  Feature match: 0ms
+  L1 inference: 396ms
+  L3 inference: 323ms
+  Fusion: 7ms
+  Tracker update: 15ms
+  Projection: 20ms
+  Association: 21ms
+  Debug image I/O: 324ms
+  Final review: 0ms
+  Report: 2ms
+
+Class distribution (reportable):
+  cordless_drill: 1
+  electrical_tape: 2
+  flashlight: 2
+  hammer: 1
+  headlamp: 6
+  insulating_glove: 3
+  pliers: 7
+  screwdriver: 5
+  tape_measure: 3
+  telescopic_voltage_detector: 2
+
+Object details:
+  [✓] P-0001 → GO-0001 class=electrical_tape status=confirmed obs=21 kfs=21 tracks=4 centroid=(1010, 258) votes={'electrical_tape': 2.7841919495013827} flags=[]
+  [✓] P-0002 → GO-0002 class=electrical_tape status=confirmed obs=21 kfs=21 tracks=5 centroid=(1029, 351) votes={'electrical_tape': 3.2280515216347747} flags=[]
+  [✓] P-0003 → GO-0003 class=telescopic_voltage_detector status=confirmed obs=23 kfs=23 tracks=2 centroid=(1143, 298) votes={'telescopic_voltage_detector': 1.479668783226099} flags=[]
+  [✓] P-0004 → GO-0004 class=headlamp status=confirmed obs=23 kfs=23 tracks=8 centroid=(1292, 451) votes={'headlamp': 2.580042830850051} flags=['likely_duplicate']
+  [✓] P-0005 → GO-0005 class=insulating_glove status=confirmed obs=17 kfs=17 tracks=2 centroid=(1478, 335) votes={'insulating_glove': 1.3873879413388246} flags=[]
+  [✓] P-0006 → GO-0006 class=insulating_glove status=confirmed obs=14 kfs=14 tracks=2 centroid=(1411, 329) votes={'insulating_glove': 0.7412756737918788} flags=['likely_duplicate']
+  [✓] P-0007 → GO-0007 class=headlamp status=confirmed obs=22 kfs=22 tracks=4 centroid=(1367, 514) votes={'headlamp': 1.5795203119051735} flags=['likely_duplicate']
+  [✓] P-0008 → GO-0008 class=headlamp status=confirmed obs=18 kfs=18 tracks=3 centroid=(1289, 505) votes={'headlamp': 1.388299142933587} flags=['likely_duplicate']
+  [✓] P-0009 → GO-0009 class=insulating_glove status=confirmed obs=14 kfs=14 tracks=4 centroid=(1357, 322) votes={'insulating_glove': 2.4206855340416933} flags=['likely_duplicate']
+  [✓] P-0010 → GO-0010 class=telescopic_voltage_detector status=tentative obs=2 kfs=2 tracks=1 centroid=(1442, 535) votes={'telescopic_voltage_detector': 0.07550438952616154} flags=[]
+  [✓] P-0011 → GO-0011 class=headlamp status=confirmed obs=16 kfs=16 tracks=5 centroid=(1219, 534) votes={'headlamp': 1.1192485526923501} flags=['likely_duplicate']
+  [✓] P-0012 → GO-0012 class=pliers status=confirmed obs=16 kfs=16 tracks=3 centroid=(1644, 601) votes={'pliers': 1.049384542152344} flags=['likely_duplicate']
+  [✓] P-0013 → GO-0013 class=pliers status=confirmed obs=13 kfs=13 tracks=8 centroid=(1564, 577) votes={'pliers': 1.5752317017229478} flags=['likely_duplicate']
+  [✓] P-0014 → GO-0014 class=tape_measure status=confirmed obs=17 kfs=17 tracks=3 centroid=(1594, 352) votes={'tape_measure': 0.8733026198064429} flags=[]
+  [✓] P-0015 → GO-0015 class=tape_measure status=confirmed obs=17 kfs=17 tracks=3 centroid=(1639, 406) votes={'tape_measure': 1.4237497906609573} flags=[]
+  [✓] P-0016 → GO-0016 class=flashlight status=tentative obs=1 kfs=1 tracks=1 centroid=(1602, 579) votes={} flags=[]
+  [✓] P-0017 → GO-0017 class=tape_measure status=tentative obs=2 kfs=2 tracks=2 centroid=(1646, 371) votes={'tape_measure': 0.0} flags=[]
+  [✓] P-0018 → GO-0018 class=pliers status=confirmed obs=9 kfs=9 tracks=1 centroid=(1702, 602) votes={'pliers': 0.387530379860228} flags=['likely_duplicate']
+  [✓] P-0019 → GO-0019 class=cordless_drill status=confirmed obs=14 kfs=14 tracks=3 centroid=(1736, 381) votes={'cordless_drill': 1.5075399262138711} flags=[]
+  [✓] P-0020 → GO-0020 class=pliers status=tentative obs=1 kfs=1 tracks=1 centroid=(1769, 578) votes={} flags=[]
+  [✓] P-0021 → GO-0021 class=pliers status=confirmed obs=6 kfs=6 tracks=3 centroid=(1744, 600) votes={'pliers': 0.7759330103587421} flags=['likely_duplicate']
+  [✓] P-0022 → GO-0022 class=hammer status=confirmed obs=12 kfs=12 tracks=2 centroid=(1871, 570) votes={'hammer': 1.2894194858050334} flags=[]
+  [✓] P-0023 → GO-0023 class=screwdriver status=confirmed obs=7 kfs=7 tracks=4 centroid=(1913, 359) votes={'screwdriver': 0.7151532639542275} flags=['likely_duplicate']
+  [✓] P-0024 → GO-0024 class=screwdriver status=confirmed obs=11 kfs=11 tracks=7 centroid=(1885, 379) votes={'screwdriver': 2.158763522468662} flags=['likely_duplicate']
+  [✓] P-0025 → GO-0025 class=screwdriver status=confirmed obs=11 kfs=11 tracks=3 centroid=(1967, 361) votes={'screwdriver': 1.545198287824829} flags=[]
+  [✓] P-0026 → GO-0026 class=flashlight status=confirmed obs=9 kfs=9 tracks=3 centroid=(1962, 539) votes={'flashlight': 0.7932050457076766} flags=[]
+  [✓] P-0027 → GO-0027 class=pliers status=confirmed obs=10 kfs=10 tracks=2 centroid=(1524, 571) votes={'pliers': 0.7141416756084327} flags=['likely_duplicate']
+  [✓] P-0028 → GO-0028 class=headlamp status=tentative obs=3 kfs=3 tracks=3 centroid=(1394, 507) votes={} flags=['likely_duplicate']
+  [✓] P-0029 → GO-0029 class=pliers status=confirmed obs=7 kfs=7 tracks=2 centroid=(1715, 601) votes={'pliers': 0.35911077653201273} flags=['likely_duplicate']
+  [✓] P-0030 → GO-0030 class=screwdriver status=tentative obs=3 kfs=3 tracks=3 centroid=(1664, 607) votes={'screwdriver': 0.11096388458390691} flags=[]
+  [✓] P-0031 → GO-0031 class=headlamp status=confirmed obs=7 kfs=7 tracks=2 centroid=(1242, 508) votes={'headlamp': 0.44195711977886754} flags=['likely_duplicate']
+  [✓] P-0032 → GO-0032 class=screwdriver status=tentative obs=4 kfs=4 tracks=4 centroid=(1926, 365) votes={'screwdriver': 0.09406428255507743} flags=['likely_duplicate']
+
+Violations:
+
+Output files:
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_011525_06ea5fd\reports\report.json
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_011525_06ea5fd\reports\report.csv
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_011525_06ea5fd\events.jsonl
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_011525_06ea5fd\keyframe_stats.csv
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_011525_06ea5fd\association_events.csv
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_011525_06ea5fd\object_lifecycle.json
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_011525_06ea5fd\effective_config.yaml
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_011525_06ea5fd\log.txt
+
+================================================================================
+DONE
+================================================================================

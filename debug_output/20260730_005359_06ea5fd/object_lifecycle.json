@@ -1,0 +1,104 @@
+[
+  {
+    "provisional_id": "P-0001",
+    "persistent_id": "GO-0001",
+    "class_name": "electrical_tape",
+    "status": "tentative",
+    "observation_count": 1,
+    "unique_frame_count": 1,
+    "keyframe_count": 1,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1006.6709594726561,
+      256.7410659790039
+    ]
+  },
+  {
+    "provisional_id": "P-0002",
+    "persistent_id": "GO-0002",
+    "class_name": "electrical_tape",
+    "status": "tentative",
+    "observation_count": 1,
+    "unique_frame_count": 1,
+    "keyframe_count": 1,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1017.8053588867188,
+      349.1763610839844
+    ]
+  },
+  {
+    "provisional_id": "P-0003",
+    "persistent_id": "GO-0003",
+    "class_name": "telescopic_voltage_detector",
+    "status": "tentative",
+    "observation_count": 1,
+    "unique_frame_count": 1,
+    "keyframe_count": 1,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1138.339111328125,
+      299.2685241699219
+    ]
+  },
+  {
+    "provisional_id": "P-0004",
+    "persistent_id": "GO-0004",
+    "class_name": "headlamp",
+    "status": "tentative",
+    "observation_count": 1,
+    "unique_frame_count": 1,
+    "keyframe_count": 1,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1206.508056640625,
+      523.4685668945312
+    ]
+  },
+  {
+    "provisional_id": "P-0005",
+    "persistent_id": "GO-0005",
+    "class_name": "insulating_glove",
+    "status": "tentative",
+    "observation_count": 1,
+    "unique_frame_count": 1,
+    "keyframe_count": 1,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1242.9829711914062,
+      253.93546295166018
+    ]
+  },
+  {
+    "provisional_id": "P-0006",
+    "persistent_id": "GO-0006",
+    "class_name": "insulating_glove",
+    "status": "tentative",
+    "observation_count": 1,
+    "unique_frame_count": 1,
+    "keyframe_count": 1,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1239.2512207031248,
+      203.6427764892578
+    ]
+  }
+]

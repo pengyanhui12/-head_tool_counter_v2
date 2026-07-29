@@ -270,11 +270,12 @@ matcher = FeatureMatcher(
     min_inliers=mcfg.get("min_inliers", 30),
     min_inlier_ratio=mcfg.get("min_inlier_ratio", 0.30),
     max_reprojection_error=mcfg.get("max_reprojection_error_px", 3.0),
-    min_occupied_quadrants=mcfg.get("min_occupied_quadrants", 3),
-    min_inlier_bbox_area_ratio=mcfg.get("min_inlier_bbox_area_ratio", 0.15),
+    min_occupied_quadrants=mcfg.get("min_occupied_quadrants", 2),
+    min_inlier_bbox_area_ratio=mcfg.get("min_inlier_bbox_area_ratio", 0.10),
     roi_center_ratio=mcfg.get("roi_center_ratio", 0.70),
-    max_projected_area_ratio=mcfg.get("max_projected_area_ratio", 50.0),
-    min_projected_area_ratio=mcfg.get("min_projected_area_ratio", 0.01),
+    max_projected_area_ratio=mcfg.get("max_projected_area_ratio", 10.0),
+    min_projected_area_ratio=mcfg.get("min_projected_area_ratio", 0.10),
+    max_condition_number=mcfg.get("max_condition_number", 500000),
 )
 graph = HomographyGraph()
 selector = KeyframeSelector(
@@ -700,6 +701,7 @@ associator.map.assign_persistent_ids()
 
 # ── 报告 ──
 with PerfTimer(dbg, "report_ms"):
+    # R3: JSON、CSV、控制台、API 使用同一个 reportable_objects
     reportable = associator.get_reportable_objects()
     gen = ReportGenerator(object_map=associator.map)
     gen.find_evidence_frames(reportable)

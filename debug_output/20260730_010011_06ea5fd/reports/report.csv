@@ -1,0 +1,7 @@
+persistent_id,provisional_id,class_name,confirmation_status,visibility_status,confidence,observation_count,keyframe_count,track_count,centroid_x,centroid_y,review_flags,best_frame_id,rejected_reason,merged_into_id
+GO-0001,P-0001,electrical_tape,tentative,active,0.000,1,1,1,1006.7,256.7,,23,,
+GO-0002,P-0002,electrical_tape,tentative,active,0.000,1,1,1,1017.8,349.2,,23,,
+GO-0003,P-0003,telescopic_voltage_detector,tentative,active,0.000,1,1,1,1138.3,299.3,,23,,
+GO-0004,P-0004,headlamp,tentative,active,0.000,1,1,1,1206.5,523.5,,23,,
+GO-0005,P-0005,insulating_glove,tentative,active,0.000,1,1,1,1243.0,253.9,,23,,
+GO-0006,P-0006,insulating_glove,tentative,active,0.000,1,1,1,1239.3,203.6,,23,,

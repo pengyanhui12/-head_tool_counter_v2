@@ -1,0 +1,374 @@
+================================================================================
+HEAD TOOL COUNTER — DEBUG PIPELINE V2
+================================================================================
+Video: D:\杭州供电段\头戴设备作业工具识别\01公司拍摄数据20260717\测试用\test_cut.mp4
+Output: D:\PycharmProjects\head_tool_counter\debug_output\20260730_010011_06ea5fd
+Git SHA: 06ea5fd
+Max frames: ALL
+
+Config loaded:
+  matcher: min_good=20, min_inliers=30, min_ratio=0.3, max_reproj=3.0
+  associator: max_pos=250.0, min_obs_confirm=5
+  tracker: max_missed=5, min_iou=0.2, inactive_min_iou=0.3
+  pipeline: l2_interval=3, min_kf_interval=5
+
+Initializing modules...
+  All modules initialized in 2.10s
+
+
+================================================================================
+STARTING FRAME-BY-FRAME PROCESSING
+================================================================================
+
+F0000 | QUALITY REJECT | sharpness=15.6
+F0001 | QUALITY REJECT | sharpness=14.9
+F0002 | QUALITY REJECT | sharpness=14.9
+F0003 | QUALITY REJECT | sharpness=14.8
+F0004 | QUALITY REJECT | sharpness=14.8
+F0005 | QUALITY REJECT | sharpness=15.0
+F0006 | QUALITY REJECT | sharpness=14.4
+F0007 | QUALITY REJECT | sharpness=14.5
+F0008 | QUALITY REJECT | sharpness=14.7
+F0009 | QUALITY REJECT | sharpness=15.0
+F0010 | QUALITY REJECT | sharpness=15.7
+F0011 | QUALITY REJECT | sharpness=15.3
+F0012 | QUALITY REJECT | sharpness=16.0
+F0013 | QUALITY REJECT | sharpness=16.5
+F0014 | QUALITY REJECT | sharpness=16.3
+F0015 | QUALITY REJECT | sharpness=17.4
+F0016 | QUALITY REJECT | sharpness=17.2
+F0017 | QUALITY REJECT | sharpness=18.1
+F0018 | QUALITY REJECT | sharpness=17.7
+F0019 | QUALITY REJECT | sharpness=18.4
+F0020 | QUALITY REJECT | sharpness=19.3
+F0021 | QUALITY REJECT | sharpness=19.0
+F0022 | QUALITY REJECT | sharpness=19.4
+  (quality reject interval: 0..22, length=23)
+  [KEYFRAME #0] L1=6 L3=7 fused=6 tracked=6 objects_affected=6
+F0023 | ACCEPTED (first_frame) | sharp=20 L2=7 MAX_INTERVAL NEW_DET FIRST KF | 0.629s
+F0027 | QUALITY REJECT | sharpness=19.4
+F0028 | QUALITY REJECT | sharpness=19.4
+F0029 | QUALITY REJECT | sharpness=18.7
+  (quality reject interval: 27..29, length=3)
+F0032 | RECOVERY | sharp=21 L2=8 NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0035 | RECOVERY | sharp=22 L2=9 NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0038 | RECOVERY | sharp=23 L2=8 NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0041 | RECOVERY | sharp=22 L2=9 NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0044 | RECOVERY | sharp=25 L2=10 NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0047 | RECOVERY | sharp=27 L2=9 NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0050 | RECOVERY | sharp=28 L2=11 NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0053 | RECOVERY | sharp=28 L2=10 MAX_INTERVAL NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0054 | RECOVERY | sharp=27 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0055 | RECOVERY | sharp=28 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 115794.1 LOST | match_err=match_failed: condition number too large: 115794.1
+F0056 | RECOVERY | sharp=28 L2=9 MAX_INTERVAL NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0057 | RECOVERY | sharp=30 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0058 | RECOVERY | sharp=31 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0059 | RECOVERY | sharp=31 L2=13 MAX_INTERVAL NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0060 | RECOVERY | sharp=39 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 152019.1 LOST | match_err=match_failed: condition number too large: 152019.1
+F0061 | RECOVERY | sharp=34 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0062 | RECOVERY | sharp=32 L2=11 MAX_INTERVAL NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0063 | RECOVERY | sharp=32 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0064 | RECOVERY | sharp=34 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0065 | RECOVERY | sharp=34 L2=9 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 149887.9 LOST | match_err=match_failed: condition number too large: 149887.9
+F0066 | RECOVERY | sharp=35 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0067 | RECOVERY | sharp=34 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 334747.4 LOST | match_err=match_failed: condition number too large: 334747.4
+F0068 | RECOVERY | sharp=32 L2=10 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 171205.5 LOST | match_err=match_failed: condition number too large: 171205.5
+F0069 | RECOVERY | sharp=31 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 133447.0 LOST | match_err=match_failed: condition number too large: 133447.0
+F0070 | RECOVERY | sharp=31 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0071 | RECOVERY | sharp=30 L2=9 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 423711.0 LOST | match_err=match_failed: condition number too large: 423711.0
+F0072 | RECOVERY | sharp=30 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0073 | RECOVERY | sharp=28 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0074 | RECOVERY | sharp=27 L2=11 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 128742.5 LOST | match_err=match_failed: condition number too large: 128742.5
+F0075 | RECOVERY | sharp=27 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0076 | RECOVERY | sharp=27 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0077 | RECOVERY | sharp=27 L2=15 MAX_INTERVAL NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0078 | RECOVERY | sharp=27 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0079 | RECOVERY | sharp=28 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0080 | RECOVERY | sharp=27 L2=14 MAX_INTERVAL NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0081 | RECOVERY | sharp=28 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0082 | RECOVERY | sharp=27 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 348270.1 LOST | match_err=match_failed: condition number too large: 348270.1
+F0083 | RECOVERY | sharp=27 L2=14 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 211968.0 LOST | match_err=match_failed: condition number too large: 211968.0
+F0084 | RECOVERY | sharp=28 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 114728.8 LOST | match_err=match_failed: condition number too large: 114728.8
+F0085 | RECOVERY | sharp=28 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 362525.7 LOST | match_err=match_failed: condition number too large: 362525.7
+F0086 | RECOVERY | sharp=30 L2=18 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 551122.7 LOST | match_err=match_failed: condition number too large: 551122.7
+F0087 | RECOVERY | sharp=33 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 188850.5 LOST | match_err=match_failed: condition number too large: 188850.5
+F0088 | RECOVERY | sharp=31 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0089 | RECOVERY | sharp=30 L2=17 MAX_INTERVAL NEW_DET RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0090 | RECOVERY | sharp=47 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 135394.1 LOST | match_err=match_failed: condition number too large: 135394.1
+F0091 | RECOVERY | sharp=42 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 494172.1 LOST | match_err=match_failed: condition number too large: 494172.1
+F0092 | RECOVERY | sharp=41 L2=19 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 554561.3 LOST | match_err=match_failed: condition number too large: 554561.3
+F0093 | RECOVERY | sharp=39 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 538262.2 LOST | match_err=match_failed: condition number too large: 538262.2
+F0094 | RECOVERY | sharp=38 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 579902.7 LOST | match_err=match_failed: condition number too large: 579902.7
+F0095 | RECOVERY | sharp=37 L2=17 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 560900.2 LOST | match_err=match_failed: condition number too large: 560900.2
+F0096 | RECOVERY | sharp=36 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 3048123.8 LOST | match_err=match_failed: condition number too large: 3048123.8
+F0097 | RECOVERY | sharp=38 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 344020.4 LOST | match_err=match_failed: condition number too large: 344020.4
+F0098 | RECOVERY | sharp=38 L2=16 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 220588.5 LOST | match_err=match_failed: condition number too large: 220588.5
+F0099 | RECOVERY | sharp=38 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 2369992.1 LOST | match_err=match_failed: condition number too large: 2369992.1
+F0100 | RECOVERY | sharp=37 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 1639882.5 LOST | match_err=match_failed: condition number too large: 1639882.5
+F0101 | RECOVERY | sharp=37 L2=20 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 199200.2 LOST | match_err=match_failed: condition number too large: 199200.2
+F0102 | RECOVERY | sharp=38 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0103 | RECOVERY | sharp=38 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 1149363.4 LOST | match_err=match_failed: condition number too large: 1149363.4
+F0104 | RECOVERY | sharp=39 L2=18 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 528675.6 LOST | match_err=match_failed: condition number too large: 528675.6
+F0105 | RECOVERY | sharp=40 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 422382.5 LOST | match_err=match_failed: condition number too large: 422382.5
+F0106 | RECOVERY | sharp=40 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 6402725.1 LOST | match_err=match_failed: condition number too large: 6402725.1
+F0107 | RECOVERY | sharp=40 L2=22 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 56025857.6 LOST | match_err=match_failed: condition number too large: 56025857.6
+F0108 | RECOVERY | sharp=39 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 1035687.2 LOST | match_err=match_failed: condition number too large: 1035687.2
+F0109 | RECOVERY | sharp=37 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 129232.7 LOST | match_err=match_failed: condition number too large: 129232.7
+F0110 | RECOVERY | sharp=39 L2=19 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 1119386.0 LOST | match_err=match_failed: condition number too large: 1119386.0
+F0111 | RECOVERY | sharp=38 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 513682.2 LOST | match_err=match_failed: condition number too large: 513682.2
+F0112 | RECOVERY | sharp=37 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 294986.2 LOST | match_err=match_failed: condition number too large: 294986.2
+F0113 | RECOVERY | sharp=34 L2=15 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 1154852.4 LOST | match_err=match_failed: condition number too large: 1154852.4
+F0114 | RECOVERY | sharp=33 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 1748681.2 LOST | match_err=match_failed: condition number too large: 1748681.2
+F0115 | RECOVERY | sharp=32 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 1704605.9 LOST | match_err=match_failed: condition number too large: 1704605.9
+F0116 | RECOVERY | sharp=32 L2=18 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 2726981.1 LOST | match_err=match_failed: condition number too large: 2726981.1
+F0117 | RECOVERY | sharp=31 MAX_INTERVAL RECOVERY: match_failed: quality thresholds not met LOST | match_err=match_failed: quality thresholds not met
+F0118 | RECOVERY | sharp=30 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 661047.4 LOST | match_err=match_failed: condition number too large: 661047.4
+F0119 | RECOVERY | sharp=28 L2=20 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 32078216.9 LOST | match_err=match_failed: condition number too large: 32078216.9
+F0120 | RECOVERY | sharp=37 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: 5.76e-07 LOST | match_err=match_failed: det(H) too small: 5.76e-07
+F0121 | RECOVERY | sharp=33 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 35026593.1 LOST | match_err=match_failed: condition number too large: 35026593.1
+F0122 | RECOVERY | sharp=31 L2=23 MAX_INTERVAL NEW_DET RECOVERY: match_failed: det(H) too small: -5.63e-09 LOST | match_err=match_failed: det(H) too small: -5.63e-09
+F0123 | RECOVERY | sharp=31 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 7326020.7 LOST | match_err=match_failed: condition number too large: 7326020.7
+F0124 | RECOVERY | sharp=29 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 33573874.1 LOST | match_err=match_failed: condition number too large: 33573874.1
+F0125 | RECOVERY | sharp=29 L2=24 MAX_INTERVAL NEW_DET RECOVERY: match_failed: det(H) too small: 9.04e-09 LOST | match_err=match_failed: det(H) too small: 9.04e-09
+F0126 | RECOVERY | sharp=28 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 2114880087.9 LOST | match_err=match_failed: condition number too large: 2114880087.9
+F0127 | RECOVERY | sharp=27 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: -6.05e-09 LOST | match_err=match_failed: det(H) too small: -6.05e-09
+F0128 | RECOVERY | sharp=28 L2=30 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 14657860.5 LOST | match_err=match_failed: condition number too large: 14657860.5
+F0129 | RECOVERY | sharp=29 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 48348060.2 LOST | match_err=match_failed: condition number too large: 48348060.2
+F0130 | RECOVERY | sharp=29 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: 1.94e-07 LOST | match_err=match_failed: det(H) too small: 1.94e-07
+F0131 | RECOVERY | sharp=29 L2=25 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 7822985607.9 LOST | match_err=match_failed: condition number too large: 7822985607.9
+F0132 | RECOVERY | sharp=29 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 72306282.3 LOST | match_err=match_failed: condition number too large: 72306282.3
+F0133 | RECOVERY | sharp=31 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: -1.11e-08 LOST | match_err=match_failed: det(H) too small: -1.11e-08
+F0134 | RECOVERY | sharp=33 L2=27 MAX_INTERVAL NEW_DET RECOVERY: match_failed: det(H) too small: -3.13e-10 LOST | match_err=match_failed: det(H) too small: -3.13e-10
+F0135 | RECOVERY | sharp=34 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: 8.62e-09 LOST | match_err=match_failed: det(H) too small: 8.62e-09
+F0136 | RECOVERY | sharp=33 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: 2.83e-10 LOST | match_err=match_failed: det(H) too small: 2.83e-10
+F0137 | RECOVERY | sharp=32 L2=25 MAX_INTERVAL NEW_DET RECOVERY: match_failed: det(H) too small: 1.47e-13 LOST | match_err=match_failed: det(H) too small: 1.47e-13
+F0138 | RECOVERY | sharp=31 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 74391223.3 LOST | match_err=match_failed: condition number too large: 74391223.3
+F0139 | RECOVERY | sharp=33 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: -1.22e-10 LOST | match_err=match_failed: det(H) too small: -1.22e-10
+F0140 | RECOVERY | sharp=34 L2=26 MAX_INTERVAL NEW_DET RECOVERY: match_failed: det(H) too small: -2.94e-11 LOST | match_err=match_failed: det(H) too small: -2.94e-11
+F0141 | RECOVERY | sharp=34 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 687475804.0 LOST | match_err=match_failed: condition number too large: 687475804.0
+F0142 | RECOVERY | sharp=34 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: 2.55e-10 LOST | match_err=match_failed: det(H) too small: 2.55e-10
+F0143 | RECOVERY | sharp=33 L2=26 MAX_INTERVAL NEW_DET RECOVERY: match_failed: det(H) too small: 7.19e-12 LOST | match_err=match_failed: det(H) too small: 7.19e-12
+F0144 | RECOVERY | sharp=33 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: -1.42e-07 LOST | match_err=match_failed: det(H) too small: -1.42e-07
+F0145 | RECOVERY | sharp=35 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: 1.72e-07 LOST | match_err=match_failed: det(H) too small: 1.72e-07
+F0146 | RECOVERY | sharp=34 L2=26 MAX_INTERVAL NEW_DET RECOVERY: match_failed: det(H) too small: 3.21e-09 LOST | match_err=match_failed: det(H) too small: 3.21e-09
+F0147 | RECOVERY | sharp=34 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: -3.41e-11 LOST | match_err=match_failed: det(H) too small: -3.41e-11
+F0148 | RECOVERY | sharp=35 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: 7.97e-09 LOST | match_err=match_failed: det(H) too small: 7.97e-09
+F0149 | RECOVERY | sharp=36 L2=27 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 3759956750.0 LOST | match_err=match_failed: condition number too large: 3759956750.0
+F0150 | RECOVERY | sharp=52 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 564981038.4 LOST | match_err=match_failed: condition number too large: 564981038.4
+F0151 | RECOVERY | sharp=44 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 79923377.0 LOST | match_err=match_failed: condition number too large: 79923377.0
+F0152 | RECOVERY | sharp=41 L2=28 MAX_INTERVAL NEW_DET RECOVERY: match_failed: condition number too large: 162177105.9 LOST | match_err=match_failed: condition number too large: 162177105.9
+F0153 | RECOVERY | sharp=38 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: -5.15e-07 LOST | match_err=match_failed: det(H) too small: -5.15e-07
+F0154 | RECOVERY | sharp=38 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: 1.78e-13 LOST | match_err=match_failed: det(H) too small: 1.78e-13
+F0155 | RECOVERY | sharp=37 L2=26 MAX_INTERVAL NEW_DET RECOVERY: match_failed: det(H) too small: -3.71e-10 LOST | match_err=match_failed: det(H) too small: -3.71e-10
+F0156 | RECOVERY | sharp=37 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: -1.53e-11 LOST | match_err=match_failed: det(H) too small: -1.53e-11
+F0157 | RECOVERY | sharp=35 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 486730043.0 LOST | match_err=match_failed: condition number too large: 486730043.0
+F0158 | RECOVERY | sharp=33 L2=27 MAX_INTERVAL NEW_DET RECOVERY: match_failed: det(H) too small: 2.39e-07 LOST | match_err=match_failed: det(H) too small: 2.39e-07
+F0159 | RECOVERY | sharp=32 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 856259133.2 LOST | match_err=match_failed: condition number too large: 856259133.2
+F0160 | RECOVERY | sharp=32 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: 6.72e-09 LOST | match_err=match_failed: det(H) too small: 6.72e-09
+F0161 | RECOVERY | sharp=32 L2=22 MAX_INTERVAL NEW_DET RECOVERY: match_failed: det(H) too small: 3.68e-10 LOST | match_err=match_failed: det(H) too small: 3.68e-10
+F0162 | RECOVERY | sharp=32 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 2077271.9 LOST | match_err=match_failed: condition number too large: 2077271.9
+F0163 | RECOVERY | sharp=31 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 488215606.3 LOST | match_err=match_failed: condition number too large: 488215606.3
+F0164 | RECOVERY | sharp=31 L2=25 MAX_INTERVAL NEW_DET RECOVERY: match_failed: insufficient good matches: 17 < 20 LOST | match_err=match_failed: insufficient good matches: 17 < 20
+F0165 | RECOVERY | sharp=31 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 18 < 20 LOST | match_err=match_failed: insufficient good matches: 18 < 20
+F0166 | RECOVERY | sharp=31 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 1353716230.6 LOST | match_err=match_failed: condition number too large: 1353716230.6
+F0167 | RECOVERY | sharp=30 L2=24 MAX_INTERVAL NEW_DET RECOVERY: match_failed: insufficient good matches: 15 < 20 LOST | match_err=match_failed: insufficient good matches: 15 < 20
+F0168 | RECOVERY | sharp=29 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 11 < 20 LOST | match_err=match_failed: insufficient good matches: 11 < 20
+F0169 | RECOVERY | sharp=31 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 12 < 20 LOST | match_err=match_failed: insufficient good matches: 12 < 20
+F0170 | RECOVERY | sharp=31 L2=32 MAX_INTERVAL NEW_DET RECOVERY: match_failed: insufficient good matches: 13 < 20 LOST | match_err=match_failed: insufficient good matches: 13 < 20
+F0171 | RECOVERY | sharp=30 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 9 < 20 LOST | match_err=match_failed: insufficient good matches: 9 < 20
+F0172 | RECOVERY | sharp=28 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 13 < 20 LOST | match_err=match_failed: insufficient good matches: 13 < 20
+F0173 | RECOVERY | sharp=28 L2=23 MAX_INTERVAL NEW_DET RECOVERY: match_failed: insufficient good matches: 14 < 20 LOST | match_err=match_failed: insufficient good matches: 14 < 20
+F0174 | RECOVERY | sharp=28 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 16 < 20 LOST | match_err=match_failed: insufficient good matches: 16 < 20
+F0175 | RECOVERY | sharp=31 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 14 < 20 LOST | match_err=match_failed: insufficient good matches: 14 < 20
+F0176 | RECOVERY | sharp=31 L2=30 MAX_INTERVAL NEW_DET RECOVERY: match_failed: insufficient good matches: 17 < 20 LOST | match_err=match_failed: insufficient good matches: 17 < 20
+F0177 | RECOVERY | sharp=30 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 47905801.4 LOST | match_err=match_failed: condition number too large: 47905801.4
+F0178 | RECOVERY | sharp=30 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 14 < 20 LOST | match_err=match_failed: insufficient good matches: 14 < 20
+F0179 | RECOVERY | sharp=30 L2=29 MAX_INTERVAL NEW_DET RECOVERY: match_failed: insufficient good matches: 17 < 20 LOST | match_err=match_failed: insufficient good matches: 17 < 20
+F0180 | RECOVERY | sharp=44 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 18 < 20 LOST | match_err=match_failed: insufficient good matches: 18 < 20
+F0181 | RECOVERY | sharp=38 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 475785875.6 LOST | match_err=match_failed: condition number too large: 475785875.6
+F0182 | RECOVERY | sharp=35 L2=24 MAX_INTERVAL NEW_DET RECOVERY: match_failed: det(H) too small: 3.33e-10 LOST | match_err=match_failed: det(H) too small: 3.33e-10
+F0183 | RECOVERY | sharp=35 MAX_INTERVAL RECOVERY: match_failed: det(H) too small: -7.92e-10 LOST | match_err=match_failed: det(H) too small: -7.92e-10
+F0184 | RECOVERY | sharp=33 MAX_INTERVAL RECOVERY: match_failed: condition number too large: 157322020.0 LOST | match_err=match_failed: condition number too large: 157322020.0
+F0185 | RECOVERY | sharp=31 L2=23 MAX_INTERVAL NEW_DET RECOVERY: match_failed: det(H) too small: 6.62e-07 LOST | match_err=match_failed: det(H) too small: 6.62e-07
+F0186 | RECOVERY | sharp=29 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 17 < 20 LOST | match_err=match_failed: insufficient good matches: 17 < 20
+F0187 | RECOVERY | sharp=27 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 13 < 20 LOST | match_err=match_failed: insufficient good matches: 13 < 20
+F0188 | RECOVERY | sharp=26 L2=26 MAX_INTERVAL NEW_DET RECOVERY: match_failed: insufficient good matches: 17 < 20 LOST | match_err=match_failed: insufficient good matches: 17 < 20
+F0189 | RECOVERY | sharp=25 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 16 < 20 LOST | match_err=match_failed: insufficient good matches: 16 < 20
+F0190 | RECOVERY | sharp=24 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 10 < 20 LOST | match_err=match_failed: insufficient good matches: 10 < 20
+F0191 | RECOVERY | sharp=23 L2=27 MAX_INTERVAL NEW_DET RECOVERY: match_failed: insufficient good matches: 9 < 20 LOST | match_err=match_failed: insufficient good matches: 9 < 20
+F0192 | RECOVERY | sharp=23 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 16 < 20 LOST | match_err=match_failed: insufficient good matches: 16 < 20
+F0193 | RECOVERY | sharp=22 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 13 < 20 LOST | match_err=match_failed: insufficient good matches: 13 < 20
+F0194 | RECOVERY | sharp=22 L2=23 MAX_INTERVAL NEW_DET RECOVERY: match_failed: insufficient good matches: 12 < 20 LOST | match_err=match_failed: insufficient good matches: 12 < 20
+F0195 | RECOVERY | sharp=21 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 15 < 20 LOST | match_err=match_failed: insufficient good matches: 15 < 20
+F0196 | RECOVERY | sharp=21 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 12 < 20 LOST | match_err=match_failed: insufficient good matches: 12 < 20
+F0197 | RECOVERY | sharp=21 L2=20 MAX_INTERVAL NEW_DET RECOVERY: match_failed: insufficient good matches: 8 < 20 LOST | match_err=match_failed: insufficient good matches: 8 < 20
+F0198 | RECOVERY | sharp=21 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 9 < 20 LOST | match_err=match_failed: insufficient good matches: 9 < 20
+F0199 | QUALITY REJECT | sharpness=19.9
+F0200 | QUALITY REJECT | sharpness=19.5
+F0201 | QUALITY REJECT | sharpness=18.6
+F0202 | QUALITY REJECT | sharpness=17.9
+F0203 | QUALITY REJECT | sharpness=17.9
+F0204 | QUALITY REJECT | sharpness=18.3
+F0205 | QUALITY REJECT | sharpness=17.8
+F0206 | QUALITY REJECT | sharpness=16.9
+F0207 | QUALITY REJECT | sharpness=16.5
+F0208 | QUALITY REJECT | sharpness=16.6
+F0209 | QUALITY REJECT | sharpness=17.6
+  (quality reject interval: 199..209, length=11)
+F0210 | RECOVERY | sharp=24 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 8 < 20 LOST | match_err=match_failed: insufficient good matches: 8 < 20
+F0211 | RECOVERY | sharp=21 MAX_INTERVAL RECOVERY: match_failed: insufficient good matches: 8 < 20 LOST | match_err=match_failed: insufficient good matches: 8 < 20
+F0212 | QUALITY REJECT | sharpness=19.4
+F0213 | QUALITY REJECT | sharpness=18.2
+F0214 | QUALITY REJECT | sharpness=18.2
+F0215 | QUALITY REJECT | sharpness=17.1
+F0216 | QUALITY REJECT | sharpness=16.1
+F0217 | QUALITY REJECT | sharpness=16.6
+F0218 | QUALITY REJECT | sharpness=17.1
+F0219 | QUALITY REJECT | sharpness=17.9
+F0220 | QUALITY REJECT | sharpness=16.5
+F0221 | QUALITY REJECT | sharpness=16.1
+F0222 | QUALITY REJECT | sharpness=15.6
+F0223 | QUALITY REJECT | sharpness=16.3
+F0224 | QUALITY REJECT | sharpness=16.8
+F0225 | QUALITY REJECT | sharpness=16.5
+F0226 | QUALITY REJECT | sharpness=15.7
+F0227 | QUALITY REJECT | sharpness=15.4
+F0228 | QUALITY REJECT | sharpness=15.0
+F0229 | QUALITY REJECT | sharpness=15.2
+F0230 | QUALITY REJECT | sharpness=15.2
+F0231 | QUALITY REJECT | sharpness=15.1
+F0232 | QUALITY REJECT | sharpness=14.8
+F0233 | QUALITY REJECT | sharpness=15.6
+F0234 | QUALITY REJECT | sharpness=15.6
+F0235 | QUALITY REJECT | sharpness=15.9
+F0236 | QUALITY REJECT | sharpness=15.5
+F0237 | QUALITY REJECT | sharpness=15.5
+F0238 | QUALITY REJECT | sharpness=15.9
+F0239 | QUALITY REJECT | sharpness=15.9
+F0240 | QUALITY REJECT | sharpness=19.6
+F0241 | QUALITY REJECT | sharpness=17.0
+F0242 | QUALITY REJECT | sharpness=15.5
+F0243 | QUALITY REJECT | sharpness=14.6
+F0244 | QUALITY REJECT | sharpness=14.3
+F0245 | QUALITY REJECT | sharpness=13.4
+F0246 | QUALITY REJECT | sharpness=12.1
+F0247 | QUALITY REJECT | sharpness=11.0
+F0248 | QUALITY REJECT | sharpness=10.3
+F0249 | QUALITY REJECT | sharpness=9.5
+F0250 | QUALITY REJECT | sharpness=9.0
+F0251 | QUALITY REJECT | sharpness=8.6
+F0252 | QUALITY REJECT | sharpness=8.2
+F0253 | QUALITY REJECT | sharpness=7.6
+F0254 | QUALITY REJECT | sharpness=7.0
+F0255 | QUALITY REJECT | sharpness=6.3
+F0256 | QUALITY REJECT | sharpness=6.3
+F0257 | QUALITY REJECT | sharpness=5.8
+F0258 | QUALITY REJECT | sharpness=5.6
+F0259 | QUALITY REJECT | sharpness=5.8
+F0260 | QUALITY REJECT | sharpness=6.1
+F0261 | QUALITY REJECT | sharpness=6.4
+F0262 | QUALITY REJECT | sharpness=6.5
+F0263 | QUALITY REJECT | sharpness=9.6
+F0264 | QUALITY REJECT | sharpness=9.7
+F0265 | QUALITY REJECT | sharpness=9.9
+F0266 | QUALITY REJECT | sharpness=9.3
+F0267 | QUALITY REJECT | sharpness=9.6
+F0268 | QUALITY REJECT | sharpness=9.1
+F0269 | QUALITY REJECT | sharpness=10.1
+F0270 | QUALITY REJECT | sharpness=17.6
+
+================================================================================
+POST-PROCESSING
+================================================================================
+End-window keyframes: 2 candidates
+
+Running final_review()...
+  final_review done, merged=0 blocked_cooccur=0 blocked_overlap=0
+
+================================================================================
+SUMMARY
+================================================================================
+Run ID: 20260730_010011_06ea5fd
+Pipeline time: 101.2s
+Frames processed: 271
+  L2 run frames: 1
+  L2 empty frames: 0
+  Keyframe accepted: 1
+  Keyframe skipped (cooldown): 19
+  Max consecutive keyframes: 1
+Graph nodes: 1
+  Invalid homography nodes: 0
+
+Recovery:
+  Attempts: 155
+  Success: 0
+  Failed: 155
+
+Object statistics:
+  Provisional objects: 6
+  CONFIRMED: 0
+  TENTATIVE: 6
+  UNCERTAIN: 0
+  REJECTED: 0
+  Reportable (R1=True): 6
+
+Rejected reasons:
+  unexplained: 0
+
+Merges:
+  Total merges: 0
+  Blocked by co-occurrence: 0
+  Blocked by frame overlap: 0
+
+Invariants:
+  track_binding_conflicts: 0
+  same_frame_duplicate_observations: 0
+  unexplained_rejected_objects: 0
+  invalid_homography_nodes: 0
+  report_count_inconsistency: 1
+
+FPS:
+  Core algorithm: 7.7 FPS
+  Total (inc I/O): 2.7 FPS
+  Quality: 1824ms
+  L2 inference: 1203ms
+  Feature match: 0ms
+  L1 inference: 41ms
+  L3 inference: 12ms
+  Fusion: 0ms
+  Tracker update: 0ms
+  Projection: 0ms
+  Association: 0ms
+  Debug image I/O: 21ms
+  Final review: 0ms
+  Report: 1ms
+
+Class distribution (reportable):
+  electrical_tape: 2
+  headlamp: 1
+  insulating_glove: 2
+  telescopic_voltage_detector: 1
+
+Object details:
+  [✓] P-0001 → GO-0001 class=electrical_tape status=tentative obs=1 kfs=1 tracks=1 centroid=(1007, 257) votes={} flags=[]
+  [✓] P-0002 → GO-0002 class=electrical_tape status=tentative obs=1 kfs=1 tracks=1 centroid=(1018, 349) votes={} flags=[]
+  [✓] P-0003 → GO-0003 class=telescopic_voltage_detector status=tentative obs=1 kfs=1 tracks=1 centroid=(1138, 299) votes={} flags=[]
+  [✓] P-0004 → GO-0004 class=headlamp status=tentative obs=1 kfs=1 tracks=1 centroid=(1207, 523) votes={} flags=[]
+  [✓] P-0005 → GO-0005 class=insulating_glove status=tentative obs=1 kfs=1 tracks=1 centroid=(1243, 254) votes={} flags=[]
+  [✓] P-0006 → GO-0006 class=insulating_glove status=tentative obs=1 kfs=1 tracks=1 centroid=(1239, 204) votes={} flags=[]
+
+Violations:
+
+Output files:
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_010011_06ea5fd\reports\report.json
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_010011_06ea5fd\reports\report.csv
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_010011_06ea5fd\events.jsonl
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_010011_06ea5fd\keyframe_stats.csv
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_010011_06ea5fd\association_events.csv
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_010011_06ea5fd\object_lifecycle.json
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_010011_06ea5fd\effective_config.yaml
+  D:\PycharmProjects\head_tool_counter\debug_output\20260730_010011_06ea5fd\log.txt
+
+================================================================================
+DONE
+================================================================================
