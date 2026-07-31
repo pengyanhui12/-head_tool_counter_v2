@@ -42,6 +42,11 @@ class ObjectAssociator:
         min_top_class_ratio: float = 0.60,
         max_votes_per_track: int = 3,
         class_compatibility: dict[str, list[str]] | None = None,
+        online_gate_ratio: float = 0.60,
+        per_class_gate_ratios: dict[str, float] | None = None,
+        per_class_position_gates: dict[str, float] | None = None,
+        track_reactivate_max_gap_frames: int = 15,
+        centroid_distance_threshold: float = 30.0,
         debug_mode: bool = False,
     ):
         self.max_position_distance = max_position_distance_px
@@ -57,6 +62,13 @@ class ObjectAssociator:
         self._class_compat = class_compatibility or {}
         self._debug_mode = debug_mode
 
+        # ── 可配置的在线关联门控 ──
+        self.online_gate_ratio = online_gate_ratio
+        self.per_class_gate_ratios = per_class_gate_ratios or {}
+        self.per_class_position_gates = per_class_position_gates or {}
+        self.track_reactivate_max_gap_frames = track_reactivate_max_gap_frames
+        self.centroid_distance_threshold = centroid_distance_threshold
+
         self.map = GlobalObjectMap()
         self._all_gd: list[GlobalDetection] = []
         self._track_vote_counts: dict[tuple[int, int], int] = {}
@@ -66,11 +78,18 @@ class ObjectAssociator:
         self._co_occurred_pairs: set[frozenset[str]] = set()
         self._frame_co_occurred: set[tuple[int, str, str]] = set()
 
+        # track 重激活状态：跟踪最近一次 track_id 被看到的 frame_id
+        self._track_last_seen_frame: dict[int, int] = {}
+
         # 合并策略
         self._merge_policy = MergePolicy()
 
         # 合并审计
         self._merge_audits: list[MergeAudit] = []
+
+        # 距离分布统计（用于诊断）
+        self._distance_stats: dict[str, list[dict]] = {}
+        self._collect_distances: bool = False
 
         # 统计
         self.stats = {
@@ -82,7 +101,23 @@ class ObjectAssociator:
             "merge_blocked_by_frame_overlap": 0,
             "track_binding_conflicts": 0,
             "same_frame_duplicate_observations": 0,
+            "track_reactivations": 0,
+            "track_reactivation_missed": 0,
         }
+
+    def _online_gate_for_class(self, class_name: str) -> float:
+        gate = self.per_class_position_gates.get(class_name)
+        if gate is not None:
+            return gate
+        ratio = self.per_class_gate_ratios.get(class_name, self.online_gate_ratio)
+        return self.max_position_distance * ratio
+
+    def _is_track_disconnected(self, track_id: int, current_frame_id: int) -> bool:
+        """判断一个 track 是否已断联太久（不应强关联回同一对象）。"""
+        last_seen = self._track_last_seen_frame.get(track_id)
+        if last_seen is None:
+            return False
+        return (current_frame_id - last_seen) > self.track_reactivate_max_gap_frames
 
     # ── 在线帧处理 ──
 
@@ -92,7 +127,7 @@ class ObjectAssociator:
         """处理一帧的全局检测，关联到已有对象或创建新对象。
 
         匹配优先级：
-        1. track logical_key 强关联
+        1. track logical_key 强关联（如 track 最近断联则降级为弱关联）
         2. 帧级全局匈牙利（空间 + 类别 + 尺寸）
         3. 创建新对象
 
@@ -129,11 +164,13 @@ class ObjectAssociator:
                     assigned_object_ids.add(obj.provisional_id)
                     assigned_detection_indices.add(di)
                     self.stats["objects_matched_by_track"] += 1
+                    self._track_last_seen_frame[gd.track_id] = frame_id
                     continue
             unmatched_gds.append((di, gd))
 
         if not unmatched_gds:
             self._prune(frame_id)
+            self._validate_frame_invariants(frame_id)
             return affected
 
         all_objects = self.map.get_all()
@@ -148,7 +185,9 @@ class ObjectAssociator:
                 assigned_object_ids.add(obj.provisional_id)
                 assigned_detection_indices.add(di)
                 self.stats["objects_created"] += 1
+                self._track_last_seen_frame[gd.track_id] = frame_id
             self._prune(frame_id)
+            self._validate_frame_invariants(frame_id)
             return affected
 
         # 帧级全局匈牙利
@@ -168,7 +207,7 @@ class ObjectAssociator:
                 pos_dist = np.linalg.norm(
                     np.array(gd.polygon_centroid) - np.array(obj.centroid_xy)
                 )
-                online_gate = self.max_position_distance * 0.4
+                online_gate = self._online_gate_for_class(obj.class_name)
                 if pos_dist > online_gate:
                     continue
                 area_min, area_max = obj.area_range
@@ -182,6 +221,7 @@ class ObjectAssociator:
                 )
 
         ri, ci = linear_sum_assignment(global_cost)
+        cost_matched_det: set[int] = set()
         for r, c in zip(ri, ci):
             if global_cost[r, c] >= 1e9 or global_cost[r, c] > self.max_cost:
                 continue
@@ -195,19 +235,21 @@ class ObjectAssociator:
             self._update_object(obj, gd)
             affected.append(obj.provisional_id)
             assigned_object_ids.add(obj.provisional_id)
+            cost_matched_det.add(r)
             self.stats["objects_matched_by_cost"] += 1
+            self._track_last_seen_frame[gd.track_id] = frame_id
 
-        # 创建新对象
+        # 创建新对象（未被 track 强关联、也未通过匈牙利匹配的 detection）
         for di, gd in unmatched_gds:
-            gd_idx = unmatched_gds.index((di, gd))
-            if gd_idx >= len(gd_list):
+            if di in assigned_detection_indices:
                 continue
-            already_matched = False
-            for r in ri:
-                if global_cost[r, ci[list(ri).index(r)]] < 1e9 and list(ri).index(r) == gd_idx:
-                    already_matched = True
+            # Check if this was already matched by cost matrix
+            gd_idx_in_list = None
+            for idx, (orig_di, orig_gd) in enumerate(unmatched_gds):
+                if orig_di == di:
+                    gd_idx_in_list = idx
                     break
-            if already_matched:
+            if gd_idx_in_list is not None and gd_idx_in_list in cost_matched_det:
                 continue
             obj = self.map.create_object(gd)
             logical_key = self._make_logical_key(gd.track_id)
@@ -215,18 +257,21 @@ class ObjectAssociator:
             affected.append(obj.provisional_id)
             assigned_object_ids.add(obj.provisional_id)
             self.stats["objects_created"] += 1
+            self._track_last_seen_frame[gd.track_id] = frame_id
 
         # 记录共现
         self._record_co_occurrences(frame_id, global_detections)
 
-        # 验证不变量
+        self._prune(frame_id)
+        self._validate_frame_invariants(frame_id)
+        return affected
+
+    def _validate_frame_invariants(self, frame_id: int) -> None:
+        """验证不变量 O8 + O9。"""
         for obj in self.map.get_all():
             frame_ids = [obs.frame_id for obs in obj.observations]
             if len(frame_ids) != len(set(frame_ids)):
                 self.stats["same_frame_duplicate_observations"] += 1
-
-        self._prune(frame_id)
-        return affected
 
     def _record_co_occurrences(
         self, frame_id: int, global_detections: list[GlobalDetection]
@@ -273,7 +318,11 @@ class ObjectAssociator:
         self._mark_close_duplicates()
 
     def _merge_by_shared_track_safe(self) -> None:
-        """仅当 shared track + 全部安全条件满足时才合并。"""
+        """仅当 shared track + 全部安全条件满足时才合并。
+
+        增强：同帧互斥 objects 即使 shared track 也不能合并。
+        shared track 但不同 frame 的 objects 按安全条件检查。
+        """
         objs = [o for o in self.map.get_all()
                 if o.confirmation_status in (ConfirmationStatus.CONFIRMED, ConfirmationStatus.TENTATIVE)]
         by_class: dict[str, list[GlobalObject]] = {}
@@ -333,7 +382,7 @@ class ObjectAssociator:
                     dist = np.linalg.norm(
                         np.array(primary.centroid_xy) - np.array(secondary.centroid_xy)
                     )
-                    if dist < 30.0:
+                    if dist < self.centroid_distance_threshold:
                         primary.review_flags.add(ReviewFlag.LIKELY_DUPLICATE)
                         secondary.review_flags.add(ReviewFlag.LIKELY_DUPLICATE)
 

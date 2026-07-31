@@ -108,7 +108,7 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
         emergency_keyframe_interval_frames=cfg.get("emergency_keyframe_interval_frames", 2),
     )
     detector = Detector(model_path=str(_proj_root / "models" / "best.pt"))
-    fusion = DetectionFusion()
+    fusion = DetectionFusion(iou_threshold=0.65, center_merge_distance_px=40.0)
     tracker = SimpleDetectionTracker(
         max_missed_detection_frames=tcfg.get("max_missed_detection_frames", 5),
         lost_reactivation_frames=tcfg.get("lost_reactivation_frames", 10),
@@ -135,6 +135,11 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
         min_top_class_ratio=acfg.get("min_top_class_ratio", 0.60),
         max_votes_per_track=acfg.get("max_votes_per_track", 3),
         class_compatibility=acfg.get("class_compatibility", {}),
+        online_gate_ratio=acfg.get("online_gate_ratio", 0.6),
+        per_class_gate_ratios=acfg.get("per_class_gate_ratios", {}),
+        per_class_position_gates=acfg.get("per_class_position_gates", {}),
+        track_reactivate_max_gap_frames=acfg.get("track_reactivate_max_gap_frames", 15),
+        centroid_distance_threshold=acfg.get("centroid_distance_threshold", 30.0),
         debug_mode=False,
     )
     coverage = CoverageMap(grid_resolution=100)
@@ -176,11 +181,11 @@ def run_pipeline(video_path: str, config_dir: str, output_dir: str):
             l2_new_unmatched_detection=preview.l2_new_unmatched_detection,
             track_quality_drop=preview.track_quality_drop,
             l3_required=(
-                any(c.confidence < 0.35 for c in l2_candidates) if l2_candidates else False
+                any(c.confidence < 0.3 for c in l2_candidates) if l2_candidates else False
             ),
             l3_regions=[
                 tuple(int(v) for v in c.bbox)
-                for c in l2_candidates if c.confidence < 0.35
+                for c in l2_candidates if c.confidence < 0.3
             ] if l2_candidates else [],
         )
 

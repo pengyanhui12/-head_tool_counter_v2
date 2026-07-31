@@ -64,6 +64,19 @@ def test_class_cost():
     assert tracker._class_cost(track, other_det) == float("inf")
 
 
+def test_class_compatibility_is_symmetric():
+    tracker = SimpleDetectionTracker(
+        class_compatibility={"wrench": ["pliers"]},
+    )
+    tracker.update([
+        make_det(frame_id=1, class_name="pliers", class_id=1)
+    ], frame_id=1)
+
+    wrench = make_det(frame_id=2, class_name="wrench", class_id=0)
+
+    assert tracker._class_cost(tracker._tracks[0], wrench) == 0.5
+
+
 def test_advance_frame():
     """advance_frame 推进时间但不增加 missed"""
     tracker = SimpleDetectionTracker()
@@ -74,6 +87,34 @@ def test_advance_frame():
     tracker.advance_frame(5)
     assert t.last_update_frame_id == 5
     assert t.missed_frames == 0  # 不增加 missed
+
+
+def test_missed_frames_advance_by_real_frame_gap():
+    tracker = SimpleDetectionTracker(
+        max_missed_detection_frames=2,
+        lost_reactivation_frames=10,
+    )
+    tracker.update([make_det(frame_id=1)], frame_id=1)
+
+    tracker.update([], frame_id=5)
+
+    track = tracker._tracks[0]
+    assert track.missed_frames == 4
+    assert track.state == "inactive"
+
+
+def test_lost_track_releases_quality_drop_state():
+    tracker = SimpleDetectionTracker(
+        max_missed_detection_frames=1,
+        lost_reactivation_frames=2,
+    )
+    tracker.update([make_det(frame_id=1)], frame_id=1)
+    tracker._track_in_drop[0] = True
+
+    tracker.update([], frame_id=4)
+
+    assert tracker._tracks[0].state == "lost"
+    assert 0 not in tracker._track_in_drop
 
 
 def test_last_update_and_detection_frame():

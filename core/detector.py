@@ -66,25 +66,58 @@ class Detector:
 
         h, w = image.shape[:2]
 
-        results = self._model(image, imgsz=imgsz, conf=conf, iou=iou, verbose=False)
+        inference_inputs: list[tuple[np.ndarray, int, int]] = []
+        if regions is None:
+            inference_inputs.append((image, 0, 0))
+        else:
+            for region in regions:
+                x1, y1, x2, y2 = region
+                crop_x1 = max(0, min(w, int(x1)))
+                crop_y1 = max(0, min(h, int(y1)))
+                crop_x2 = max(0, min(w, int(x2)))
+                crop_y2 = max(0, min(h, int(y2)))
+                if crop_x2 <= crop_x1 or crop_y2 <= crop_y1:
+                    continue
+                inference_inputs.append((
+                    image[crop_y1:crop_y2, crop_x1:crop_x2],
+                    crop_x1,
+                    crop_y1,
+                ))
 
         candidates: list[DetectionCandidate] = []
-        for r in results:
-            if r.boxes is None:
-                continue
-            for box, cls_id, cf in zip(r.boxes.xyxy, r.boxes.cls, r.boxes.conf):
-                x1, y1, x2, y2 = map(float, box.tolist())
-                cls_int = int(cls_id.item())
-                candidates.append(
-                    DetectionCandidate(
-                        frame_id=frame_id,
-                        bbox=(x1, y1, x2, y2),
-                        class_id=cls_int,
-                        class_name=self._names.get(cls_int, "unknown"),
-                        confidence=float(cf.item()),
-                        source=level,
-                        image_width=w,
-                        image_height=h,
+        for inference_image, offset_x, offset_y in inference_inputs:
+            results = self._model(
+                inference_image,
+                imgsz=imgsz,
+                conf=conf,
+                iou=iou,
+                verbose=False,
+            )
+            for result in results:
+                if result.boxes is None:
+                    continue
+                for box, cls_id, cf in zip(
+                    result.boxes.xyxy,
+                    result.boxes.cls,
+                    result.boxes.conf,
+                ):
+                    x1, y1, x2, y2 = map(float, box.tolist())
+                    cls_int = int(cls_id.item())
+                    candidates.append(
+                        DetectionCandidate(
+                            frame_id=frame_id,
+                            bbox=(
+                                x1 + offset_x,
+                                y1 + offset_y,
+                                x2 + offset_x,
+                                y2 + offset_y,
+                            ),
+                            class_id=cls_int,
+                            class_name=self._names.get(cls_int, "unknown"),
+                            confidence=float(cf.item()),
+                            source=level,
+                            image_width=w,
+                            image_height=h,
+                        )
                     )
-                )
         return candidates

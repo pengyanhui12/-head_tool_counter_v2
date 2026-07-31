@@ -1,0 +1,436 @@
+[
+  {
+    "provisional_id": "P-0001",
+    "persistent_id": "GO-0001",
+    "class_name": "electrical_tape",
+    "status": "confirmed",
+    "observation_count": 27,
+    "unique_frame_count": 27,
+    "keyframe_count": 27,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1010.459784842262,
+      257.14930896926387
+    ]
+  },
+  {
+    "provisional_id": "P-0002",
+    "persistent_id": "GO-0002",
+    "class_name": "electrical_tape",
+    "status": "confirmed",
+    "observation_count": 27,
+    "unique_frame_count": 27,
+    "keyframe_count": 27,
+    "track_count": 5,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1029.4534017711198,
+      350.8905565375389
+    ]
+  },
+  {
+    "provisional_id": "P-0003",
+    "persistent_id": "GO-0003",
+    "class_name": "telescopic_voltage_detector",
+    "status": "confirmed",
+    "observation_count": 29,
+    "unique_frame_count": 29,
+    "keyframe_count": 29,
+    "track_count": 2,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1142.9236774465985,
+      297.3944983823642
+    ]
+  },
+  {
+    "provisional_id": "P-0004",
+    "persistent_id": "GO-0004",
+    "class_name": "headlamp",
+    "status": "confirmed",
+    "observation_count": 29,
+    "unique_frame_count": 29,
+    "keyframe_count": 29,
+    "track_count": 4,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1251.6364098143126,
+      491.96648281530645
+    ]
+  },
+  {
+    "provisional_id": "P-0005",
+    "persistent_id": "GO-0005",
+    "class_name": "insulating_glove",
+    "status": "confirmed",
+    "observation_count": 29,
+    "unique_frame_count": 29,
+    "keyframe_count": 29,
+    "track_count": 4,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1467.3575876458058,
+      332.4309545483271
+    ]
+  },
+  {
+    "provisional_id": "P-0006",
+    "persistent_id": "GO-0006",
+    "class_name": "headlamp",
+    "status": "confirmed",
+    "observation_count": 28,
+    "unique_frame_count": 28,
+    "keyframe_count": 28,
+    "track_count": 4,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1361.8837128447544,
+      508.4186771079857
+    ]
+  },
+  {
+    "provisional_id": "P-0007",
+    "persistent_id": "GO-0007",
+    "class_name": "headlamp",
+    "status": "confirmed",
+    "observation_count": 27,
+    "unique_frame_count": 27,
+    "keyframe_count": 27,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1205.5262556145665,
+      539.9696052230597
+    ]
+  },
+  {
+    "provisional_id": "P-0008",
+    "persistent_id": "GO-0008",
+    "class_name": "insulating_glove",
+    "status": "confirmed",
+    "observation_count": 26,
+    "unique_frame_count": 26,
+    "keyframe_count": 26,
+    "track_count": 4,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1348.9056435125717,
+      320.3260455817957
+    ]
+  },
+  {
+    "provisional_id": "P-0009",
+    "persistent_id": "GO-0009",
+    "class_name": "headlamp",
+    "status": "tentative",
+    "observation_count": 3,
+    "unique_frame_count": 3,
+    "keyframe_count": 3,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1189.3283407679849,
+      511.65167091095304
+    ]
+  },
+  {
+    "provisional_id": "P-0010",
+    "persistent_id": "GO-0010",
+    "class_name": "telescopic_voltage_detector",
+    "status": "tentative",
+    "observation_count": 2,
+    "unique_frame_count": 2,
+    "keyframe_count": 2,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1428.5960169836296,
+      526.5140057583837
+    ]
+  },
+  {
+    "provisional_id": "P-0011",
+    "persistent_id": "GO-0011",
+    "class_name": "pliers",
+    "status": "confirmed",
+    "observation_count": 22,
+    "unique_frame_count": 22,
+    "keyframe_count": 22,
+    "track_count": 2,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1503.0078849776007,
+      558.7383732141417
+    ]
+  },
+  {
+    "provisional_id": "P-0012",
+    "persistent_id": "GO-0012",
+    "class_name": "pliers",
+    "status": "confirmed",
+    "observation_count": 18,
+    "unique_frame_count": 18,
+    "keyframe_count": 18,
+    "track_count": 4,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1616.7200240995453,
+      585.9208368681954
+    ]
+  },
+  {
+    "provisional_id": "P-0013",
+    "persistent_id": "GO-0013",
+    "class_name": "tape_measure",
+    "status": "confirmed",
+    "observation_count": 20,
+    "unique_frame_count": 20,
+    "keyframe_count": 20,
+    "track_count": 5,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1576.0287522316316,
+      351.1020343721396
+    ]
+  },
+  {
+    "provisional_id": "P-0014",
+    "persistent_id": "GO-0014",
+    "class_name": "tape_measure",
+    "status": "confirmed",
+    "observation_count": 21,
+    "unique_frame_count": 21,
+    "keyframe_count": 21,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1615.4991364235107,
+      401.94198701862
+    ]
+  },
+  {
+    "provisional_id": "P-0015",
+    "persistent_id": "GO-0015",
+    "class_name": "flashlight",
+    "status": "tentative",
+    "observation_count": 1,
+    "unique_frame_count": 1,
+    "keyframe_count": 1,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1574.8570534557164,
+      564.6795357376352
+    ]
+  },
+  {
+    "provisional_id": "P-0016",
+    "persistent_id": "GO-0016",
+    "class_name": "tape_measure",
+    "status": "tentative",
+    "observation_count": 1,
+    "unique_frame_count": 1,
+    "keyframe_count": 1,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1624.9941530890096,
+      354.65752597737423
+    ]
+  },
+  {
+    "provisional_id": "P-0017",
+    "persistent_id": "GO-0017",
+    "class_name": "headlamp",
+    "status": "confirmed",
+    "observation_count": 16,
+    "unique_frame_count": 16,
+    "keyframe_count": 16,
+    "track_count": 6,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1287.5285329317505,
+      447.40103554964236
+    ]
+  },
+  {
+    "provisional_id": "P-0018",
+    "persistent_id": "GO-0018",
+    "class_name": "cordless_drill",
+    "status": "confirmed",
+    "observation_count": 18,
+    "unique_frame_count": 18,
+    "keyframe_count": 18,
+    "track_count": 1,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1704.5357450188278,
+      376.9880188995454
+    ]
+  },
+  {
+    "provisional_id": "P-0019",
+    "persistent_id": "GO-0019",
+    "class_name": "pliers",
+    "status": "confirmed",
+    "observation_count": 7,
+    "unique_frame_count": 7,
+    "keyframe_count": 7,
+    "track_count": 6,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1539.3177077562132,
+      562.1241286960633
+    ]
+  },
+  {
+    "provisional_id": "P-0020",
+    "persistent_id": "GO-0020",
+    "class_name": "pliers",
+    "status": "confirmed",
+    "observation_count": 16,
+    "unique_frame_count": 16,
+    "keyframe_count": 16,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1705.6853571960366,
+      580.5917497207367
+    ]
+  },
+  {
+    "provisional_id": "P-0021",
+    "persistent_id": "GO-0021",
+    "class_name": "hammer",
+    "status": "confirmed",
+    "observation_count": 15,
+    "unique_frame_count": 15,
+    "keyframe_count": 15,
+    "track_count": 2,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1815.851866025013,
+      549.9580549556831
+    ]
+  },
+  {
+    "provisional_id": "P-0022",
+    "persistent_id": "GO-0022",
+    "class_name": "screwdriver",
+    "status": "confirmed",
+    "observation_count": 14,
+    "unique_frame_count": 14,
+    "keyframe_count": 14,
+    "track_count": 3,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1909.967687134787,
+      358.9426922880233
+    ]
+  },
+  {
+    "provisional_id": "P-0023",
+    "persistent_id": "GO-0023",
+    "class_name": "flashlight",
+    "status": "confirmed",
+    "observation_count": 12,
+    "unique_frame_count": 12,
+    "keyframe_count": 12,
+    "track_count": 4,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [],
+    "centroid_xy": [
+      1898.9099207929949,
+      522.2331214222411
+    ]
+  },
+  {
+    "provisional_id": "P-0024",
+    "persistent_id": "GO-0024",
+    "class_name": "screwdriver",
+    "status": "confirmed",
+    "observation_count": 13,
+    "unique_frame_count": 13,
+    "keyframe_count": 13,
+    "track_count": 6,
+    "rejected_reason": null,
+    "merged_into_id": null,
+    "review_flags": [
+      "likely_duplicate"
+    ],
+    "centroid_xy": [
+      1843.4565089458702,
+      373.73050304221977
+    ]
+  }
+]

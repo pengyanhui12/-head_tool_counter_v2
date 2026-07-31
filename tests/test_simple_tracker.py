@@ -53,6 +53,106 @@ def test_preview_detects_new_unmatched():
     assert preview.l2_new_unmatched_detection
 
 
+def test_preview_uses_one_to_one_assignment():
+    tracker = SimpleDetectionTracker()
+    tracker.update([_cand(0, 0, "wrench", (100, 100, 200, 200))])
+
+    preview = tracker.preview([
+        _cand(1, 0, "wrench", (100, 100, 200, 200)),
+        _cand(1, 0, "wrench", (105, 105, 195, 195)),
+    ])
+
+    assert len(preview.unmatched_detection_indices) == 1
+    assert preview.l2_new_unmatched_detection
+
+
+def test_preview_accounts_for_inactive_reactivation():
+    tracker = SimpleDetectionTracker(
+        max_missed_detection_frames=0,
+        lost_reactivation_frames=5,
+    )
+    tracker.update([_cand(0, 0, "wrench", (100, 100, 200, 200))], frame_id=0)
+    tracker.update([], frame_id=1)
+
+    preview = tracker.preview([
+        _cand(2, 0, "wrench", (105, 105, 195, 195)),
+    ])
+
+    assert not preview.l2_new_unmatched_detection
+    assert preview.unmatched_detection_indices == []
+
+
+def test_preview_quality_drop_is_repeatable_and_does_not_mutate_state():
+    tracker = SimpleDetectionTracker(
+        quality_drop_trigger_ratio=0.8,
+        quality_drop_min_history=5,
+    )
+    tracker.update([_cand(0, 0, "wrench", (100, 100, 200, 200))])
+    tracker._tracks[0].confidence_history = [1.0, 1.0, 1.0, 0.2, 0.2]
+
+    state_before = dict(tracker._track_in_drop)
+    detections = [_cand(1, 0, "wrench", (100, 100, 200, 200), confidence=0.2)]
+    first = tracker.preview(detections)
+    second = tracker.preview(detections)
+
+    assert first.track_quality_drop
+    assert second.track_quality_drop
+    assert tracker._track_in_drop == state_before
+
+
+def test_quality_drop_uses_current_detection_and_update_consumes_edge():
+    tracker = SimpleDetectionTracker(
+        quality_drop_trigger_ratio=0.8,
+        quality_drop_rearm_ratio=0.9,
+        quality_drop_min_history=5,
+    )
+    confidences = [1.0, 1.0, 0.1, 0.1]
+    for frame_id, confidence in enumerate(confidences):
+        tracker.update([
+            _cand(
+                frame_id,
+                0,
+                "wrench",
+                (100, 100, 200, 200),
+                confidence=confidence,
+            )
+        ], frame_id=frame_id)
+
+    low = _cand(4, 0, "wrench", (100, 100, 200, 200), confidence=0.1)
+    assert tracker.preview([low]).track_quality_drop
+    assert tracker._track_in_drop == {}
+
+    tracker.update([low], frame_id=4)
+
+    assert tracker._track_in_drop[0]
+    assert not tracker.preview([
+        _cand(5, 0, "wrench", (100, 100, 200, 200), confidence=0.1)
+    ]).track_quality_drop
+
+
+def test_track_histories_are_bounded():
+    tracker = SimpleDetectionTracker(
+        max_history_size=3,
+        quality_drop_min_history=3,
+    )
+
+    for frame_id in range(6):
+        tracker.update([
+            _cand(
+                frame_id,
+                0,
+                "wrench",
+                (100, 100, 200, 200),
+                confidence=0.5 + frame_id * 0.01,
+            )
+        ], frame_id=frame_id)
+
+    track = tracker._tracks[0]
+    assert len(track.confidence_history) == 3
+    assert len(track.detection_history) == 3
+    assert [det.frame_id for det in track.detection_history] == [3, 4, 5]
+
+
 def test_get_active_tracks():
     tracker = SimpleDetectionTracker()
     tracker.update([_cand(0, 0, "wrench", (100, 100, 200, 200))])

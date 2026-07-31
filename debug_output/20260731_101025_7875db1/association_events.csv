@@ -1,0 +1,10 @@
+event,primary_id,secondary_id,decision,reason
+merge_audit,P-0004,P-0006,blocked,co_occurrence
+merge_audit,P-0004,P-0007,blocked,co_occurrence
+merge_audit,P-0004,P-0017,blocked,observation_frame_overlap
+merge_audit,P-0004,P-0009,blocked,observation_frame_overlap
+merge_audit,P-0007,P-0009,blocked,observation_frame_overlap
+merge_audit,P-0005,P-0008,blocked,observation_frame_overlap
+merge_audit,P-0011,P-0019,blocked,observation_frame_overlap
+merge_audit,P-0012,P-0020,blocked,co_occurrence
+merge_audit,P-0022,P-0024,blocked,observation_frame_overlap

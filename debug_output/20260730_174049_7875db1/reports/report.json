@@ -1,0 +1,945 @@
+{
+  "total_objects": 36,
+  "confirmed_count": 28,
+  "tentative_count": 8,
+  "uncertain_count": 0,
+  "rejected_count": 0,
+  "review_required_count": 31,
+  "class_counts": {
+    "electrical_tape": 3,
+    "telescopic_voltage_detector": 3,
+    "headlamp": 6,
+    "insulating_glove": 4,
+    "pliers": 5,
+    "tape_measure": 4,
+    "flashlight": 2,
+    "cordless_drill": 2,
+    "hammer": 2,
+    "screwdriver": 5
+  },
+  "objects": [
+    {
+      "persistent_id": "GO-0001",
+      "provisional_id": "P-0001",
+      "class_name": "electrical_tape",
+      "confirmation_status": "confirmed",
+      "visibility_status": "inactive",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "electrical_tape": 0.536236602483914
+      },
+      "observation_count": 6,
+      "observation_frame_count": 6,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 6,
+      "track_count": 3,
+      "centroid_x": 1009.4212108972029,
+      "centroid_y": 289.57192577031094,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 74,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0002",
+      "provisional_id": "P-0002",
+      "class_name": "telescopic_voltage_detector",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "telescopic_voltage_detector": 2.0287158170486967
+      },
+      "observation_count": 20,
+      "observation_frame_count": 20,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 20,
+      "track_count": 6,
+      "centroid_x": 1141.0751463211634,
+      "centroid_y": 298.83001900523107,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 92,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0003",
+      "provisional_id": "P-0003",
+      "class_name": "electrical_tape",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "electrical_tape": 2.1614165499246867
+      },
+      "observation_count": 27,
+      "observation_frame_count": 27,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 27,
+      "track_count": 4,
+      "centroid_x": 1029.4536131766636,
+      "centroid_y": 350.89054289010846,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 92,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0004",
+      "provisional_id": "P-0004",
+      "class_name": "headlamp",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "headlamp": 0.6598647440041987
+      },
+      "observation_count": 19,
+      "observation_frame_count": 19,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 19,
+      "track_count": 3,
+      "centroid_x": 1248.447850021705,
+      "centroid_y": 491.93398188239325,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 152,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0005",
+      "provisional_id": "P-0005",
+      "class_name": "insulating_glove",
+      "confirmation_status": "tentative",
+      "visibility_status": "inactive",
+      "confidence": 0.0,
+      "vote_distribution": {
+        "insulating_glove": 0.2643783910880564
+      },
+      "observation_count": 3,
+      "observation_frame_count": 3,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 3,
+      "track_count": 1,
+      "centroid_x": 1325.297258761916,
+      "centroid_y": 284.39068303850974,
+      "review_flags": [],
+      "best_frame_id": 59,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0006",
+      "provisional_id": "P-0006",
+      "class_name": "insulating_glove",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "insulating_glove": 1.8670442290790643
+      },
+      "observation_count": 29,
+      "observation_frame_count": 29,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 29,
+      "track_count": 3,
+      "centroid_x": 1348.8848162313345,
+      "centroid_y": 320.3247625310912,
+      "review_flags": [],
+      "best_frame_id": 152,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0007",
+      "provisional_id": "P-0007",
+      "class_name": "headlamp",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "headlamp": 2.635391195687804
+      },
+      "observation_count": 17,
+      "observation_frame_count": 17,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 17,
+      "track_count": 10,
+      "centroid_x": 1358.8367808756584,
+      "centroid_y": 509.01898019200564,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 146,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0008",
+      "provisional_id": "P-0008",
+      "class_name": "headlamp",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "headlamp": 1.9524341986514024
+      },
+      "observation_count": 28,
+      "observation_frame_count": 28,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 28,
+      "track_count": 4,
+      "centroid_x": 1205.5470599230605,
+      "centroid_y": 539.9427762476862,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 182,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0009",
+      "provisional_id": "P-0009",
+      "class_name": "headlamp",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "headlamp": 1.7369922404116673
+      },
+      "observation_count": 21,
+      "observation_frame_count": 21,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 21,
+      "track_count": 7,
+      "centroid_x": 1275.4643622555247,
+      "centroid_y": 474.1073456832092,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 104,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0010",
+      "provisional_id": "P-0010",
+      "class_name": "electrical_tape",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "electrical_tape": 2.135751253551329
+      },
+      "observation_count": 25,
+      "observation_frame_count": 25,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 25,
+      "track_count": 3,
+      "centroid_x": 1010.459657721849,
+      "centroid_y": 257.1492175586205,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 152,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0011",
+      "provisional_id": "P-0011",
+      "class_name": "insulating_glove",
+      "confirmation_status": "confirmed",
+      "visibility_status": "inactive",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "insulating_glove": 0.5020167363970269
+      },
+      "observation_count": 15,
+      "observation_frame_count": 15,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 15,
+      "track_count": 1,
+      "centroid_x": 1456.2567086674,
+      "centroid_y": 329.6313795407446,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 92,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0012",
+      "provisional_id": "P-0012",
+      "class_name": "headlamp",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "headlamp": 0.91335462697252
+      },
+      "observation_count": 19,
+      "observation_frame_count": 19,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 19,
+      "track_count": 8,
+      "centroid_x": 1369.6859279515552,
+      "centroid_y": 508.458957416811,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 92,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0013",
+      "provisional_id": "P-0013",
+      "class_name": "telescopic_voltage_detector",
+      "confirmation_status": "tentative",
+      "visibility_status": "inactive",
+      "confidence": 0.0,
+      "vote_distribution": {
+        "telescopic_voltage_detector": 0.07550438952616154
+      },
+      "observation_count": 2,
+      "observation_frame_count": 2,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 2,
+      "track_count": 1,
+      "centroid_x": 1428.5960169836296,
+      "centroid_y": 526.5140057583837,
+      "review_flags": [],
+      "best_frame_id": 65,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0014",
+      "provisional_id": "P-0014",
+      "class_name": "pliers",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "pliers": 0.5803100351097155
+      },
+      "observation_count": 22,
+      "observation_frame_count": 22,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 22,
+      "track_count": 1,
+      "centroid_x": 1500.0216587762343,
+      "centroid_y": 558.9375489635141,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 152,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0015",
+      "provisional_id": "P-0015",
+      "class_name": "insulating_glove",
+      "confirmation_status": "confirmed",
+      "visibility_status": "inactive",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "insulating_glove": 1.6916266414519836
+      },
+      "observation_count": 11,
+      "observation_frame_count": 11,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 11,
+      "track_count": 3,
+      "centroid_x": 1467.4395209066001,
+      "centroid_y": 332.30105282029604,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 152,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0016",
+      "provisional_id": "P-0016",
+      "class_name": "tape_measure",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "tape_measure": 2.7975585945849972
+      },
+      "observation_count": 19,
+      "observation_frame_count": 19,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 19,
+      "track_count": 7,
+      "centroid_x": 1576.0235266907691,
+      "centroid_y": 351.10104225390046,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 152,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0017",
+      "provisional_id": "P-0017",
+      "class_name": "tape_measure",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "tape_measure": 2.1960136237526466
+      },
+      "observation_count": 18,
+      "observation_frame_count": 18,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 18,
+      "track_count": 6,
+      "centroid_x": 1615.1499924550326,
+      "centroid_y": 401.9301245396865,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 110,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0018",
+      "provisional_id": "P-0018",
+      "class_name": "flashlight",
+      "confirmation_status": "tentative",
+      "visibility_status": "inactive",
+      "confidence": 0.0,
+      "vote_distribution": {},
+      "observation_count": 1,
+      "observation_frame_count": 1,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 1,
+      "track_count": 1,
+      "centroid_x": 1574.8570534557164,
+      "centroid_y": 564.6795357376352,
+      "review_flags": [],
+      "best_frame_id": 80,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0019",
+      "provisional_id": "P-0019",
+      "class_name": "pliers",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "pliers": 1.9459530196471362
+      },
+      "observation_count": 18,
+      "observation_frame_count": 18,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 18,
+      "track_count": 6,
+      "centroid_x": 1611.4517656304931,
+      "centroid_y": 584.5582803460326,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 110,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0020",
+      "provisional_id": "P-0020",
+      "class_name": "headlamp",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "headlamp": 1.2716314650151777
+      },
+      "observation_count": 17,
+      "observation_frame_count": 17,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 17,
+      "track_count": 8,
+      "centroid_x": 1287.5334661390132,
+      "centroid_y": 447.4355257043166,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 152,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0021",
+      "provisional_id": "P-0021",
+      "class_name": "tape_measure",
+      "confirmation_status": "tentative",
+      "visibility_status": "inactive",
+      "confidence": 0.0,
+      "vote_distribution": {
+        "tape_measure": 0.25553877122679153
+      },
+      "observation_count": 4,
+      "observation_frame_count": 4,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 4,
+      "track_count": 3,
+      "centroid_x": 1574.0857867965099,
+      "centroid_y": 349.0556567556747,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 116,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0022",
+      "provisional_id": "P-0022",
+      "class_name": "tape_measure",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "tape_measure": 1.4221949640809943
+      },
+      "observation_count": 12,
+      "observation_frame_count": 12,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 12,
+      "track_count": 8,
+      "centroid_x": 1615.8479910927133,
+      "centroid_y": 401.08060067193543,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 182,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0023",
+      "provisional_id": "P-0023",
+      "class_name": "pliers",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "pliers": 0.7032295812689129
+      },
+      "observation_count": 19,
+      "observation_frame_count": 19,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 19,
+      "track_count": 4,
+      "centroid_x": 1700.1957806965056,
+      "centroid_y": 581.1511860087714,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 104,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0024",
+      "provisional_id": "P-0024",
+      "class_name": "cordless_drill",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "cordless_drill": 0.8510061843125394
+      },
+      "observation_count": 18,
+      "observation_frame_count": 18,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 18,
+      "track_count": 1,
+      "centroid_x": 1704.541726116001,
+      "centroid_y": 376.9821510526379,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 110,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0025",
+      "provisional_id": "P-0025",
+      "class_name": "pliers",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "pliers": 0.5622331663262735
+      },
+      "observation_count": 9,
+      "observation_frame_count": 9,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 9,
+      "track_count": 8,
+      "centroid_x": 1541.2355101379865,
+      "centroid_y": 561.603204181087,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 170,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0026",
+      "provisional_id": "P-0026",
+      "class_name": "telescopic_voltage_detector",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "telescopic_voltage_detector": 1.1546153062891815
+      },
+      "observation_count": 14,
+      "observation_frame_count": 14,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 14,
+      "track_count": 4,
+      "centroid_x": 1142.8989870716848,
+      "centroid_y": 297.2464322280887,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 152,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0027",
+      "provisional_id": "P-0027",
+      "class_name": "hammer",
+      "confirmation_status": "confirmed",
+      "visibility_status": "inactive",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "hammer": 1.092463146326013
+      },
+      "observation_count": 7,
+      "observation_frame_count": 7,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 7,
+      "track_count": 4,
+      "centroid_x": 1804.647839991078,
+      "centroid_y": 544.9366775631192,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 134,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0028",
+      "provisional_id": "P-0028",
+      "class_name": "screwdriver",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "screwdriver": 2.319008574719218
+      },
+      "observation_count": 14,
+      "observation_frame_count": 14,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 14,
+      "track_count": 8,
+      "centroid_x": 1840.3265866775128,
+      "centroid_y": 374.6670940250578,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 182,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0029",
+      "provisional_id": "P-0029",
+      "class_name": "screwdriver",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "screwdriver": 1.3394395761944564
+      },
+      "observation_count": 13,
+      "observation_frame_count": 13,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 13,
+      "track_count": 3,
+      "centroid_x": 1913.8689629446517,
+      "centroid_y": 357.61594913114345,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 152,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0030",
+      "provisional_id": "P-0030",
+      "class_name": "flashlight",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "flashlight": 1.5202460700576497
+      },
+      "observation_count": 12,
+      "observation_frame_count": 12,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 12,
+      "track_count": 4,
+      "centroid_x": 1898.9099207929949,
+      "centroid_y": 522.2331214222411,
+      "review_flags": [],
+      "best_frame_id": 140,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0031",
+      "provisional_id": "P-0031",
+      "class_name": "screwdriver",
+      "confirmation_status": "tentative",
+      "visibility_status": "inactive",
+      "confidence": 0.0,
+      "vote_distribution": {
+        "screwdriver": 0.24619538283381687
+      },
+      "observation_count": 4,
+      "observation_frame_count": 4,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 4,
+      "track_count": 3,
+      "centroid_x": 1868.1866769333933,
+      "centroid_y": 354.50967172992756,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 128,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0032",
+      "provisional_id": "P-0032",
+      "class_name": "hammer",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "hammer": 0.7544724988417998
+      },
+      "observation_count": 10,
+      "observation_frame_count": 10,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 10,
+      "track_count": 3,
+      "centroid_x": 1816.4990932808255,
+      "centroid_y": 550.2950311704271,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 152,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0033",
+      "provisional_id": "P-0033",
+      "class_name": "screwdriver",
+      "confirmation_status": "tentative",
+      "visibility_status": "active",
+      "confidence": 0.0,
+      "vote_distribution": {
+        "screwdriver": 0.5730333255338473
+      },
+      "observation_count": 4,
+      "observation_frame_count": 4,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 4,
+      "track_count": 3,
+      "centroid_x": 1848.838966589958,
+      "centroid_y": 370.40329539147393,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 152,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0034",
+      "provisional_id": "P-0034",
+      "class_name": "screwdriver",
+      "confirmation_status": "confirmed",
+      "visibility_status": "active",
+      "confidence": 1.0,
+      "vote_distribution": {
+        "screwdriver": 0.24632026019209777
+      },
+      "observation_count": 5,
+      "observation_frame_count": 5,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 5,
+      "track_count": 5,
+      "centroid_x": 1874.8548408562012,
+      "centroid_y": 361.7401271975225,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 146,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0035",
+      "provisional_id": "P-0035",
+      "class_name": "cordless_drill",
+      "confirmation_status": "tentative",
+      "visibility_status": "inactive",
+      "confidence": 0.0,
+      "vote_distribution": {},
+      "observation_count": 1,
+      "observation_frame_count": 1,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 1,
+      "track_count": 1,
+      "centroid_x": 1706.666453237976,
+      "centroid_y": 378.16879789487405,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 152,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    },
+    {
+      "persistent_id": "GO-0036",
+      "provisional_id": "P-0036",
+      "class_name": "pliers",
+      "confirmation_status": "tentative",
+      "visibility_status": "active",
+      "confidence": 0.0,
+      "vote_distribution": {
+        "pliers": 0.12468368949724029
+      },
+      "observation_count": 2,
+      "observation_frame_count": 2,
+      "observation_frame_ids_unique": true,
+      "keyframe_count": 2,
+      "track_count": 1,
+      "centroid_x": 1513.3309219958282,
+      "centroid_y": 561.197028602353,
+      "review_flags": [
+        "likely_duplicate"
+      ],
+      "best_frame_id": 182,
+      "uncertainty_reasons": [],
+      "rejected_reason": null,
+      "merged_into_id": null,
+      "track_conflict_count": 0
+    }
+  ],
+  "rejected_objects": []
+}

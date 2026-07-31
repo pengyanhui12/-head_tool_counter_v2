@@ -286,7 +286,7 @@ selector = KeyframeSelector(
     emergency_keyframe_interval_frames=cfg.get("emergency_keyframe_interval_frames", 2),
 )
 detector = Detector(model_path=str(_proj_root / "models" / "best.pt"))
-fusion = DetectionFusion()
+fusion = DetectionFusion(iou_threshold=0.65, center_merge_distance_px=40.0)
 tracker = SimpleDetectionTracker(
     max_missed_detection_frames=tcfg.get("max_missed_detection_frames", 5),
     lost_reactivation_frames=tcfg.get("lost_reactivation_frames", 10),
@@ -313,6 +313,11 @@ associator = ObjectAssociator(
     min_top_class_ratio=acfg.get("min_top_class_ratio", 0.60),
     max_votes_per_track=acfg.get("max_votes_per_track", 3),
     class_compatibility=acfg.get("class_compatibility", {}),
+    online_gate_ratio=acfg.get("online_gate_ratio", 0.6),
+    per_class_gate_ratios=acfg.get("per_class_gate_ratios", {}),
+    per_class_position_gates=acfg.get("per_class_position_gates", {}),
+    track_reactivate_max_gap_frames=acfg.get("track_reactivate_max_gap_frames", 15),
+    centroid_distance_threshold=acfg.get("centroid_distance_threshold", 30.0),
     debug_mode=True,
 )
 coverage = CoverageMap(grid_resolution=100)

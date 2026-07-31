@@ -122,11 +122,12 @@ def test_merge_marks_likely_duplicate():
     assoc = ObjectAssociator(debug_mode=False,
                               max_position_distance_px=500.0,
                               min_observations_confirmed=1,
-                              min_keyframes_confirmed=1)
-    # 创建两个不同 track、不同 frame、空间分离的对象
+                              min_keyframes_confirmed=1,
+                              online_gate_ratio=0.6)
+    # 创建两个不同 track、不同 frame、空间分离的对象（距离>300=500*0.6）
     gd1 = make_gd(frame_id=1, track_id=1, centroid=(100, 100))
     assoc.ingest_frame(1, [gd1])
-    gd2 = make_gd(frame_id=5, track_id=2, centroid=(300, 300))
+    gd2 = make_gd(frame_id=5, track_id=2, centroid=(500, 500))
     assoc.ingest_frame(5, [gd2])
 
     objs = assoc.map.get_all()
