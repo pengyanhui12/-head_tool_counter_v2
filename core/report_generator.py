@@ -3,7 +3,9 @@
 不变量:
 - R1: total_objects = confirmed + uncertain; tentative is review-only
 - R2: rejected 不进入 total_objects
-- R3: JSON、CSV、控制台、API 使用同一个 reportable_objects
+- R3: formal aggregates/helpers use counted objects; JSON detail records
+  temporarily preserve non-rejected tentative review details until Task 4
+  introduces a schema split
 - R4: persistent_id 只分配给最终 reportable objects
 - R5: rejected 保留 provisional_id 和完整审计信息
 """
