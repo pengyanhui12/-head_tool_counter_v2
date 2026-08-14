@@ -586,3 +586,110 @@ def test_final_review_clears_advice_when_shared_track_merge_rejects_tentative():
     assert tentative.likely_partial_duplicate_of is None
     assert tentative.duplicate_candidate_ids == []
     assert tentative.duplicate_evidence == {}
+
+
+def test_final_review_preserves_cooccurrence_block_across_shared_track_merge():
+    assoc = ObjectAssociator()
+    primary = make_review_object(
+        "P-0001",
+        status=ConfirmationStatus.CONFIRMED,
+        frame_id=10,
+        observation_count=2,
+        keyframe_ids={10, 11},
+    )
+    secondary = make_review_object(
+        "P-0002",
+        status=ConfirmationStatus.TENTATIVE,
+        frame_id=20,
+    )
+    tentative = make_review_object(
+        "P-0003",
+        status=ConfirmationStatus.TENTATIVE,
+        frame_id=20,
+        bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    primary.track_ids.add(7)
+    secondary.track_ids.add(7)
+    add_review_objects(assoc, primary, secondary, tentative)
+
+    original_pair = frozenset(
+        (secondary.provisional_id, tentative.provisional_id)
+    )
+    resolved_pair = frozenset(
+        (primary.provisional_id, tentative.provisional_id)
+    )
+    assoc._co_occurred_pairs.add(original_pair)
+    assoc._frame_co_occurred.add(
+        (20, secondary.provisional_id, tentative.provisional_id)
+    )
+    assoc._merge_policy.record_co_occurrence(
+        20, secondary.provisional_id, tentative.provisional_id
+    )
+
+    assoc.final_review()
+
+    assert secondary.confirmation_status == ConfirmationStatus.REJECTED
+    assert secondary.merged_into_id == primary.provisional_id
+    assert original_pair in assoc._co_occurred_pairs
+    assert resolved_pair in assoc._co_occurred_pairs
+    assert assoc._merge_policy.have_co_occurred(
+        secondary.provisional_id, tentative.provisional_id
+    )
+    assert assoc._merge_policy.have_co_occurred(
+        primary.provisional_id, tentative.provisional_id
+    )
+    assert (
+        20,
+        secondary.provisional_id,
+        tentative.provisional_id,
+    ) in assoc._frame_co_occurred
+    assert any(
+        frame_id == 20
+        and frozenset((pid_a, pid_b)) == resolved_pair
+        for frame_id, pid_a, pid_b in assoc._frame_co_occurred
+    )
+    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE not in tentative.review_flags
+    assert ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE not in tentative.review_flags
+    assert tentative.likely_partial_duplicate_of is None
+    assert tentative.duplicate_candidate_ids == []
+    assert tentative.duplicate_evidence == {}
+
+
+def test_frameless_cooccurrence_lineage_blocks_a_cascading_merge():
+    assoc = ObjectAssociator()
+    primary = make_review_object(
+        "P-0001", status=ConfirmationStatus.CONFIRMED, frame_id=10
+    )
+    secondary = make_review_object(
+        "P-0002", status=ConfirmationStatus.TENTATIVE, frame_id=20
+    )
+    other = make_review_object(
+        "P-0003", status=ConfirmationStatus.TENTATIVE, frame_id=30
+    )
+    primary.track_ids.add(7)
+    secondary.track_ids.add(7)
+    other.track_ids.add(7)
+    add_review_objects(assoc, primary, secondary, other)
+
+    original_pair = frozenset(
+        (secondary.provisional_id, other.provisional_id)
+    )
+    resolved_pair = frozenset(
+        (primary.provisional_id, other.provisional_id)
+    )
+    assoc._co_occurred_pairs.add(original_pair)
+
+    assoc._merge_objects(primary, secondary)
+
+    assert original_pair in assoc._co_occurred_pairs
+    assert resolved_pair in assoc._co_occurred_pairs
+    assert assoc._merge_policy.have_co_occurred(
+        primary.provisional_id, other.provisional_id
+    )
+
+    assoc.final_review()
+
+    assert other.confirmation_status == ConfirmationStatus.TENTATIVE
+    assert other.merged_into_id is None

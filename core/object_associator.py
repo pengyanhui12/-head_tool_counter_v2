@@ -476,6 +476,8 @@ class ObjectAssociator:
             self.stats["merge_blocked_by_frame_overlap"] += 1
             return
 
+        self._inherit_cooccurrence_lineage(primary, secondary)
+
         w1, w2 = primary.observation_count, secondary.observation_count
         primary.observations.extend(secondary.observations)
         primary.observation_count = len(primary.observations)
@@ -510,6 +512,44 @@ class ObjectAssociator:
         secondary.visibility_status = VisibilityStatus.INACTIVE
 
         self.stats["objects_merged"] += 1
+
+    def _inherit_cooccurrence_lineage(
+        self, primary: GlobalObject, secondary: GlobalObject
+    ) -> None:
+        primary_id = primary.provisional_id
+        secondary_id = secondary.provisional_id
+        inherited_pairs = [
+            pair
+            for pair in self._co_occurred_pairs
+            if secondary_id in pair
+        ]
+        for pair in inherited_pairs:
+            other_ids = pair - {secondary_id}
+            if len(other_ids) != 1:
+                continue
+            other_id = next(iter(other_ids))
+            if other_id == primary_id:
+                continue
+            resolved_pair = frozenset((primary_id, other_id))
+            self._co_occurred_pairs.add(resolved_pair)
+            self._merge_policy._co_occurred_pairs.add(resolved_pair)
+
+        inherited_frames = [
+            record
+            for record in self._frame_co_occurred
+            if secondary_id in record[1:]
+        ]
+        for frame_id, pid_a, pid_b in inherited_frames:
+            resolved_a = primary_id if pid_a == secondary_id else pid_a
+            resolved_b = primary_id if pid_b == secondary_id else pid_b
+            if resolved_a == resolved_b:
+                continue
+            self._frame_co_occurred.add(
+                (frame_id, resolved_a, resolved_b)
+            )
+            self._merge_policy.record_co_occurrence(
+                frame_id, resolved_a, resolved_b
+            )
 
     def validate_object_map(self) -> dict:
         """验证所有不变量，返回违规报告。"""
