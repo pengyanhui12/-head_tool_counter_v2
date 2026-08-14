@@ -10,8 +10,48 @@
 import csv
 import io
 import json
+from dataclasses import dataclass
 
 from core.types import GlobalObject, GlobalDetection, ConfirmationStatus
+
+
+@dataclass(frozen=True)
+class ObjectPartitions:
+    counted: tuple[GlobalObject, ...]
+    review_candidates: tuple[GlobalObject, ...]
+    rejected: tuple[GlobalObject, ...]
+
+
+def partition_objects(objects: list[GlobalObject]) -> ObjectPartitions:
+    """Partition objects by canonical formal-count policy, preserving order."""
+    counted = []
+    review_candidates = []
+    rejected = []
+    for obj in objects:
+        if obj.confirmation_status in (
+            ConfirmationStatus.CONFIRMED,
+            ConfirmationStatus.UNCERTAIN,
+        ):
+            counted.append(obj)
+        elif obj.confirmation_status == ConfirmationStatus.TENTATIVE:
+            review_candidates.append(obj)
+        elif obj.confirmation_status == ConfirmationStatus.REJECTED:
+            rejected.append(obj)
+    return ObjectPartitions(
+        counted=tuple(counted),
+        review_candidates=tuple(review_candidates),
+        rejected=tuple(rejected),
+    )
+
+
+def get_counted_objects(objects: list[GlobalObject]) -> list[GlobalObject]:
+    """Return objects included in the formal count."""
+    return list(partition_objects(objects).counted)
+
+
+def get_review_candidates(objects: list[GlobalObject]) -> list[GlobalObject]:
+    """Return tentative objects that require review."""
+    return list(partition_objects(objects).review_candidates)
 
 
 def _to_serializable(obj):
@@ -24,7 +64,7 @@ def _to_serializable(obj):
 
 def get_reportable_objects(objects: list[GlobalObject]) -> list[GlobalObject]:
     """返回所有非 REJECTED 的对象（统一的 reportable 判定）。"""
-    return [o for o in objects if o.confirmation_status != ConfirmationStatus.REJECTED]
+    return get_counted_objects(objects)
 
 
 class ReportGenerator:
@@ -34,15 +74,13 @@ class ReportGenerator:
     def generate_json_report(self) -> dict:
         objects = self.object_map.get_all() if self.object_map else []
         # R1, R2: 只计算非 REJECTED
-        active_objects = [o for o in objects
-                          if o.confirmation_status != ConfirmationStatus.REJECTED]
-        rejected_objects = [o for o in objects
-                            if o.confirmation_status == ConfirmationStatus.REJECTED]
+        partitions = partition_objects(objects)
+        active_objects = list(partitions.counted)
+        rejected_objects = list(partitions.rejected)
 
         confirmed = sum(1 for o in active_objects
                         if o.confirmation_status == ConfirmationStatus.CONFIRMED)
-        tentative = sum(1 for o in active_objects
-                        if o.confirmation_status == ConfirmationStatus.TENTATIVE)
+        tentative = len(partitions.review_candidates)
         uncertain = sum(1 for o in active_objects
                         if o.confirmation_status == ConfirmationStatus.UNCERTAIN)
 

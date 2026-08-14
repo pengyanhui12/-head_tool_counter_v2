@@ -6,6 +6,7 @@ from core.types import (
     VisibilityStatus,
     ReviewFlag,
 )
+from core.report_generator import get_counted_objects
 
 
 class GlobalObjectMap:
@@ -45,13 +46,15 @@ class GlobalObjectMap:
 
     def get_reportable(self) -> list[GlobalObject]:
         """只返回非 REJECTED 对象（R4: persistent ID 只分配给 reportable）。"""
-        return [o for o in self._objects
-                if o.confirmation_status != ConfirmationStatus.REJECTED]
+        return get_counted_objects(self._objects)
 
     def assign_persistent_ids(self) -> None:
         """只为非 REJECTED 对象分配 persistent ID（R4）。"""
         for obj in self._objects:
-            if obj.confirmation_status == ConfirmationStatus.REJECTED:
+            if obj.confirmation_status not in (
+                ConfirmationStatus.CONFIRMED,
+                ConfirmationStatus.UNCERTAIN,
+            ):
                 continue
             if obj.persistent_id is None:
                 self._persistent_counter += 1

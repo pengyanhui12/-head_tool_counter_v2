@@ -7,7 +7,14 @@ from core.types import (
     VisibilityStatus, ReviewFlag,
 )
 from core.global_object_map import GlobalObjectMap
-from core.report_generator import ReportGenerator, get_reportable_objects
+from core.report_generator import (
+    ObjectPartitions,
+    ReportGenerator,
+    get_counted_objects,
+    get_reportable_objects,
+    get_review_candidates,
+    partition_objects,
+)
 
 
 def make_obj(pid="P-0001", class_name="wrench", status=ConfirmationStatus.CONFIRMED):
@@ -31,7 +38,7 @@ def make_gd(frame_id=1):
     )
 
 
-def test_r1_total_equals_confirmed_plus_tentative_plus_uncertain():
+def test_partition_objects_separates_all_statuses_in_input_order():
     """R1: total_objects = confirmed + tentative + uncertain"""
     obj_map = GlobalObjectMap()
     o1 = make_obj("P-0001", "wrench", ConfirmationStatus.CONFIRMED)
@@ -41,27 +48,46 @@ def test_r1_total_equals_confirmed_plus_tentative_plus_uncertain():
     o4.rejected_reason = "test_rejection"
 
     obj_map._objects = [o1, o2, o3, o4]
-    reportable = get_reportable_objects(obj_map.get_all())
-    confirmed = sum(1 for o in reportable if o.confirmation_status == ConfirmationStatus.CONFIRMED)
-    tentative = sum(1 for o in reportable if o.confirmation_status == ConfirmationStatus.TENTATIVE)
-    uncertain = sum(1 for o in reportable if o.confirmation_status == ConfirmationStatus.UNCERTAIN)
+    partitions = partition_objects(obj_map.get_all())
 
-    assert len(reportable) == confirmed + tentative + uncertain
-    assert len(reportable) == 3  # REJECTED excluded
+    assert isinstance(partitions, ObjectPartitions)
+    assert partitions.counted == (o1, o3)
+    assert partitions.review_candidates == (o2,)
+    assert partitions.rejected == (o4,)
+
+
+def test_counted_helpers_exclude_tentative_and_rejected():
+    objects = [
+        make_obj("P-0001", status=ConfirmationStatus.CONFIRMED),
+        make_obj("P-0002", status=ConfirmationStatus.TENTATIVE),
+        make_obj("P-0003", status=ConfirmationStatus.UNCERTAIN),
+        make_obj("P-0004", status=ConfirmationStatus.REJECTED),
+    ]
+
+    counted = get_counted_objects(objects)
+
+    assert counted == [objects[0], objects[2]]
+    assert get_reportable_objects(objects) == counted
+    assert get_review_candidates(objects) == [objects[1]]
 
 
 def test_r2_rejected_not_in_total():
     """R2: rejected 不进入 total_objects"""
     obj_map = GlobalObjectMap()
     o1 = make_obj("P-0001", "wrench", ConfirmationStatus.CONFIRMED)
-    o2 = make_obj("P-0002", "wrench", ConfirmationStatus.REJECTED)
-    o2.rejected_reason = "test"
-    obj_map._objects = [o1, o2]
+    o2 = make_obj("P-0002", "wrench", ConfirmationStatus.TENTATIVE)
+    o3 = make_obj("P-0003", "hammer", ConfirmationStatus.UNCERTAIN)
+    o4 = make_obj("P-0004", "wrench", ConfirmationStatus.REJECTED)
+    o4.rejected_reason = "test"
+    obj_map._objects = [o1, o2, o3, o4]
 
     gen = ReportGenerator(object_map=obj_map)
     report = gen.generate_json_report()
-    assert report["total_objects"] == 1
+    assert report["total_objects"] == report["confirmed_count"] + report["uncertain_count"]
+    assert report["total_objects"] == 2
+    assert report["tentative_count"] == 1
     assert report["rejected_count"] == 1
+    assert [obj["provisional_id"] for obj in report["objects"]] == ["P-0001", "P-0003"]
 
 
 def test_r4_persistent_id_only_for_reportable():

@@ -31,12 +31,35 @@ def test_create_and_retrieve():
 
 def test_assign_persistent_ids():
     m = GlobalObjectMap()
-    m.create_object(_gd())
-    m.create_object(_gd())
+    confirmed = m.create_object(_gd())
+    tentative = m.create_object(_gd())
+    uncertain = m.create_object(_gd())
+    rejected = m.create_object(_gd())
+    m.set_confirmation(confirmed.provisional_id, ConfirmationStatus.CONFIRMED)
+    m.set_confirmation(uncertain.provisional_id, ConfirmationStatus.UNCERTAIN)
+    m.set_confirmation(rejected.provisional_id, ConfirmationStatus.REJECTED)
+
     m.assign_persistent_ids()
-    objs = m.get_all()
-    assert objs[0].persistent_id == "GO-0001"
-    assert objs[1].persistent_id == "GO-0002"
+
+    assert confirmed.persistent_id == "GO-0001"
+    assert tentative.persistent_id is None
+    assert uncertain.persistent_id == "GO-0002"
+    assert rejected.persistent_id is None
+
+
+def test_get_reportable_returns_only_counted_objects():
+    m = GlobalObjectMap()
+    confirmed = m.create_object(_gd())
+    tentative = m.create_object(_gd())
+    uncertain = m.create_object(_gd())
+    rejected = m.create_object(_gd())
+    m.set_confirmation(confirmed.provisional_id, ConfirmationStatus.CONFIRMED)
+    m.set_confirmation(uncertain.provisional_id, ConfirmationStatus.UNCERTAIN)
+    m.set_confirmation(rejected.provisional_id, ConfirmationStatus.REJECTED)
+
+    assert m.get_reportable() == [confirmed, uncertain]
+    assert tentative not in m.get_reportable()
+    assert rejected not in m.get_reportable()
 
 
 def test_set_confirmation():
