@@ -43,6 +43,7 @@ def test_config_loader_loads_associator():
     assert "per_class_gate_ratios" in cfg
     assert "per_class_position_gates" in cfg
     assert cfg["class_compatibility"]
+    assert cfg["independent_cooccurrence_max_containment"] == 0.25
     assert cfg["partial_duplicate_min_containment"] == 0.75
     assert cfg["partial_duplicate_max_normalized_distance"] == 0.75
     assert cfg["partial_duplicate_max_absolute_distance_px"] == 80.0
@@ -57,6 +58,7 @@ def test_offline_associator_assembly_propagates_partial_duplicate_config():
     acfg = {
         "min_observations_confirmed": 5,
         "min_keyframes_confirmed": 3,
+        "independent_cooccurrence_max_containment": 0.22,
         "partial_duplicate_min_containment": 0.81,
         "partial_duplicate_max_normalized_distance": 0.62,
         "partial_duplicate_max_absolute_distance_px": 71.0,
@@ -77,6 +79,7 @@ def test_offline_associator_assembly_propagates_partial_duplicate_config():
     assert evaluator_config.min_mapping_quality == 0.58
     assert evaluator_config.max_area_ratio == 0.47
     assert evaluator_config.min_candidate_margin == 0.19
+    assert associator.independent_cooccurrence_max_containment == 0.22
 
 
 def test_config_loader_loads_fusion():

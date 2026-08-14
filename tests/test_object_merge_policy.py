@@ -138,6 +138,107 @@ def test_overlapping_boxes_assigned_to_distinct_objects_are_cooccurrence():
     assert pair in assoc._co_occurred_pairs
 
 
+def test_nested_same_frame_boxes_are_not_independent_cooccurrence():
+    assoc = ObjectAssociator()
+    assoc.ingest_frame(
+        1,
+        [
+            make_gd(
+                frame_id=1,
+                track_id=1,
+                centroid=(50.0, 50.0),
+                area=10_000.0,
+                bbox_pixels=(0.0, 0.0, 100.0, 100.0),
+            ),
+            make_gd(
+                frame_id=1,
+                track_id=2,
+                centroid=(40.0, 40.0),
+                area=1_600.0,
+                bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+            ),
+        ],
+    )
+    confirmed, tentative = assoc.map.get_all()
+    confirmed.confirmation_status = ConfirmationStatus.CONFIRMED
+    pair = frozenset((confirmed.provisional_id, tentative.provisional_id))
+
+    assert pair in assoc._co_occurred_pairs
+    assert pair not in assoc._independent_co_occurred_pairs
+
+    assoc.final_review()
+
+    assert tentative.likely_partial_duplicate_of == confirmed.provisional_id
+    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE in tentative.review_flags
+
+
+@pytest.mark.parametrize(
+    ("second_box", "second_centroid"),
+    [
+        ((110.0, 0.0, 210.0, 100.0), (160.0, 50.0)),
+        ((90.0, 0.0, 190.0, 100.0), (140.0, 50.0)),
+    ],
+    ids=["disjoint", "low-overlap"],
+)
+def test_separable_same_frame_boxes_are_independent_cooccurrence(
+    second_box, second_centroid
+):
+    assoc = ObjectAssociator(
+        independent_cooccurrence_max_containment=0.25
+    )
+    assoc.ingest_frame(
+        1,
+        [
+            make_gd(
+                frame_id=1,
+                track_id=1,
+                centroid=(50.0, 50.0),
+                bbox_pixels=(0.0, 0.0, 100.0, 100.0),
+            ),
+            make_gd(
+                frame_id=1,
+                track_id=2,
+                centroid=second_centroid,
+                bbox_pixels=second_box,
+            ),
+        ],
+    )
+    first, second = assoc.map.get_all()
+    pair = frozenset((first.provisional_id, second.provisional_id))
+
+    assert pair in assoc._co_occurred_pairs
+    assert pair in assoc._independent_co_occurred_pairs
+
+
+@pytest.mark.parametrize(
+    "invalid_box",
+    [
+        (0.0, 0.0, 0.0, 100.0),
+        (0.0, 0.0, float("nan"), 100.0),
+    ],
+    ids=["zero-area", "non-finite"],
+)
+def test_invalid_raw_boxes_are_not_independent_cooccurrence(invalid_box):
+    assoc = ObjectAssociator()
+    assoc.ingest_frame(
+        1,
+        [
+            make_gd(frame_id=1, track_id=1, bbox_pixels=invalid_box),
+            make_gd(
+                frame_id=1,
+                track_id=2,
+                centroid=(500.0, 500.0),
+                bbox_pixels=(200.0, 0.0, 300.0, 100.0),
+            ),
+        ],
+    )
+    first, second = assoc.map.get_all()
+    pair = frozenset((first.provisional_id, second.provisional_id))
+
+    assert pair in assoc._co_occurred_pairs
+    assert pair not in assoc._independent_co_occurred_pairs
+
+
 def test_merge_blocked_by_frame_overlap():
     """observation frame 有重叠的对象不能合并"""
     policy = MergePolicy()
@@ -361,10 +462,25 @@ def test_final_review_attributes_contained_tentative_without_mutating_objects():
     assert tentative.likely_partial_duplicate_of == confirmed.provisional_id
     assert tentative.duplicate_candidate_ids == []
     assert tentative.duplicate_evidence == {
-        "containment": 1.0,
+        "decision": "likely_partial_duplicate",
+        "containment_score": 1.0,
         "normalized_distance": pytest.approx(np.sqrt(200.0) / 100.0),
         "mapping_quality": None,
+        "co_occurrence_blocked": False,
         "reason": "unique_candidate",
+        "candidates": [
+            {
+                "candidate_id": confirmed.provisional_id,
+                "score": pytest.approx(
+                    1.0 - np.sqrt(200.0) / 100.0
+                ),
+                "containment_score": 1.0,
+                "normalized_distance": pytest.approx(
+                    np.sqrt(200.0) / 100.0
+                ),
+                "mapping_quality": None,
+            }
+        ],
     }
     assert tentative.confirmation_status == ConfirmationStatus.TENTATIVE
     assert confirmed.confirmation_status == ConfirmationStatus.CONFIRMED
@@ -375,7 +491,26 @@ def test_final_review_attributes_contained_tentative_without_mutating_objects():
     assert len(assoc.map.get_all()) == 2
 
 
-def test_final_review_cooccurrence_blocks_partial_duplicate_attribution():
+def test_associator_reportable_api_uses_four_status_counted_semantics():
+    assoc = ObjectAssociator()
+    confirmed = make_review_object(
+        "P-0001", status=ConfirmationStatus.CONFIRMED
+    )
+    tentative = make_review_object(
+        "P-0002", status=ConfirmationStatus.TENTATIVE
+    )
+    uncertain = make_review_object(
+        "P-0003", status=ConfirmationStatus.UNCERTAIN
+    )
+    rejected = make_review_object(
+        "P-0004", status=ConfirmationStatus.REJECTED
+    )
+    add_review_objects(assoc, confirmed, tentative, uncertain, rejected)
+
+    assert assoc.get_reportable_objects() == [confirmed, uncertain]
+
+
+def test_final_review_independent_cooccurrence_blocks_partial_duplicate_attribution():
     assoc = ObjectAssociator()
     confirmed = make_review_object(
         "P-0001", status=ConfirmationStatus.CONFIRMED
@@ -388,7 +523,7 @@ def test_final_review_cooccurrence_blocks_partial_duplicate_attribution():
         area=1_600.0,
     )
     add_review_objects(assoc, confirmed, tentative)
-    assoc._co_occurred_pairs.add(
+    assoc._independent_co_occurred_pairs.add(
         frozenset((confirmed.provisional_id, tentative.provisional_id))
     )
     tentative.review_flags.add(ReviewFlag.LIKELY_PARTIAL_DUPLICATE)
@@ -402,7 +537,15 @@ def test_final_review_cooccurrence_blocks_partial_duplicate_attribution():
     assert ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE not in tentative.review_flags
     assert tentative.likely_partial_duplicate_of is None
     assert tentative.duplicate_candidate_ids == []
-    assert tentative.duplicate_evidence == {}
+    assert tentative.duplicate_evidence == {
+        "decision": "no_match",
+        "containment_score": None,
+        "normalized_distance": None,
+        "mapping_quality": None,
+        "co_occurrence_blocked": True,
+        "reason": "independent_co_occurrence",
+        "candidates": [],
+    }
 
 
 def test_final_review_does_not_mark_complete_adjacent_objects_by_distance():
@@ -455,10 +598,28 @@ def test_final_review_records_ambiguous_candidate_ids_without_attribution():
     assert tentative.likely_partial_duplicate_of is None
     assert tentative.duplicate_candidate_ids == ["P-0001", "P-0002"]
     assert tentative.duplicate_evidence == {
-        "containment": 1.0,
+        "decision": "ambiguous",
+        "containment_score": 1.0,
         "normalized_distance": 0.0,
         "mapping_quality": None,
+        "co_occurrence_blocked": False,
         "reason": "candidate_margin_below_threshold",
+        "candidates": [
+            {
+                "candidate_id": "P-0001",
+                "score": 1.0,
+                "containment_score": 1.0,
+                "normalized_distance": 0.0,
+                "mapping_quality": None,
+            },
+            {
+                "candidate_id": "P-0002",
+                "score": 0.95,
+                "containment_score": 1.0,
+                "normalized_distance": 0.05,
+                "mapping_quality": None,
+            },
+        ],
     }
 
 
@@ -519,7 +680,7 @@ def test_final_review_clears_stale_partial_duplicate_advice_on_no_match():
 
     tentative.review_flags.add(ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE)
     tentative.duplicate_candidate_ids = ["stale-id"]
-    assoc._co_occurred_pairs.add(
+    assoc._independent_co_occurred_pairs.add(
         frozenset((confirmed.provisional_id, tentative.provisional_id))
     )
     assoc.final_review()
@@ -529,7 +690,11 @@ def test_final_review_clears_stale_partial_duplicate_advice_on_no_match():
     assert ReviewFlag.LOW_CONFIDENCE in tentative.review_flags
     assert tentative.likely_partial_duplicate_of is None
     assert tentative.duplicate_candidate_ids == []
-    assert tentative.duplicate_evidence == {}
+    assert tentative.duplicate_evidence["decision"] == "no_match"
+    assert tentative.duplicate_evidence["reason"] == (
+        "independent_co_occurrence"
+    )
+    assert tentative.duplicate_evidence["co_occurrence_blocked"] is True
 
 
 def test_final_review_clears_partial_duplicate_advice_after_confirmation():
@@ -588,7 +753,7 @@ def test_final_review_clears_advice_when_shared_track_merge_rejects_tentative():
     assert tentative.duplicate_evidence == {}
 
 
-def test_final_review_preserves_cooccurrence_block_across_shared_track_merge():
+def test_final_review_preserves_merge_safety_lineage_without_advisory_block():
     assoc = ObjectAssociator()
     primary = make_review_object(
         "P-0001",
@@ -650,11 +815,81 @@ def test_final_review_preserves_cooccurrence_block_across_shared_track_merge():
         and frozenset((pid_a, pid_b)) == resolved_pair
         for frame_id, pid_a, pid_b in assoc._frame_co_occurred
     )
-    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE not in tentative.review_flags
+    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE in tentative.review_flags
     assert ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE not in tentative.review_flags
-    assert tentative.likely_partial_duplicate_of is None
+    assert tentative.likely_partial_duplicate_of == primary.provisional_id
     assert tentative.duplicate_candidate_ids == []
-    assert tentative.duplicate_evidence == {}
+    assert tentative.duplicate_evidence["decision"] == (
+        "likely_partial_duplicate"
+    )
+
+
+def test_final_review_preserves_independent_cooccurrence_lineage_across_merge():
+    assoc = ObjectAssociator()
+    primary = make_review_object(
+        "P-0001",
+        status=ConfirmationStatus.CONFIRMED,
+        frame_id=10,
+        observation_count=2,
+        keyframe_ids={10, 11},
+    )
+    secondary = make_review_object(
+        "P-0002", status=ConfirmationStatus.TENTATIVE, frame_id=20
+    )
+    other = make_review_object(
+        "P-0003",
+        status=ConfirmationStatus.TENTATIVE,
+        frame_id=30,
+        bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    primary.track_ids.add(7)
+    secondary.track_ids.add(7)
+    add_review_objects(assoc, primary, secondary, other)
+    original_pair = frozenset(
+        (secondary.provisional_id, other.provisional_id)
+    )
+    resolved_pair = frozenset((primary.provisional_id, other.provisional_id))
+    assoc._independent_co_occurred_pairs.add(original_pair)
+    assoc._frame_independent_co_occurred.add(
+        (20, secondary.provisional_id, other.provisional_id)
+    )
+
+    assoc.final_review()
+
+    assert secondary.confirmation_status == ConfirmationStatus.REJECTED
+    assert original_pair in assoc._independent_co_occurred_pairs
+    assert resolved_pair in assoc._independent_co_occurred_pairs
+    assert any(
+        frame_id == 20 and frozenset((pid_a, pid_b)) == resolved_pair
+        for frame_id, pid_a, pid_b in assoc._frame_independent_co_occurred
+    )
+    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE not in other.review_flags
+    assert other.duplicate_evidence["reason"] == "independent_co_occurrence"
+    assert other.duplicate_evidence["co_occurrence_blocked"] is True
+
+
+def test_repeated_final_review_clears_preassigned_id_on_merged_secondary():
+    assoc = ObjectAssociator()
+    primary = make_review_object(
+        "P-0001", status=ConfirmationStatus.CONFIRMED, frame_id=10
+    )
+    secondary = make_review_object(
+        "P-0002", status=ConfirmationStatus.CONFIRMED, frame_id=20
+    )
+    primary.persistent_id = "GO-0001"
+    secondary.persistent_id = "GO-0002"
+    primary.track_ids.add(7)
+    secondary.track_ids.add(7)
+    add_review_objects(assoc, primary, secondary)
+
+    assoc.final_review()
+    assoc.final_review()
+
+    assert secondary.confirmation_status == ConfirmationStatus.REJECTED
+    assert secondary.persistent_id is None
+    assert assoc.validate_object_map()["persistent_id_on_rejected"] == []
 
 
 def test_frameless_cooccurrence_lineage_blocks_a_cascading_merge():

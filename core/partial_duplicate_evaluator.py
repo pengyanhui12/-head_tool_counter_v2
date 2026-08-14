@@ -96,7 +96,18 @@ class PartialDuplicateDecision:
     containment_score: float | None = None
     normalized_distance: float | None = None
     mapping_quality: float | None = None
+    co_occurrence_blocked: bool = False
     reason: str = ""
+    candidate_evidence: tuple[PartialDuplicateCandidateEvidence, ...] = ()
+
+
+@dataclass(frozen=True)
+class PartialDuplicateCandidateEvidence:
+    candidate_id: str
+    score: float
+    containment_score: float
+    normalized_distance: float
+    mapping_quality: float | None
 
 
 @dataclass(frozen=True)
@@ -104,15 +115,6 @@ class _GeometryResult:
     containment: float | None
     mapping_quality: float | None = None
     reason: str = ""
-
-
-@dataclass(frozen=True)
-class _PassingCandidate:
-    candidate_id: str
-    score: float
-    containment: float
-    normalized_distance: float
-    mapping_quality: float | None
 
 
 class PartialDuplicateEvaluator:
@@ -149,13 +151,28 @@ class PartialDuplicateEvaluator:
                 "no_match", reason="no_same_class_confirmed"
             )
 
-        passing: list[_PassingCandidate] = []
+        tentative_area = _representative_area(tentative)
+        if not _is_positive_finite(tentative_area):
+            return PartialDuplicateDecision(
+                "no_match", reason="invalid_object_area"
+            )
+
+        passing: list[PartialDuplicateCandidateEvidence] = []
         rejection_reasons: list[str] = []
         for candidate in candidates:
             candidate_id = candidate.provisional_id
             pair = frozenset((tentative.provisional_id, candidate_id))
             if pair in co_occurred_pairs:
                 rejection_reasons.append("independent_co_occurrence")
+                continue
+
+            confirmed_area = _representative_area(candidate)
+            confirmed_max_area = _maximum_area(candidate)
+            if not (
+                _is_positive_finite(confirmed_area)
+                and _is_positive_finite(confirmed_max_area)
+            ):
+                rejection_reasons.append("invalid_object_area")
                 continue
 
             geometry = self._compare_geometry(tentative, candidate)
@@ -170,7 +187,6 @@ class PartialDuplicateEvaluator:
                 rejection_reasons.append("insufficient_containment")
                 continue
 
-            confirmed_max_area = _maximum_area(candidate)
             centroid_values = (*tentative.centroid_xy, *candidate.centroid_xy)
             if not all(np.isfinite(value) for value in centroid_values):
                 rejection_reasons.append("distance_exceeded")
@@ -179,11 +195,7 @@ class PartialDuplicateEvaluator:
                 tentative.centroid_xy[0] - candidate.centroid_xy[0],
                 tentative.centroid_xy[1] - candidate.centroid_xy[1],
             )
-            normalized_distance = (
-                distance / sqrt(confirmed_max_area)
-                if np.isfinite(confirmed_max_area) and confirmed_max_area > 0.0
-                else inf
-            )
+            normalized_distance = distance / sqrt(confirmed_max_area)
             if (
                 normalized_distance > self.config.max_normalized_distance
                 or distance > self.config.max_absolute_distance_px
@@ -191,25 +203,16 @@ class PartialDuplicateEvaluator:
                 rejection_reasons.append("distance_exceeded")
                 continue
 
-            confirmed_area = _representative_area(candidate)
-            tentative_area = _representative_area(tentative)
-            area_ratio = (
-                tentative_area / confirmed_area
-                if np.isfinite(tentative_area)
-                and tentative_area >= 0.0
-                and np.isfinite(confirmed_area)
-                and confirmed_area > 0.0
-                else inf
-            )
+            area_ratio = tentative_area / confirmed_area
             if area_ratio > self.config.max_area_ratio:
                 rejection_reasons.append("not_partial_scale")
                 continue
 
             passing.append(
-                _PassingCandidate(
+                PartialDuplicateCandidateEvidence(
                     candidate_id=candidate_id,
                     score=geometry.containment - normalized_distance,
-                    containment=geometry.containment,
+                    containment_score=geometry.containment,
                     normalized_distance=normalized_distance,
                     mapping_quality=geometry.mapping_quality,
                 )
@@ -217,7 +220,11 @@ class PartialDuplicateEvaluator:
 
         if not passing:
             return PartialDuplicateDecision(
-                "no_match", reason=_select_rejection_reason(rejection_reasons)
+                "no_match",
+                co_occurrence_blocked=(
+                    "independent_co_occurrence" in rejection_reasons
+                ),
+                reason=_select_rejection_reason(rejection_reasons),
             )
 
         passing.sort(key=lambda item: (-item.score, item.candidate_id))
@@ -226,24 +233,25 @@ class PartialDuplicateEvaluator:
             len(passing) > 1
             and best.score - passing[1].score < self.config.min_candidate_margin
         ):
-            second = passing[1]
             return PartialDuplicateDecision(
                 "ambiguous",
-                candidate_ids=(best.candidate_id, second.candidate_id),
-                containment_score=best.containment,
+                candidate_ids=tuple(item.candidate_id for item in passing),
+                containment_score=best.containment_score,
                 normalized_distance=best.normalized_distance,
                 mapping_quality=best.mapping_quality,
                 reason="candidate_margin_below_threshold",
+                candidate_evidence=tuple(passing),
             )
 
         return PartialDuplicateDecision(
-            "attributed",
+            "likely_partial_duplicate",
             candidate_id=best.candidate_id,
             candidate_ids=(best.candidate_id,),
-            containment_score=best.containment,
+            containment_score=best.containment_score,
             normalized_distance=best.normalized_distance,
             mapping_quality=best.mapping_quality,
             reason="unique_candidate",
+            candidate_evidence=tuple(passing),
         )
 
     def _compare_geometry(
@@ -255,7 +263,7 @@ class PartialDuplicateEvaluator:
         for tentative_observation in tentative.observations:
             for confirmed_observation in confirmed.observations:
                 if tentative_observation.frame_id == confirmed_observation.frame_id:
-                    containment = _rectangle_containment(
+                    containment = rectangle_containment(
                         tentative_observation.bbox_pixels,
                         confirmed_observation.bbox_pixels,
                     )
@@ -302,15 +310,25 @@ class PartialDuplicateEvaluator:
 
 
 def _representative_area(obj: GlobalObject) -> float:
-    area_min, area_max = obj.area_range
-    return (float(area_min) + float(area_max)) / 2.0
+    try:
+        area_min, area_max = obj.area_range
+        return float(area_min) / 2.0 + float(area_max) / 2.0
+    except (OverflowError, TypeError, ValueError):
+        return float("nan")
 
 
 def _maximum_area(obj: GlobalObject) -> float:
-    return max((float(area) for area in obj.area_range), default=0.0)
+    try:
+        return max((float(area) for area in obj.area_range), default=0.0)
+    except (OverflowError, TypeError, ValueError):
+        return float("nan")
 
 
-def _rectangle_containment(
+def _is_positive_finite(value: float) -> bool:
+    return bool(np.isfinite(value) and value > 0.0)
+
+
+def rectangle_containment(
     first: tuple[float, float, float, float],
     second: tuple[float, float, float, float],
 ) -> float | None:
@@ -473,6 +491,7 @@ def _polygon_containment(
 def _select_rejection_reason(reasons: list[str]) -> str:
     priority = (
         "independent_co_occurrence",
+        "invalid_object_area",
         "low_mapping_quality",
         "no_comparable_geometry",
         "insufficient_containment",

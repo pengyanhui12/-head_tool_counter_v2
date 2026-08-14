@@ -167,6 +167,9 @@ def _build_associator(acfg: dict) -> ObjectAssociator:
         centroid_distance_threshold=acfg.get(
             "centroid_distance_threshold", 30.0
         ),
+        independent_cooccurrence_max_containment=acfg.get(
+            "independent_cooccurrence_max_containment", 0.25
+        ),
         partial_duplicate_min_containment=acfg.get(
             "partial_duplicate_min_containment", 0.75
         ),

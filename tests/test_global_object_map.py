@@ -9,12 +9,18 @@ from core.types import (
 import numpy as np
 
 
-def _gd(class_name="wrench", centroid=(100.0, 100.0), track_id=0, kf_id=0):
+def _gd(
+    class_name="wrench",
+    centroid=(100.0, 100.0),
+    track_id=0,
+    kf_id=0,
+    area=100.0,
+):
     return GlobalDetection(
         frame_id=0, keyframe_id=kf_id, track_id=track_id,
         projected_corners=np.zeros((4,2)),
         projected_center=centroid, polygon_centroid=centroid,
-        polygon_area=100.0, class_id=0, class_name=class_name,
+        polygon_area=area, class_id=0, class_name=class_name,
         detection_confidence=0.9, sharpness=100.0, mapping_quality=0.8,
         edge_quality=1.0, size_quality=1.0, transform_version=0, source="L1",
     )
@@ -27,6 +33,19 @@ def test_create_and_retrieve():
     assert obj.confirmation_status == ConfirmationStatus.TENTATIVE
     assert obj.visibility_status == VisibilityStatus.ACTIVE
     assert m.get_by_provisional("P-0001") is obj
+
+
+def test_create_object_initializes_area_range_from_positive_finite_detection():
+    obj = GlobalObjectMap().create_object(_gd(area=321.5))
+
+    assert obj.area_range == (321.5, 321.5)
+
+
+def test_create_object_does_not_initialize_area_range_from_invalid_detection():
+    for area in (0.0, -1.0, float("nan"), float("inf")):
+        obj = GlobalObjectMap().create_object(_gd(area=area))
+
+        assert obj.area_range == (0.0, 0.0)
 
 
 def test_assign_persistent_ids():

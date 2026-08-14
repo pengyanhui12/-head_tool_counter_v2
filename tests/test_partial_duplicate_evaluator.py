@@ -167,10 +167,37 @@ def test_unique_contained_fragment_is_attributed():
         tentative, [confirmed], set()
     )
 
-    assert decision.decision == "attributed"
+    assert decision.decision == "likely_partial_duplicate"
     assert decision.candidate_id == "C-1"
     assert decision.candidate_ids == ("C-1",)
     assert decision.containment_score == 1.0
+
+
+def test_positive_decision_uses_canonical_vocabulary_and_evidence_fields():
+    tentative = make_object(
+        "T-1",
+        status=ConfirmationStatus.TENTATIVE,
+        frame_id=10,
+        bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    confirmed = make_object(
+        "C-1", status=ConfirmationStatus.CONFIRMED, frame_id=10
+    )
+
+    decision = PartialDuplicateEvaluator().evaluate(
+        tentative, [confirmed], set()
+    )
+
+    assert decision.decision == "likely_partial_duplicate"
+    assert decision.co_occurrence_blocked is False
+    assert [item.candidate_id for item in decision.candidate_evidence] == [
+        "C-1"
+    ]
+    assert decision.candidate_evidence[0].score == pytest.approx(
+        decision.containment_score - decision.normalized_distance
+    )
 
 
 def test_same_frame_independent_same_class_objects_are_blocked():
@@ -195,6 +222,7 @@ def test_same_frame_independent_same_class_objects_are_blocked():
 
     assert decision.decision == "no_match"
     assert decision.reason == "independent_co_occurrence"
+    assert decision.co_occurrence_blocked is True
 
 
 def test_distance_without_containment_is_rejected():
@@ -275,7 +303,7 @@ def test_reliable_cross_frame_global_polygons_can_attribute():
 
     decision = PartialDuplicateEvaluator().evaluate(tentative, [confirmed], set())
 
-    assert decision.decision == "attributed"
+    assert decision.decision == "likely_partial_duplicate"
     assert decision.candidate_id == "C-1"
     assert decision.containment_score == 1.0
 
@@ -345,7 +373,11 @@ def test_polygon_normalization_preserves_normal_coordinate_decision():
     normal = evaluate_at_transform(1.0, 0.0)
     extreme = evaluate_at_transform(1e18, 1e20)
 
-    assert normal.decision == extreme.decision == "attributed"
+    assert (
+        normal.decision
+        == extreme.decision
+        == "likely_partial_duplicate"
+    )
     assert extreme.containment_score == pytest.approx(normal.containment_score)
     assert normal.containment_score == pytest.approx(0.8)
 
@@ -404,6 +436,43 @@ def test_similarly_scored_candidates_are_ambiguous():
     assert decision.candidate_id is None
     assert decision.candidate_ids == ("C-1", "C-2")
     assert decision.reason == "candidate_margin_below_threshold"
+
+
+def test_ambiguous_decision_retains_evidence_for_every_passing_candidate():
+    tentative = make_object(
+        "T-1",
+        status=ConfirmationStatus.TENTATIVE,
+        frame_id=10,
+        bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    candidates = [
+        make_object(
+            candidate_id,
+            status=ConfirmationStatus.CONFIRMED,
+            frame_id=10,
+            centroid=centroid,
+        )
+        for candidate_id, centroid in (
+            ("C-3", (50.0, 40.0)),
+            ("C-1", (40.0, 40.0)),
+            ("C-2", (45.0, 40.0)),
+        )
+    ]
+
+    decision = PartialDuplicateEvaluator().evaluate(
+        tentative, candidates, set()
+    )
+
+    assert decision.decision == "ambiguous"
+    assert decision.candidate_ids == ("C-1", "C-2", "C-3")
+    assert [item.candidate_id for item in decision.candidate_evidence] == [
+        "C-1",
+        "C-2",
+        "C-3",
+    ]
+    assert all(np.isfinite(item.score) for item in decision.candidate_evidence)
 
 
 def test_non_tentative_input_is_rejected():
@@ -467,7 +536,7 @@ def test_tentative_remains_eligible_when_either_evidence_threshold_is_unmet(
 
     decision = PartialDuplicateEvaluator().evaluate(tentative, [confirmed], set())
 
-    assert decision.decision == "attributed"
+    assert decision.decision == "likely_partial_duplicate"
 
 
 def test_non_finite_same_frame_box_is_not_comparable_geometry():
@@ -551,7 +620,37 @@ def test_non_finite_area_cannot_bypass_scale_or_distance_guards():
     decision = PartialDuplicateEvaluator().evaluate(tentative, [confirmed], set())
 
     assert decision.decision == "no_match"
-    assert decision.reason == "distance_exceeded"
+    assert decision.reason == "invalid_object_area"
+
+
+@pytest.mark.parametrize("invalid_area", [0.0, -1.0, float("nan"), float("inf")])
+@pytest.mark.parametrize("invalid_side", ["tentative", "confirmed"])
+def test_invalid_representative_area_fails_closed(invalid_area, invalid_side):
+    tentative_area = invalid_area if invalid_side == "tentative" else 1_600.0
+    confirmed_area = invalid_area if invalid_side == "confirmed" else 10_000.0
+    tentative = make_object(
+        "T-1",
+        status=ConfirmationStatus.TENTATIVE,
+        frame_id=10,
+        bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+        area_range=(tentative_area, tentative_area),
+    )
+    confirmed = make_object(
+        "C-1",
+        status=ConfirmationStatus.CONFIRMED,
+        frame_id=10,
+        area=10_000.0,
+        area_range=(confirmed_area, confirmed_area),
+    )
+
+    decision = PartialDuplicateEvaluator().evaluate(
+        tentative, [confirmed], set()
+    )
+
+    assert decision.decision == "no_match"
+    assert decision.reason == "invalid_object_area"
 
 
 def test_only_same_class_confirmed_candidates_are_considered():
@@ -627,7 +726,7 @@ def test_scale_uses_midpoint_while_distance_uses_confirmed_max_area():
 
     decision = PartialDuplicateEvaluator().evaluate(tentative, [confirmed], set())
 
-    assert decision.decision == "attributed"
+    assert decision.decision == "likely_partial_duplicate"
     assert decision.normalized_distance == 0.7
 
 

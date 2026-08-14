@@ -12,6 +12,9 @@ association:
   online_gate_ratio: 0.50
   centroid_distance_threshold: 30.0
   track_reactivate_max_gap_frames: 15
+  # Same-frame same-class boxes at or below this smaller-box containment
+  # are durable evidence of two separable physical instances.
+  independent_cooccurrence_max_containment: 0.25
   partial_duplicate_min_containment: 0.75
   partial_duplicate_max_normalized_distance: 0.75
   partial_duplicate_max_absolute_distance_px: 80.0

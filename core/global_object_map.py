@@ -1,4 +1,6 @@
 """全局对象地图 — confirmation/visibility 双轴状态 + 双 ID + 审计字段"""
+from math import isfinite
+
 from core.types import (
     GlobalObject,
     GlobalDetection,
@@ -18,12 +20,22 @@ class GlobalObjectMap:
 
     def create_object(self, detection: GlobalDetection) -> GlobalObject:
         self._provisional_counter += 1
+        try:
+            detection_area = float(detection.polygon_area)
+        except (OverflowError, TypeError, ValueError):
+            detection_area = 0.0
+        initial_area_range = (
+            (detection_area, detection_area)
+            if isfinite(detection_area) and detection_area > 0.0
+            else (0.0, 0.0)
+        )
         obj = GlobalObject(
             provisional_id=f"P-{self._provisional_counter:04d}",
             persistent_id=None,
             class_name=detection.class_name,
             confirmation_status=ConfirmationStatus.TENTATIVE,
             visibility_status=VisibilityStatus.ACTIVE,
+            area_range=initial_area_range,
             map_version=self.map_version,
         )
         obj.observations.append(detection)

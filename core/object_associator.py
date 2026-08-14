@@ -11,6 +11,8 @@
 - O8: observation_count == len(observations)
 - O9: 每个对象 observation frame_id 唯一
 """
+from numbers import Real
+
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
@@ -29,7 +31,11 @@ from core.merge_policy import MergePolicy
 from core.partial_duplicate_evaluator import (
     PartialDuplicateConfig,
     PartialDuplicateEvaluator,
+    rectangle_containment,
 )
+
+
+DEFAULT_INDEPENDENT_COOCCURRENCE_MAX_CONTAINMENT = 0.25
 
 
 class ObjectAssociator:
@@ -58,6 +64,9 @@ class ObjectAssociator:
         partial_duplicate_min_mapping_quality: float = 0.50,
         partial_duplicate_max_area_ratio: float = 0.60,
         partial_duplicate_min_candidate_margin: float = 0.15,
+        independent_cooccurrence_max_containment: float = (
+            DEFAULT_INDEPENDENT_COOCCURRENCE_MAX_CONTAINMENT
+        ),
     ):
         self.max_position_distance = max_position_distance_px
         self.w_pos = position_weight
@@ -78,6 +87,19 @@ class ObjectAssociator:
         self.per_class_position_gates = per_class_position_gates or {}
         self.track_reactivate_max_gap_frames = track_reactivate_max_gap_frames
         self.centroid_distance_threshold = centroid_distance_threshold
+        if (
+            not isinstance(independent_cooccurrence_max_containment, Real)
+            or isinstance(independent_cooccurrence_max_containment, bool)
+            or not np.isfinite(independent_cooccurrence_max_containment)
+            or not 0.0 <= independent_cooccurrence_max_containment < 1.0
+        ):
+            raise ValueError(
+                "independent_cooccurrence_max_containment must be a finite "
+                "real number in [0, 1)"
+            )
+        self.independent_cooccurrence_max_containment = float(
+            independent_cooccurrence_max_containment
+        )
         self._partial_duplicate_config = PartialDuplicateConfig(
             min_containment=partial_duplicate_min_containment,
             max_normalized_distance=partial_duplicate_max_normalized_distance,
@@ -100,6 +122,10 @@ class ObjectAssociator:
         # 共现记录
         self._co_occurred_pairs: set[frozenset[str]] = set()
         self._frame_co_occurred: set[tuple[int, str, str]] = set()
+        self._independent_co_occurred_pairs: set[frozenset[str]] = set()
+        self._frame_independent_co_occurred: set[
+            tuple[int, str, str]
+        ] = set()
 
         # track 重激活状态：跟踪最近一次 track_id 被看到的 frame_id
         self._track_last_seen_frame: dict[int, int] = {}
@@ -327,13 +353,36 @@ class ObjectAssociator:
                 if i >= j or pid_b is None or pid_a == pid_b:
                     continue
                 pair = frozenset([pid_a, pid_b])
-                if pair in self._co_occurred_pairs:
-                    continue
                 if gd_a.class_name != gd_b.class_name:
                     continue
                 self._frame_co_occurred.add((frame_id, pid_a, pid_b))
                 self._co_occurred_pairs.add(pair)
                 self._merge_policy.record_co_occurrence(frame_id, pid_a, pid_b)
+                if self._are_independently_separable(
+                    frame_id, gd_a, gd_b
+                ):
+                    self._frame_independent_co_occurred.add(
+                        (frame_id, pid_a, pid_b)
+                    )
+                    self._independent_co_occurred_pairs.add(pair)
+
+    def _are_independently_separable(
+        self,
+        frame_id: int,
+        first: GlobalDetection,
+        second: GlobalDetection,
+    ) -> bool:
+        """Return whether same-frame raw boxes demonstrate two instances."""
+        if first.frame_id != frame_id or second.frame_id != frame_id:
+            return False
+        containment = rectangle_containment(
+            first.bbox_pixels, second.bbox_pixels
+        )
+        return (
+            containment is not None
+            and containment
+            <= self.independent_cooccurrence_max_containment
+        )
 
     # ── 后处理合并（final_review）──
 
@@ -370,25 +419,38 @@ class ObjectAssociator:
             decision = self._partial_duplicate_evaluator.evaluate(
                 obj,
                 confirmed,
-                self._co_occurred_pairs,
+                self._independent_co_occurred_pairs,
             )
             evidence = {
-                "containment": decision.containment_score,
+                "decision": decision.decision,
+                "containment_score": decision.containment_score,
                 "normalized_distance": decision.normalized_distance,
                 "mapping_quality": decision.mapping_quality,
+                "co_occurrence_blocked": decision.co_occurrence_blocked,
                 "reason": decision.reason,
+                "candidates": [
+                    {
+                        "candidate_id": candidate.candidate_id,
+                        "score": candidate.score,
+                        "containment_score": candidate.containment_score,
+                        "normalized_distance": (
+                            candidate.normalized_distance
+                        ),
+                        "mapping_quality": candidate.mapping_quality,
+                    }
+                    for candidate in decision.candidate_evidence
+                ],
             }
+            obj.duplicate_evidence = evidence
 
-            if decision.decision == "attributed":
+            if decision.decision == "likely_partial_duplicate":
                 obj.review_flags.add(ReviewFlag.LIKELY_PARTIAL_DUPLICATE)
                 obj.likely_partial_duplicate_of = decision.candidate_id
-                obj.duplicate_evidence = evidence
             elif decision.decision == "ambiguous":
                 obj.review_flags.add(
                     ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE
                 )
                 obj.duplicate_candidate_ids = sorted(decision.candidate_ids)
-                obj.duplicate_evidence = evidence
 
     @staticmethod
     def _clear_partial_duplicate_advice(obj: GlobalObject) -> None:
@@ -502,7 +564,9 @@ class ObjectAssociator:
                 self._track_to_object[logical_key] = primary.provisional_id
 
         # O6 + O7: REJECTED 必须记录原因
-        secondary.confirmation_status = ConfirmationStatus.REJECTED
+        self.map.set_confirmation(
+            secondary.provisional_id, ConfirmationStatus.REJECTED
+        )
         secondary.rejected_reason = "merged_duplicate"
         secondary.merged_into_id = primary.provisional_id
         secondary.rejection_evidence = {
@@ -534,6 +598,22 @@ class ObjectAssociator:
             self._co_occurred_pairs.add(resolved_pair)
             self._merge_policy._co_occurred_pairs.add(resolved_pair)
 
+        inherited_independent_pairs = [
+            pair
+            for pair in self._independent_co_occurred_pairs
+            if secondary_id in pair
+        ]
+        for pair in inherited_independent_pairs:
+            other_ids = pair - {secondary_id}
+            if len(other_ids) != 1:
+                continue
+            other_id = next(iter(other_ids))
+            if other_id == primary_id:
+                continue
+            self._independent_co_occurred_pairs.add(
+                frozenset((primary_id, other_id))
+            )
+
         inherited_frames = [
             record
             for record in self._frame_co_occurred
@@ -549,6 +629,20 @@ class ObjectAssociator:
             )
             self._merge_policy.record_co_occurrence(
                 frame_id, resolved_a, resolved_b
+            )
+
+        inherited_independent_frames = [
+            record
+            for record in self._frame_independent_co_occurred
+            if secondary_id in record[1:]
+        ]
+        for frame_id, pid_a, pid_b in inherited_independent_frames:
+            resolved_a = primary_id if pid_a == secondary_id else pid_a
+            resolved_b = primary_id if pid_b == secondary_id else pid_b
+            if resolved_a == resolved_b:
+                continue
+            self._frame_independent_co_occurred.add(
+                (frame_id, resolved_a, resolved_b)
             )
 
     def validate_object_map(self) -> dict:
@@ -593,11 +687,8 @@ class ObjectAssociator:
         return violations
 
     def get_reportable_objects(self) -> list[GlobalObject]:
-        """返回所有非 REJECTED 的对象。"""
-        return [
-            o for o in self.map.get_all()
-            if o.confirmation_status != ConfirmationStatus.REJECTED
-        ]
+        """Return formally counted confirmed and uncertain objects."""
+        return self.map.get_reportable()
 
     @property
     def merge_audits(self) -> list[MergeAudit]:
