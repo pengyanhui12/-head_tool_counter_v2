@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import hypot, inf, sqrt
+from math import hypot, inf, isfinite, sqrt
+from numbers import Integral, Real
 
 import cv2
 import numpy as np
@@ -10,8 +11,28 @@ import numpy as np
 from core.types import ConfirmationStatus, GlobalObject
 
 
+def _is_finite_real(value: object) -> bool:
+    return (
+        isinstance(value, Real)
+        and not isinstance(value, bool)
+        and isfinite(float(value))
+    )
+
+
+def _require_positive_integer(name: str, value: object) -> None:
+    if not isinstance(value, Integral) or isinstance(value, bool) or value <= 0:
+        raise ValueError(f"{name} must be a positive non-boolean integer")
+
+
 @dataclass(frozen=True)
 class PartialDuplicateConfig:
+    """Validated safety thresholds for advisory duplicate evaluation.
+
+    Construction raises ``ValueError`` naming the invalid field when a value is
+    non-numeric, non-finite, outside its documented safe range, or when a
+    confirmation threshold is not a positive non-boolean integer.
+    """
+
     min_containment: float = 0.75
     max_normalized_distance: float = 0.75
     max_absolute_distance_px: float = 80.0
@@ -20,6 +41,50 @@ class PartialDuplicateConfig:
     min_candidate_margin: float = 0.15
     min_observations_confirmed: int = 3
     min_keyframes_confirmed: int = 2
+
+    def __post_init__(self) -> None:
+        if not _is_finite_real(self.min_containment) or not (
+            0.0 < self.min_containment <= 1.0
+        ):
+            raise ValueError(
+                "min_containment must be a finite real number in (0, 1]"
+            )
+        if not _is_finite_real(self.max_normalized_distance) or not (
+            self.max_normalized_distance >= 0.0
+        ):
+            raise ValueError(
+                "max_normalized_distance must be a finite real number >= 0"
+            )
+        if not _is_finite_real(self.max_absolute_distance_px) or not (
+            self.max_absolute_distance_px > 0.0
+        ):
+            raise ValueError(
+                "max_absolute_distance_px must be a finite real number > 0"
+            )
+        if not _is_finite_real(self.min_mapping_quality) or not (
+            0.0 < self.min_mapping_quality <= 1.0
+        ):
+            raise ValueError(
+                "min_mapping_quality must be a finite real number in (0, 1]"
+            )
+        if not _is_finite_real(self.max_area_ratio) or not (
+            0.0 < self.max_area_ratio < 1.0
+        ):
+            raise ValueError(
+                "max_area_ratio must be a finite real number in (0, 1)"
+            )
+        if not _is_finite_real(self.min_candidate_margin) or not (
+            self.min_candidate_margin >= 0.0
+        ):
+            raise ValueError(
+                "min_candidate_margin must be a finite real number >= 0"
+            )
+        _require_positive_integer(
+            "min_observations_confirmed", self.min_observations_confirmed
+        )
+        _require_positive_integer(
+            "min_keyframes_confirmed", self.min_keyframes_confirmed
+        )
 
 
 @dataclass(frozen=True)

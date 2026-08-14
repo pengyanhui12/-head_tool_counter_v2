@@ -1,9 +1,11 @@
 import pickle
+from math import nextafter
 
 import numpy as np
 import pytest
 
 from core.partial_duplicate_evaluator import (
+    PartialDuplicateConfig,
     PartialDuplicateEvaluator,
 )
 from core.types import (
@@ -84,6 +86,63 @@ def make_object(
         keyframe_ids=set(keyframe_ids or {frame_id}),
         observation_count=observation_count,
     )
+
+
+@pytest.mark.parametrize(
+    ("field_name", "invalid_value"),
+    [
+        ("min_containment", 0.0),
+        ("min_containment", float("nan")),
+        ("min_containment", 1.01),
+        ("max_normalized_distance", -0.01),
+        ("max_normalized_distance", float("inf")),
+        ("max_normalized_distance", True),
+        ("max_absolute_distance_px", 0.0),
+        ("max_absolute_distance_px", float("nan")),
+        ("min_mapping_quality", 0.0),
+        ("min_mapping_quality", 1.01),
+        ("min_mapping_quality", float("nan")),
+        ("min_mapping_quality", "0.5"),
+        ("max_area_ratio", 0.0),
+        ("max_area_ratio", 1.0),
+        ("max_area_ratio", float("inf")),
+        ("min_candidate_margin", -0.01),
+        ("min_candidate_margin", float("nan")),
+        ("min_observations_confirmed", 0),
+        ("min_observations_confirmed", 1.5),
+        ("min_observations_confirmed", True),
+        ("min_keyframes_confirmed", 0),
+        ("min_keyframes_confirmed", 1.5),
+        ("min_keyframes_confirmed", False),
+    ],
+)
+def test_partial_duplicate_config_rejects_invalid_public_fields(
+    field_name, invalid_value
+):
+    with pytest.raises(ValueError, match=field_name):
+        PartialDuplicateConfig(**{field_name: invalid_value})
+
+
+def test_zero_intersection_cannot_attribute_with_smallest_valid_threshold():
+    tentative = make_object(
+        "T-1",
+        status=ConfirmationStatus.TENTATIVE,
+        frame_id=10,
+        bbox_pixels=(110.0, 0.0, 150.0, 40.0),
+        centroid=(50.0, 50.0),
+        area=1_600.0,
+    )
+    confirmed = make_object(
+        "C-1", status=ConfirmationStatus.CONFIRMED, frame_id=10
+    )
+    config = PartialDuplicateConfig(min_containment=nextafter(0.0, 1.0))
+
+    decision = PartialDuplicateEvaluator(config).evaluate(
+        tentative, [confirmed], set()
+    )
+
+    assert decision.decision == "no_match"
+    assert decision.reason == "insufficient_containment"
 
 
 def test_unique_contained_fragment_is_attributed():
