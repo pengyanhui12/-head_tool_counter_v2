@@ -280,6 +280,76 @@ def test_reliable_cross_frame_global_polygons_can_attribute():
     assert decision.containment_score == 1.0
 
 
+def test_extreme_cross_frame_polygons_keep_true_half_containment():
+    tentative = make_object(
+        "T-1",
+        status=ConfirmationStatus.TENTATIVE,
+        frame_id=10,
+        projected_corners=[
+            [0.0, 0.0],
+            [1e20, 0.0],
+            [1e20, 1e20],
+            [0.0, 1e20],
+        ],
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    confirmed = make_object(
+        "C-1",
+        status=ConfirmationStatus.CONFIRMED,
+        frame_id=11,
+        projected_corners=[
+            [5e19, 0.0],
+            [1.5e20, 0.0],
+            [1.5e20, 1e20],
+            [5e19, 1e20],
+        ],
+    )
+
+    decision = PartialDuplicateEvaluator().evaluate(
+        tentative, [confirmed], set()
+    )
+
+    assert decision.decision == "no_match"
+    assert decision.reason == "insufficient_containment"
+
+
+def test_polygon_normalization_preserves_normal_coordinate_decision():
+    def evaluate_at_transform(scale, origin):
+        tentative = make_object(
+            "T-1",
+            status=ConfirmationStatus.TENTATIVE,
+            frame_id=10,
+            projected_corners=np.array(
+                [[20, 0], [120, 0], [120, 100], [20, 100]], dtype=float
+            )
+            * scale
+            + origin,
+            centroid=(40.0, 40.0),
+            area=1_600.0,
+        )
+        confirmed = make_object(
+            "C-1",
+            status=ConfirmationStatus.CONFIRMED,
+            frame_id=11,
+            projected_corners=np.array(
+                [[0, 0], [100, 0], [100, 100], [0, 100]], dtype=float
+            )
+            * scale
+            + origin,
+        )
+        return PartialDuplicateEvaluator().evaluate(
+            tentative, [confirmed], set()
+        )
+
+    normal = evaluate_at_transform(1.0, 0.0)
+    extreme = evaluate_at_transform(1e18, 1e20)
+
+    assert normal.decision == extreme.decision == "attributed"
+    assert extreme.containment_score == pytest.approx(normal.containment_score)
+    assert normal.containment_score == pytest.approx(0.8)
+
+
 def test_adjacent_frame_raw_boxes_alone_are_not_compared():
     empty_polygon = np.empty((0, 2), dtype=float)
     tentative = make_object(

@@ -280,15 +280,12 @@ class PartialDuplicateEvaluator:
                     low_mapping_quality = True
                     continue
                 mapping_quality = min(mapping_qualities)
-                comparisons.append(
-                    (
-                        _polygon_containment(
-                            tentative_observation.projected_corners,
-                            confirmed_observation.projected_corners,
-                        ),
-                        mapping_quality,
-                    )
+                containment = _polygon_containment(
+                    tentative_observation.projected_corners,
+                    confirmed_observation.projected_corners,
                 )
+                if containment is not None:
+                    comparisons.append((containment, mapping_quality))
 
         if comparisons:
             containment, mapping_quality = max(
@@ -367,26 +364,110 @@ def _rectangle_containment(
 
 
 def _valid_polygon(points: np.ndarray) -> bool:
-    polygon = np.asarray(points, dtype=np.float32)
-    return (
-        polygon.ndim == 2
-        and polygon.shape[0] >= 3
-        and polygon.shape[1] == 2
-        and bool(np.all(np.isfinite(polygon)))
-        and abs(float(cv2.contourArea(polygon))) > 0.0
+    return _finite_polygon(points) is not None
+
+
+def _finite_polygon(points: np.ndarray) -> np.ndarray | None:
+    try:
+        polygon = np.asarray(points, dtype=np.float64)
+    except (OverflowError, TypeError, ValueError):
+        return None
+    if (
+        polygon.ndim != 2
+        or polygon.shape[0] < 3
+        or polygon.shape[1] != 2
+        or not bool(np.all(np.isfinite(polygon)))
+    ):
+        return None
+    return polygon
+
+
+def _normalize_polygon_pair(
+    first: np.ndarray, second: np.ndarray
+) -> tuple[np.ndarray, np.ndarray] | None:
+    first_polygon = _finite_polygon(first)
+    second_polygon = _finite_polygon(second)
+    if first_polygon is None or second_polygon is None:
+        return None
+
+    origin = first_polygon[0]
+    with np.errstate(over="ignore", invalid="ignore"):
+        first_delta = first_polygon - origin
+        second_delta = second_polygon - origin
+    if not (
+        bool(np.all(np.isfinite(first_delta)))
+        and bool(np.all(np.isfinite(second_delta)))
+    ):
+        return None
+
+    extent = max(
+        float(np.max(np.abs(first_delta))),
+        float(np.max(np.abs(second_delta))),
     )
+    if not np.isfinite(extent) or extent <= 0.0:
+        return None
+
+    with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+        first_normalized = np.asarray(first_delta / extent, dtype=np.float32)
+        second_normalized = np.asarray(second_delta / extent, dtype=np.float32)
+    if not (
+        bool(np.all(np.isfinite(first_normalized)))
+        and bool(np.all(np.isfinite(second_normalized)))
+    ):
+        return None
+    return first_normalized, second_normalized
 
 
-def _polygon_containment(first: np.ndarray, second: np.ndarray) -> float:
-    first_hull = cv2.convexHull(np.asarray(first, dtype=np.float32))
-    second_hull = cv2.convexHull(np.asarray(second, dtype=np.float32))
-    first_area = abs(float(cv2.contourArea(first_hull)))
-    second_area = abs(float(cv2.contourArea(second_hull)))
+def _polygon_containment(
+    first: np.ndarray, second: np.ndarray
+) -> float | None:
+    normalized = _normalize_polygon_pair(first, second)
+    if normalized is None:
+        return None
+    first_normalized, second_normalized = normalized
+
+    try:
+        first_hull = cv2.convexHull(first_normalized)
+        second_hull = cv2.convexHull(second_normalized)
+        if (
+            first_hull is None
+            or second_hull is None
+            or len(first_hull) < 3
+            or len(second_hull) < 3
+            or not bool(np.all(np.isfinite(first_hull)))
+            or not bool(np.all(np.isfinite(second_hull)))
+        ):
+            return None
+        first_area = abs(float(cv2.contourArea(first_hull)))
+        second_area = abs(float(cv2.contourArea(second_hull)))
+    except (cv2.error, OverflowError, TypeError, ValueError):
+        return None
+
+    if not (
+        np.isfinite(first_area)
+        and first_area > 0.0
+        and np.isfinite(second_area)
+        and second_area > 0.0
+    ):
+        return None
     smaller_area = min(first_area, second_area)
-    if smaller_area <= 0.0:
-        return 0.0
-    intersection_area, _ = cv2.intersectConvexConvex(first_hull, second_hull)
-    return min(1.0, max(0.0, float(intersection_area) / smaller_area))
+    if not np.isfinite(smaller_area) or smaller_area <= 0.0:
+        return None
+
+    try:
+        intersection_area, _ = cv2.intersectConvexConvex(
+            first_hull, second_hull
+        )
+        intersection_area = float(intersection_area)
+    except (cv2.error, OverflowError, TypeError, ValueError):
+        return None
+    if not np.isfinite(intersection_area) or intersection_area < 0.0:
+        return None
+
+    raw_ratio = intersection_area / smaller_area
+    if not np.isfinite(raw_ratio) or raw_ratio < 0.0:
+        return None
+    return min(1.0, raw_ratio)
 
 
 def _select_rejection_reason(reasons: list[str]) -> str:
