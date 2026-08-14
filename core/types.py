@@ -29,6 +29,8 @@ class VisibilityStatus(str, Enum):
 
 class ReviewFlag(str, Enum):
     LIKELY_DUPLICATE = "likely_duplicate"
+    LIKELY_PARTIAL_DUPLICATE = "likely_partial_duplicate"
+    AMBIGUOUS_DUPLICATE_CANDIDATE = "ambiguous_duplicate_candidate"
     CLASS_CONFLICT = "class_conflict"
     EDGE_ONLY = "edge_only"
     LOW_CONFIDENCE = "low_confidence"
@@ -240,6 +242,9 @@ class GlobalObject:
     rejected_reason: str | None = None
     merged_into_id: str | None = None
     rejection_evidence: dict = field(default_factory=dict)
+    likely_partial_duplicate_of: str | None = None
+    duplicate_candidate_ids: list[str] = field(default_factory=list)
+    duplicate_evidence: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
