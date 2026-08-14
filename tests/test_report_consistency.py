@@ -1,10 +1,12 @@
 """报告一致性测试 — JSON/CSV/控制台口径统一，persistent ID 只分配给 reportable"""
 import csv
 import io
+import json
 
 import numpy as np
 import pytest
 
+from core import report_generator
 from core.types import (
     GlobalObject, GlobalDetection, ConfirmationStatus,
     VisibilityStatus, ReviewFlag,
@@ -74,6 +76,21 @@ def test_counted_helpers_exclude_tentative_and_rejected():
     assert get_review_candidates(objects) == [objects[1]]
 
 
+def test_display_objects_are_canonical_counted_then_review_candidates():
+    objects = [
+        make_obj("P-0001", status=ConfirmationStatus.TENTATIVE),
+        make_obj("P-0002", status=ConfirmationStatus.REJECTED),
+        make_obj("P-0003", status=ConfirmationStatus.UNCERTAIN),
+        make_obj("P-0004", status=ConfirmationStatus.CONFIRMED),
+    ]
+
+    assert report_generator.get_display_objects(objects) == [
+        objects[2],
+        objects[3],
+        objects[0],
+    ]
+
+
 def test_r2_rejected_not_in_total():
     """R2: rejected 不进入 total_objects"""
     obj_map = GlobalObjectMap()
@@ -103,6 +120,7 @@ def test_json_contract_separates_partitions_and_resolves_duplicate_ids():
     obj_map = GlobalObjectMap()
     confirmed = make_obj("P-0001", "wrench", ConfirmationStatus.CONFIRMED)
     confirmed.persistent_id = "GO-0001"
+    confirmed.review_flags.add(ReviewFlag.LIKELY_PARTIAL_DUPLICATE)
     uncertain = make_obj("P-0002", "hammer", ConfirmationStatus.UNCERTAIN)
     uncertain.persistent_id = "GO-0002"
     uncertain.review_flags.add(ReviewFlag.LOW_CONFIDENCE)
@@ -121,6 +139,7 @@ def test_json_contract_separates_partitions_and_resolves_duplicate_ids():
 
     report = ReportGenerator(object_map=obj_map).generate_json_report()
 
+    assert report["schema_version"] == report_generator.REPORT_SCHEMA_VERSION
     assert report["total_objects"] == 2
     assert report["total_objects"] == (
         report["confirmed_count"] + report["uncertain_count"]
@@ -128,7 +147,7 @@ def test_json_contract_separates_partitions_and_resolves_duplicate_ids():
     assert report["review_candidate_count"] == 1
     assert report["tentative_count"] == report["review_candidate_count"]
     assert report["rejected_count"] == 1
-    assert report["review_required_count"] == 2
+    assert report["review_required_count"] == 3
     assert report["likely_partial_duplicate_count"] == 1
     assert report["class_counts"] == {"wrench": 1, "hammer": 1}
     assert [item["provisional_id"] for item in report["objects"]] == [
@@ -148,6 +167,143 @@ def test_json_contract_separates_partitions_and_resolves_duplicate_ids():
     assert review["duplicate_candidate_ids"] == ["GO-0001", "GO-0002", "P-9999"]
     assert review["duplicate_evidence"] == {"z": 1, "a": {"score": 0.75}}
     assert all(item["counted"] is True for item in report["objects"])
+
+
+def test_json_and_csv_serialize_all_duplicate_decisions():
+    obj_map = GlobalObjectMap()
+    confirmed_a = make_obj(
+        "P-0001", "wrench", ConfirmationStatus.CONFIRMED
+    )
+    confirmed_a.persistent_id = "GO-0001"
+    confirmed_b = make_obj(
+        "P-0002", "wrench", ConfirmationStatus.CONFIRMED
+    )
+    confirmed_b.persistent_id = "GO-0002"
+    confirmed_c = make_obj(
+        "P-0003", "wrench", ConfirmationStatus.CONFIRMED
+    )
+    confirmed_c.persistent_id = "GO-0003"
+
+    likely = make_obj(
+        "P-0004", "wrench", ConfirmationStatus.TENTATIVE
+    )
+    likely.review_flags.add(ReviewFlag.LIKELY_PARTIAL_DUPLICATE)
+    likely.likely_partial_duplicate_of = confirmed_a.provisional_id
+    likely.duplicate_evidence = {
+        "decision": "likely_partial_duplicate",
+        "containment_score": 0.9,
+        "normalized_distance": 0.2,
+        "mapping_quality": 0.8,
+        "co_occurrence_blocked": False,
+        "reason": "unique_candidate",
+        "candidates": [
+            {
+                "candidate_id": confirmed_a.provisional_id,
+                "score": 0.7,
+                "containment_score": 0.9,
+                "normalized_distance": 0.2,
+                "mapping_quality": 0.8,
+            }
+        ],
+    }
+
+    ambiguous = make_obj(
+        "P-0005", "wrench", ConfirmationStatus.TENTATIVE
+    )
+    ambiguous.review_flags.add(
+        ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE
+    )
+    ambiguous.duplicate_candidate_ids = [
+        confirmed_b.provisional_id,
+        confirmed_c.provisional_id,
+    ]
+    ambiguous.duplicate_evidence = {
+        "decision": "ambiguous",
+        "containment_score": 0.9,
+        "normalized_distance": 0.1,
+        "mapping_quality": 0.8,
+        "co_occurrence_blocked": False,
+        "reason": "candidate_margin_below_threshold",
+        "candidates": [
+            {
+                "candidate_id": confirmed_b.provisional_id,
+                "score": 0.8,
+                "containment_score": 0.9,
+                "normalized_distance": 0.1,
+                "mapping_quality": 0.8,
+            },
+            {
+                "candidate_id": confirmed_c.provisional_id,
+                "score": 0.75,
+                "containment_score": 0.9,
+                "normalized_distance": 0.15,
+                "mapping_quality": 0.8,
+            },
+        ],
+    }
+
+    no_match = make_obj(
+        "P-0006", "wrench", ConfirmationStatus.TENTATIVE
+    )
+    no_match.duplicate_evidence = {
+        "decision": "no_match",
+        "containment_score": None,
+        "normalized_distance": None,
+        "mapping_quality": None,
+        "co_occurrence_blocked": True,
+        "reason": "independent_co_occurrence",
+        "candidates": [],
+    }
+    obj_map._objects = [
+        confirmed_a,
+        confirmed_b,
+        confirmed_c,
+        likely,
+        ambiguous,
+        no_match,
+    ]
+
+    generator = ReportGenerator(object_map=obj_map)
+    report = generator.generate_json_report()
+    reviews = {
+        item["provisional_id"]: item
+        for item in report["review_candidates"]
+    }
+
+    assert reviews["P-0004"]["duplicate_evidence"]["decision"] == (
+        "likely_partial_duplicate"
+    )
+    assert reviews["P-0004"]["duplicate_evidence"]["candidates"][0][
+        "candidate_id"
+    ] == "GO-0001"
+    assert reviews["P-0005"]["duplicate_evidence"]["decision"] == (
+        "ambiguous"
+    )
+    assert [
+        candidate["candidate_id"]
+        for candidate in reviews["P-0005"]["duplicate_evidence"][
+            "candidates"
+        ]
+    ] == ["GO-0002", "GO-0003"]
+    assert reviews["P-0006"]["duplicate_evidence"]["decision"] == (
+        "no_match"
+    )
+    assert reviews["P-0006"]["review_flags"] == []
+    assert reviews["P-0006"]["likely_partial_duplicate_of"] is None
+
+    rows = {
+        row["provisional_id"]: row
+        for row in csv.DictReader(
+            io.StringIO(generator.generate_csv_report(obj_map.get_all()))
+        )
+    }
+    assert rows["P-0004"]["review_status"] == "likely_partial_duplicate"
+    assert rows["P-0005"]["review_status"] == "ambiguous"
+    assert rows["P-0006"]["review_status"] == "no_match"
+    for provisional_id in ("P-0004", "P-0005", "P-0006"):
+        assert json.loads(rows[provisional_id]["duplicate_evidence"]) == (
+            reviews[provisional_id]["duplicate_evidence"]
+        )
 
 
 def test_r4_persistent_id_only_for_reportable():

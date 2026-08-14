@@ -184,7 +184,7 @@ def test_separable_same_frame_boxes_are_independent_cooccurrence(
     second_box, second_centroid
 ):
     assoc = ObjectAssociator(
-        independent_cooccurrence_max_containment=0.25
+        independent_co_occurrence_max_containment=0.25
     )
     assoc.ingest_frame(
         1,

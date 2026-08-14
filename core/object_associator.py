@@ -35,7 +35,7 @@ from core.partial_duplicate_evaluator import (
 )
 
 
-DEFAULT_INDEPENDENT_COOCCURRENCE_MAX_CONTAINMENT = 0.25
+DEFAULT_INDEPENDENT_CO_OCCURRENCE_MAX_CONTAINMENT = 0.25
 
 
 class ObjectAssociator:
@@ -64,8 +64,8 @@ class ObjectAssociator:
         partial_duplicate_min_mapping_quality: float = 0.50,
         partial_duplicate_max_area_ratio: float = 0.60,
         partial_duplicate_min_candidate_margin: float = 0.15,
-        independent_cooccurrence_max_containment: float = (
-            DEFAULT_INDEPENDENT_COOCCURRENCE_MAX_CONTAINMENT
+        independent_co_occurrence_max_containment: float = (
+            DEFAULT_INDEPENDENT_CO_OCCURRENCE_MAX_CONTAINMENT
         ),
     ):
         self.max_position_distance = max_position_distance_px
@@ -88,17 +88,17 @@ class ObjectAssociator:
         self.track_reactivate_max_gap_frames = track_reactivate_max_gap_frames
         self.centroid_distance_threshold = centroid_distance_threshold
         if (
-            not isinstance(independent_cooccurrence_max_containment, Real)
-            or isinstance(independent_cooccurrence_max_containment, bool)
-            or not np.isfinite(independent_cooccurrence_max_containment)
-            or not 0.0 <= independent_cooccurrence_max_containment < 1.0
+            not isinstance(independent_co_occurrence_max_containment, Real)
+            or isinstance(independent_co_occurrence_max_containment, bool)
+            or not np.isfinite(independent_co_occurrence_max_containment)
+            or not 0.0 <= independent_co_occurrence_max_containment < 1.0
         ):
             raise ValueError(
-                "independent_cooccurrence_max_containment must be a finite "
+                "independent_co_occurrence_max_containment must be a finite "
                 "real number in [0, 1)"
             )
-        self.independent_cooccurrence_max_containment = float(
-            independent_cooccurrence_max_containment
+        self.independent_co_occurrence_max_containment = float(
+            independent_co_occurrence_max_containment
         )
         self._partial_duplicate_config = PartialDuplicateConfig(
             min_containment=partial_duplicate_min_containment,
@@ -381,7 +381,7 @@ class ObjectAssociator:
         return (
             containment is not None
             and containment
-            <= self.independent_cooccurrence_max_containment
+            <= self.independent_co_occurrence_max_containment
         )
 
     # ── 后处理合并（final_review）──

@@ -28,7 +28,7 @@ from core.global_projector import GlobalProjector
 from core.object_associator import ObjectAssociator
 from core.coverage_map import CoverageMap
 from core.status_panel import StatusPanel
-from core.report_generator import ReportGenerator
+from core.report_generator import ReportGenerator, get_display_objects
 from core.evidence_extractor import EvidenceExtractor
 from core.session_store import SessionStore
 from core.config_loader import ConfigLoader
@@ -167,8 +167,8 @@ def _build_associator(acfg: dict) -> ObjectAssociator:
         centroid_distance_threshold=acfg.get(
             "centroid_distance_threshold", 30.0
         ),
-        independent_cooccurrence_max_containment=acfg.get(
-            "independent_cooccurrence_max_containment", 0.25
+        independent_co_occurrence_max_containment=acfg.get(
+            "independent_co_occurrence_max_containment", 0.25
         ),
         partial_duplicate_min_containment=acfg.get(
             "partial_duplicate_min_containment", 0.75
@@ -591,7 +591,8 @@ def run_pipeline(
     with timer("report_ms"):
         gen = ReportGenerator(object_map=associator.map)
         all_objects = associator.map.get_all()
-        gen.find_evidence_frames(all_objects)
+        display_objects = get_display_objects(all_objects)
+        gen.find_evidence_frames(display_objects)
         json_report, csv_report = build_report_snapshot(gen, all_objects)
 
     # Save graph
@@ -608,13 +609,13 @@ def run_pipeline(
         generate_global_mosaic(
             video_path=video_path,
             graph=graph,
-            objects=associator.map.get_all(),
+            objects=display_objects,
             output_dir=output_dir,
         )
 
     extractor = EvidenceExtractor()
     with timer("evidence_ms"):
-        extractor.extract(video_path, associator.map.get_all(), output_dir)
+        extractor.extract(video_path, display_objects, output_dir)
 
     with timer("session_store_ms"):
         store = SessionStore(output_dir)

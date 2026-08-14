@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 
 from apps.offline_scan import run_pipeline
+from core.report_generator import empty_report
 
 app = FastAPI(title="Head Tool Counter API", version="0.1.0")
 
@@ -36,7 +37,7 @@ def _run_job(job_id: str, video_path: str, config_dir: str, output_dir: str) -> 
         else:
             with _lock:
                 _jobs[job_id]["status"] = "completed"
-                _jobs[job_id]["result"] = {"total_objects": 0, "objects": []}
+                _jobs[job_id]["result"] = empty_report()
     except Exception as e:
         with _lock:
             _jobs[job_id]["status"] = "failed"

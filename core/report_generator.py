@@ -8,6 +8,28 @@ from typing import Callable
 from core.types import ConfirmationStatus, GlobalDetection, GlobalObject, ReviewFlag
 
 
+REPORT_SCHEMA_VERSION = 1
+
+
+def empty_report() -> dict:
+    """Return a fresh empty payload for every report-shaped output sink."""
+    return {
+        "schema_version": REPORT_SCHEMA_VERSION,
+        "total_objects": 0,
+        "confirmed_count": 0,
+        "uncertain_count": 0,
+        "review_candidate_count": 0,
+        "tentative_count": 0,
+        "likely_partial_duplicate_count": 0,
+        "rejected_count": 0,
+        "review_required_count": 0,
+        "class_counts": {},
+        "objects": [],
+        "review_candidates": [],
+        "rejected_objects": [],
+    }
+
+
 @dataclass(frozen=True)
 class ObjectPartitions:
     counted: tuple[GlobalObject, ...]
@@ -47,6 +69,12 @@ def get_review_candidates(objects: list[GlobalObject]) -> list[GlobalObject]:
     return list(partition_objects(objects).review_candidates)
 
 
+def get_display_objects(objects: list[GlobalObject]) -> list[GlobalObject]:
+    """Return the canonical counted-plus-review collection for visual sinks."""
+    partitions = partition_objects(objects)
+    return [*partitions.counted, *partitions.review_candidates]
+
+
 def get_reportable_objects(objects: list[GlobalObject]) -> list[GlobalObject]:
     """Compatibility alias for formally counted confirmed and uncertain objects."""
     return get_counted_objects(objects)
@@ -84,7 +112,8 @@ class ReportGenerator:
         for obj in counted_objects:
             class_counts[obj.class_name] = class_counts.get(obj.class_name, 0) + 1
 
-        return {
+        report = empty_report()
+        report.update({
             "total_objects": len(counted_objects),
             "confirmed_count": confirmed,
             "uncertain_count": uncertain,
@@ -92,7 +121,7 @@ class ReportGenerator:
             "tentative_count": len(review_candidates),
             "likely_partial_duplicate_count": sum(
                 ReviewFlag.LIKELY_PARTIAL_DUPLICATE in obj.review_flags
-                for obj in (*partitions.counted, *partitions.review_candidates)
+                for obj in partitions.review_candidates
             ),
             "rejected_count": len(rejected_objects),
             "review_required_count": sum(
@@ -120,7 +149,8 @@ class ReportGenerator:
                 }
                 for obj in rejected_objects
             ],
-        }
+        })
+        return report
 
     @staticmethod
     def _identity_resolver(
@@ -174,8 +204,28 @@ class ReportGenerator:
                 resolve_id(candidate_id)
                 for candidate_id in obj.duplicate_candidate_ids
             ),
-            "duplicate_evidence": obj.duplicate_evidence,
+            "duplicate_evidence": ReportGenerator._serialize_duplicate_evidence(
+                obj.duplicate_evidence, resolve_id
+            ),
         }
+
+    @staticmethod
+    def _serialize_duplicate_evidence(
+        evidence: dict,
+        resolve_id: Callable[[str | None], str | None],
+    ) -> dict:
+        """Copy advisory evidence and resolve nested candidate identities."""
+        serialized = dict(evidence)
+        candidates = []
+        for candidate in evidence.get("candidates", []):
+            serialized_candidate = dict(candidate)
+            serialized_candidate["candidate_id"] = resolve_id(
+                serialized_candidate.get("candidate_id")
+            )
+            candidates.append(serialized_candidate)
+        if "candidates" in evidence:
+            serialized["candidates"] = candidates
+        return serialized
 
     def generate_csv_report(self, objects: list[GlobalObject]) -> str:
         partitions = partition_objects(objects)
@@ -192,6 +242,9 @@ class ReportGenerator:
             "duplicate_candidate_ids", "duplicate_evidence",
         ])
         for obj in objects:
+            duplicate_evidence = self._serialize_duplicate_evidence(
+                obj.duplicate_evidence, resolve_id
+            )
             writer.writerow([
                 obj.persistent_id or "",
                 obj.provisional_id,
@@ -216,7 +269,7 @@ class ReportGenerator:
                     for candidate_id in obj.duplicate_candidate_ids
                 )),
                 json.dumps(
-                    obj.duplicate_evidence,
+                    duplicate_evidence,
                     ensure_ascii=False,
                     sort_keys=True,
                     separators=(",", ":"),
@@ -229,10 +282,17 @@ class ReportGenerator:
     def _review_status(obj: GlobalObject) -> str:
         if obj.confirmation_status == ConfirmationStatus.REJECTED:
             return "rejected"
+        decision = obj.duplicate_evidence.get("decision")
+        if decision in {
+            "likely_partial_duplicate",
+            "ambiguous",
+            "no_match",
+        }:
+            return decision
         if ReviewFlag.LIKELY_PARTIAL_DUPLICATE in obj.review_flags:
             return "likely_partial_duplicate"
         if ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE in obj.review_flags:
-            return "ambiguous_duplicate_candidate"
+            return "ambiguous"
         if obj.confirmation_status == ConfirmationStatus.TENTATIVE:
             return "tentative"
         if (obj.confirmation_status == ConfirmationStatus.UNCERTAIN

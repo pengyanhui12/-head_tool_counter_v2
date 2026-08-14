@@ -7,6 +7,8 @@ from pathlib import Path
 
 import numpy as np
 
+from core.report_generator import REPORT_SCHEMA_VERSION
+
 
 class SessionStore:
     def __init__(self, output_dir: str = "outputs"):
@@ -31,7 +33,9 @@ class SessionStore:
 
     def save_report(self, report: dict, filename: str = "objects.json") -> None:
         """Save a report-shaped payload, including review candidates."""
-        self._write_json(report, filename)
+        versioned_report = dict(report)
+        versioned_report.setdefault("schema_version", REPORT_SCHEMA_VERSION)
+        self._write_json(versioned_report, filename)
 
     def save_global_detections(self, detections: list[dict], filename: str = "detections.json") -> None:
         self._write_json(detections, filename)

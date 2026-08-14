@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 
 from apps import offline_scan
+from core import report_generator
 from core.evidence_extractor import EvidenceExtractor
 from core.global_mosaic import generate_global_mosaic
 from core.session_store import SessionStore
@@ -55,6 +56,7 @@ def make_object(provisional_id, status, persistent_id=None):
 def test_evidence_uses_persistent_and_provisional_filenames(tmp_path, monkeypatch):
     counted = make_object("P-0001", ConfirmationStatus.CONFIRMED, "GO-0001")
     tentative = make_object("P-0002", ConfirmationStatus.TENTATIVE)
+    rejected = make_object("P-0003", ConfirmationStatus.REJECTED)
 
     class FakeCapture:
         def release(self):
@@ -69,7 +71,9 @@ def test_evidence_uses_persistent_and_provisional_filenames(tmp_path, monkeypatc
     written = []
     monkeypatch.setattr(cv2, "imwrite", lambda path, _image: written.append(Path(path)) or True)
 
-    EvidenceExtractor().extract("unused.mp4", [counted, tentative], str(tmp_path))
+    EvidenceExtractor().extract(
+        "unused.mp4", [rejected, tentative, counted], str(tmp_path)
+    )
 
     assert [path.name for path in written] == [
         "GO-0001_wrench.jpg",
@@ -79,6 +83,7 @@ def test_evidence_uses_persistent_and_provisional_filenames(tmp_path, monkeypatc
 
 def test_mosaic_uses_provisional_label_for_tentative(tmp_path, monkeypatch):
     tentative = make_object("P-0002", ConfirmationStatus.TENTATIVE)
+    rejected = make_object("P-0003", ConfirmationStatus.REJECTED)
 
     class Graph:
         num_keyframes = 1
@@ -95,11 +100,16 @@ def test_mosaic_uses_provisional_label_for_tentative(tmp_path, monkeypatch):
     monkeypatch.setattr(cv2, "imwrite", lambda _path, _image: True)
 
     result = generate_global_mosaic(
-        "unused.mp4", Graph(), [tentative], str(tmp_path), skip_warp=True
+        "unused.mp4",
+        Graph(),
+        [rejected, tentative],
+        str(tmp_path),
+        skip_warp=True,
     )
 
     assert result is not None
     assert "P-0002 wrench" in labels
+    assert "P-0003 wrench" not in labels
     assert all("None" not in label for label in labels)
 
 
@@ -107,6 +117,7 @@ def test_session_report_payload_retains_counted_and_review_objects(tmp_path):
     store = SessionStore(str(tmp_path))
     session_dir = Path(store.create_session("input.mp4"))
     report = {
+        "schema_version": report_generator.REPORT_SCHEMA_VERSION,
         "total_objects": 1,
         "objects": [{"provisional_id": "P-0001", "counted": True}],
         "review_candidates": [{"provisional_id": "P-0002", "counted": False}],
@@ -115,8 +126,45 @@ def test_session_report_payload_retains_counted_and_review_objects(tmp_path):
     store.save_report(report)
 
     saved = json.loads((session_dir / "objects.json").read_text(encoding="utf-8"))
-    assert saved["objects"] == report["objects"]
-    assert saved["review_candidates"] == report["review_candidates"]
+    assert saved == report
+
+
+def test_session_save_report_versions_unversioned_payload_without_wrapping(
+    tmp_path,
+):
+    store = SessionStore(str(tmp_path))
+    session_dir = Path(store.create_session("input.mp4"))
+    report = {
+        "total_objects": 0,
+        "objects": [],
+        "review_candidates": [],
+        "rejected_objects": [],
+    }
+
+    store.save_report(report)
+
+    saved = json.loads(
+        (session_dir / "objects.json").read_text(encoding="utf-8")
+    )
+    assert saved["schema_version"] == report_generator.REPORT_SCHEMA_VERSION
+    assert saved["objects"] == []
+    assert saved["review_candidates"] == []
+    assert "report" not in saved
+
+
+def test_session_save_objects_retains_legacy_list_payload(tmp_path):
+    store = SessionStore(str(tmp_path))
+    session_dir = Path(store.create_session("input.mp4"))
+    objects = [
+        {"provisional_id": "P-0001", "values": np.array([1, 2])}
+    ]
+
+    store.save_objects(objects)
+
+    saved = json.loads(
+        (session_dir / "objects.json").read_text(encoding="utf-8")
+    )
+    assert saved == [{"provisional_id": "P-0001", "values": [1, 2]}]
 
 
 def test_report_snapshot_generates_json_once_and_keeps_csv_together():

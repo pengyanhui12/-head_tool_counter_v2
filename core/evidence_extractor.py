@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 
 from core.types import GlobalObject, GlobalDetection
+from core.report_generator import get_display_objects
 
 
 class EvidenceExtractor:
@@ -37,11 +38,7 @@ class EvidenceExtractor:
         out = Path(output_dir) / "evidence"
         out.mkdir(parents=True, exist_ok=True)
 
-        for obj in objects:
-            # 跳过 REJECTED 对象（已被合并到其他对象）
-            if obj.confirmation_status.value == "rejected":
-                continue
-
+        for obj in get_display_objects(objects):
             gd = self.select_best(obj)
             if gd is None:
                 continue
