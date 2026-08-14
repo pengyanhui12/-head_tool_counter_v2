@@ -97,6 +97,11 @@ def make_object(
         ("max_normalized_distance", -0.01),
         ("max_normalized_distance", float("inf")),
         ("max_normalized_distance", True),
+        pytest.param(
+            "max_normalized_distance",
+            10**10_000,
+            id="max-normalized-huge-integer",
+        ),
         ("max_absolute_distance_px", 0.0),
         ("max_absolute_distance_px", float("nan")),
         ("min_mapping_quality", 0.0),
@@ -158,7 +163,9 @@ def test_unique_contained_fragment_is_attributed():
         "C-1", status=ConfirmationStatus.CONFIRMED, frame_id=10
     )
 
-    decision = PartialDuplicateEvaluator().evaluate(tentative, [confirmed], set())
+    decision = PartialDuplicateEvaluator().evaluate(
+        tentative, [confirmed], set()
+    )
 
     assert decision.decision == "attributed"
     assert decision.candidate_id == "C-1"
@@ -407,6 +414,30 @@ def test_non_finite_same_frame_box_is_not_comparable_geometry():
     )
 
     decision = PartialDuplicateEvaluator().evaluate(tentative, [confirmed], set())
+
+    assert decision.decision == "no_match"
+    assert decision.reason == "no_comparable_geometry"
+
+
+def test_finite_extreme_disjoint_boxes_cannot_create_nan_attribution():
+    tentative = make_object(
+        "T-1",
+        status=ConfirmationStatus.TENTATIVE,
+        frame_id=10,
+        bbox_pixels=(-1e308, -1e308, 0.0, 1e308),
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    confirmed = make_object(
+        "C-1",
+        status=ConfirmationStatus.CONFIRMED,
+        frame_id=10,
+        bbox_pixels=(1.0, -1e308, 1e308, 1e308),
+    )
+
+    decision = PartialDuplicateEvaluator().evaluate(
+        tentative, [confirmed], set()
+    )
 
     assert decision.decision == "no_match"
     assert decision.reason == "no_comparable_geometry"

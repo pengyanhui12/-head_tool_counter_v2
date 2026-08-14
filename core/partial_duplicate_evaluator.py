@@ -12,11 +12,12 @@ from core.types import ConfirmationStatus, GlobalObject
 
 
 def _is_finite_real(value: object) -> bool:
-    return (
-        isinstance(value, Real)
-        and not isinstance(value, bool)
-        and isfinite(float(value))
-    )
+    if not isinstance(value, Real) or isinstance(value, bool):
+        return False
+    try:
+        return isfinite(float(value))
+    except (OverflowError, TypeError, ValueError):
+        return False
 
 
 def _require_positive_integer(name: str, value: object) -> None:
@@ -158,8 +159,12 @@ class PartialDuplicateEvaluator:
                 continue
 
             geometry = self._compare_geometry(tentative, candidate)
-            if geometry.containment is None:
-                rejection_reasons.append(geometry.reason)
+            if geometry.containment is None or not np.isfinite(
+                geometry.containment
+            ):
+                rejection_reasons.append(
+                    geometry.reason or "no_comparable_geometry"
+                )
                 continue
             if geometry.containment < self.config.min_containment:
                 rejection_reasons.append("insufficient_containment")
@@ -328,12 +333,21 @@ def _rectangle_containment(
         )
     ):
         return None
-    first_area = max(0.0, first_x2 - first_x1) * max(0.0, first_y2 - first_y1)
-    second_area = max(0.0, second_x2 - second_x1) * max(
-        0.0, second_y2 - second_y1
-    )
+    first_width = max(0.0, first_x2 - first_x1)
+    first_height = max(0.0, first_y2 - first_y1)
+    second_width = max(0.0, second_x2 - second_x1)
+    second_height = max(0.0, second_y2 - second_y1)
+    if not all(
+        np.isfinite(value)
+        for value in (first_width, first_height, second_width, second_height)
+    ):
+        return None
+    first_area = first_width * first_height
+    second_area = second_width * second_height
+    if not np.isfinite(first_area) or not np.isfinite(second_area):
+        return None
     smaller_area = min(first_area, second_area)
-    if smaller_area <= 0.0:
+    if not np.isfinite(smaller_area) or smaller_area <= 0.0:
         return None
     intersection_width = max(
         0.0, min(first_x2, second_x2) - max(first_x1, second_x1)
@@ -341,7 +355,15 @@ def _rectangle_containment(
     intersection_height = max(
         0.0, min(first_y2, second_y2) - max(first_y1, second_y1)
     )
-    return intersection_width * intersection_height / smaller_area
+    if not np.isfinite(intersection_width) or not np.isfinite(
+        intersection_height
+    ):
+        return None
+    intersection_area = intersection_width * intersection_height
+    if not np.isfinite(intersection_area):
+        return None
+    containment = intersection_area / smaller_area
+    return containment if np.isfinite(containment) else None
 
 
 def _valid_polygon(points: np.ndarray) -> bool:
