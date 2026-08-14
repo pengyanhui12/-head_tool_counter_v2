@@ -1,4 +1,7 @@
 """报告一致性测试 — JSON/CSV/控制台口径统一，persistent ID 只分配给 reportable"""
+import csv
+import io
+
 import numpy as np
 import pytest
 
@@ -39,7 +42,7 @@ def make_gd(frame_id=1):
 
 
 def test_partition_objects_separates_all_statuses_in_input_order():
-    """R1: total_objects = confirmed + tentative + uncertain"""
+    """R1: total_objects = confirmed + uncertain; tentative is review-only."""
     obj_map = GlobalObjectMap()
     o1 = make_obj("P-0001", "wrench", ConfirmationStatus.CONFIRMED)
     o2 = make_obj("P-0002", "wrench", ConfirmationStatus.TENTATIVE)
@@ -88,10 +91,63 @@ def test_r2_rejected_not_in_total():
     assert report["tentative_count"] == 1
     assert report["rejected_count"] == 1
     assert [obj["provisional_id"] for obj in report["objects"]] == [
-        "P-0001", "P-0002", "P-0003",
+        "P-0001", "P-0003",
     ]
-    assert report["objects"][1]["confirmation_status"] == "tentative"
+    assert [obj["provisional_id"] for obj in report["review_candidates"]] == [
+        "P-0002",
+    ]
     assert report["class_counts"] == {"wrench": 1, "hammer": 1}
+
+
+def test_json_contract_separates_partitions_and_resolves_duplicate_ids():
+    obj_map = GlobalObjectMap()
+    confirmed = make_obj("P-0001", "wrench", ConfirmationStatus.CONFIRMED)
+    confirmed.persistent_id = "GO-0001"
+    uncertain = make_obj("P-0002", "hammer", ConfirmationStatus.UNCERTAIN)
+    uncertain.persistent_id = "GO-0002"
+    uncertain.review_flags.add(ReviewFlag.LOW_CONFIDENCE)
+    tentative = make_obj("P-0003", "plier", ConfirmationStatus.TENTATIVE)
+    tentative.review_flags.update({
+        ReviewFlag.LIKELY_PARTIAL_DUPLICATE,
+        ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE,
+    })
+    tentative.likely_partial_duplicate_of = confirmed.provisional_id
+    tentative.duplicate_candidate_ids = ["P-9999", uncertain.provisional_id,
+                                         confirmed.provisional_id]
+    tentative.duplicate_evidence = {"z": 1, "a": {"score": 0.75}}
+    rejected = make_obj("P-0004", "saw", ConfirmationStatus.REJECTED)
+    rejected.rejected_reason = "invalid"
+    obj_map._objects = [confirmed, uncertain, tentative, rejected]
+
+    report = ReportGenerator(object_map=obj_map).generate_json_report()
+
+    assert report["total_objects"] == 2
+    assert report["total_objects"] == (
+        report["confirmed_count"] + report["uncertain_count"]
+    )
+    assert report["review_candidate_count"] == 1
+    assert report["tentative_count"] == report["review_candidate_count"]
+    assert report["rejected_count"] == 1
+    assert report["review_required_count"] == 2
+    assert report["likely_partial_duplicate_count"] == 1
+    assert report["class_counts"] == {"wrench": 1, "hammer": 1}
+    assert [item["provisional_id"] for item in report["objects"]] == [
+        "P-0001", "P-0002",
+    ]
+    assert [item["provisional_id"] for item in report["review_candidates"]] == [
+        "P-0003",
+    ]
+    assert [item["provisional_id"] for item in report["rejected_objects"]] == [
+        "P-0004",
+    ]
+
+    review = report["review_candidates"][0]
+    assert review["persistent_id"] is None
+    assert review["counted"] is False
+    assert review["likely_partial_duplicate_of"] == "GO-0001"
+    assert review["duplicate_candidate_ids"] == ["GO-0001", "GO-0002", "P-9999"]
+    assert review["duplicate_evidence"] == {"z": 1, "a": {"score": 0.75}}
+    assert all(item["counted"] is True for item in report["objects"])
 
 
 def test_r4_persistent_id_only_for_reportable():
@@ -141,6 +197,34 @@ def test_csv_includes_rejected():
     lines = csv.strip().split("\n")
     assert len(lines) == 3  # header + 2 data rows
     assert "\r" not in csv
+
+
+def test_csv_contract_includes_all_rows_and_deterministic_advisory_fields():
+    obj_map = GlobalObjectMap()
+    confirmed = make_obj("P-0001", "wrench", ConfirmationStatus.CONFIRMED)
+    confirmed.persistent_id = "GO-0001"
+    tentative = make_obj("P-0002", "wrench", ConfirmationStatus.TENTATIVE)
+    tentative.review_flags.add(ReviewFlag.LIKELY_PARTIAL_DUPLICATE)
+    tentative.likely_partial_duplicate_of = "P-0001"
+    tentative.duplicate_candidate_ids = ["P-9999", "P-0001"]
+    tentative.duplicate_evidence = {"z": 1, "a": 2}
+    rejected = make_obj("P-0003", "hammer", ConfirmationStatus.REJECTED)
+    obj_map._objects = [confirmed, tentative, rejected]
+
+    csv_text = ReportGenerator(object_map=obj_map).generate_csv_report(
+        obj_map.get_all()
+    )
+    rows = list(csv.DictReader(io.StringIO(csv_text)))
+
+    assert len(rows) == 3
+    assert [row["counted"] for row in rows] == ["true", "false", "false"]
+    assert [row["review_status"] for row in rows] == [
+        "", "likely_partial_duplicate", "rejected",
+    ]
+    assert rows[1]["likely_partial_duplicate_of"] == "GO-0001"
+    assert rows[1]["duplicate_candidate_ids"] == "GO-0001|P-9999"
+    assert rows[1]["duplicate_evidence"] == '{"a":2,"z":1}'
+    assert "\r" not in csv_text
 
 
 def test_observation_field_consistency():

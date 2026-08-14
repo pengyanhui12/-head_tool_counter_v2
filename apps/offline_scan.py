@@ -28,7 +28,7 @@ from core.global_projector import GlobalProjector
 from core.object_associator import ObjectAssociator
 from core.coverage_map import CoverageMap
 from core.status_panel import StatusPanel
-from core.report_generator import ReportGenerator, get_reportable_objects
+from core.report_generator import ReportGenerator
 from core.evidence_extractor import EvidenceExtractor
 from core.session_store import SessionStore
 from core.config_loader import ConfigLoader
@@ -68,6 +68,14 @@ def resolve_performance_enabled(config: dict, override: bool | None) -> bool:
     if override is not None:
         return override
     return bool(config.get("enable_performance_stats", False))
+
+
+def build_report_snapshot(report_generator, objects) -> tuple[dict, str]:
+    """Create JSON and CSV output from one JSON report snapshot."""
+    return (
+        report_generator.generate_json_report(),
+        report_generator.generate_csv_report(objects),
+    )
 
 
 def print_performance_stats(
@@ -579,7 +587,9 @@ def run_pipeline(
 
     with timer("report_ms"):
         gen = ReportGenerator(object_map=associator.map)
-        gen.find_evidence_frames(associator.map.get_all())
+        all_objects = associator.map.get_all()
+        gen.find_evidence_frames(all_objects)
+        json_report, csv_report = build_report_snapshot(gen, all_objects)
 
     # Save graph
     node_data = []
@@ -606,27 +616,30 @@ def run_pipeline(
     with timer("session_store_ms"):
         store = SessionStore(output_dir)
         store.create_session(video_path)
-        store.save_objects(gen.generate_json_report()["objects"])
+        store.save_report(json_report)
 
     out = Path(output_dir)
     (out / "reports").mkdir(parents=True, exist_ok=True)
 
-    # 统一的报告：get_reportable_objects
     with timer("report_ms"):
-        reportable = associator.get_reportable_objects()
         json_path = out / "reports" / "report.json"
-        json_path.write_text(json.dumps(gen.generate_json_report(), indent=2, ensure_ascii=False), encoding="utf-8")
+        json_path.write_text(
+            json.dumps(json_report, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
         csv_path = out / "reports" / "report.csv"
-        csv_path.write_text(gen.generate_csv_report(associator.map.get_all()), encoding="utf-8")
-        json_report = gen.generate_json_report()
+        csv_path.write_text(csv_report, encoding="utf-8")
     print(f"\nDone.")
-    print(f"  Total objects: {len(associator.map.get_all())}")
-    print(f"  Reportable: {json_report['total_objects']}")
+    print(f"  Counted objects: {json_report['total_objects']}")
+    print(f"  Review candidates: {json_report['review_candidate_count']}")
+    print(
+        "  Likely partial duplicates: "
+        f"{json_report['likely_partial_duplicate_count']}"
+    )
     print(f"  CONFIRMED: {json_report['confirmed_count']}")
-    print(f"  TENTATIVE: {json_report['tentative_count']}")
-    print(f"  Tracker time regressions: {tracker.time_regressions}")
     print(f"  UNCERTAIN: {json_report['uncertain_count']}")
     print(f"  REJECTED: {json_report['rejected_count']}")
+    print(f"  Tracker time regressions: {tracker.time_regressions}")
     print(f"Reports: {out}/reports/")
     if stats is not None:
         print_performance_stats(

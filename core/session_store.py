@@ -29,6 +29,10 @@ class SessionStore:
     def save_objects(self, objects: list[dict], filename: str = "objects.json") -> None:
         self._write_json(self._serialize_objects(objects), filename)
 
+    def save_report(self, report: dict, filename: str = "objects.json") -> None:
+        """Save a report-shaped payload, including review candidates."""
+        self._write_json(report, filename)
+
     def save_global_detections(self, detections: list[dict], filename: str = "detections.json") -> None:
         self._write_json(detections, filename)
 

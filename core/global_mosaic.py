@@ -124,7 +124,7 @@ def generate_global_mosaic(
     # 收集所有对象的 projected_corners 范围（用于自动缩放）
     all_corners_global = []
     for obj in objects:
-        if obj.confirmation_status.value not in ("confirmed", "uncertain"):
+        if obj.confirmation_status.value == "rejected":
             continue
         for obs in obj.observations:
             corners = getattr(obs, 'projected_corners', None)
@@ -199,7 +199,7 @@ def generate_global_mosaic(
             (0, 200, 100), (200, 0, 200), (200, 200, 0), (0, 100, 255),
         ]
         for i, obj in enumerate(objects):
-            if obj.confirmation_status.value not in ("confirmed", "uncertain"):
+            if obj.confirmation_status.value == "rejected":
                 continue
             color = colors[i % len(colors)]
 

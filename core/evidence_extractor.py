@@ -46,9 +46,6 @@ class EvidenceExtractor:
             if gd is None:
                 continue
 
-            if obj.persistent_id is None:
-                continue
-
             # Read frame from video
             frame = self._read_frame(cap, gd.frame_id, frame_cache)
             if frame is None:
@@ -57,7 +54,8 @@ class EvidenceExtractor:
             # Draw bbox using bbox_pixels from the best observation
             annotated = self._draw_annotation(frame, obj, gd)
 
-            filename = f"{obj.persistent_id}_{obj.class_name}.jpg"
+            display_id = obj.persistent_id or obj.provisional_id
+            filename = f"{display_id}_{obj.class_name}.jpg"
             filepath = out / filename
             cv2.imwrite(str(filepath), annotated)
             result[obj.provisional_id] = str(filepath)
@@ -93,7 +91,8 @@ class EvidenceExtractor:
 
         if x2 > x1 and y2 > y1:
             cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            label = f"{obj.persistent_id}: {obj.class_name}"
+            display_id = obj.persistent_id or obj.provisional_id
+            label = f"{display_id}: {obj.class_name}"
             cv2.putText(img, label, (x1, max(y1 - 10, 0)),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             conf_label = f"conf={obj.confidence:.2f} status={obj.confirmation_status.value}"

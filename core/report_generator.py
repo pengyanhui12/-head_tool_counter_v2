@@ -1,20 +1,11 @@
-"""报告生成器 — JSON + CSV + 证据帧选择
-
-不变量:
-- R1: total_objects = confirmed + uncertain; tentative is review-only
-- R2: rejected 不进入 total_objects
-- R3: formal aggregates/helpers use counted objects; JSON detail records
-  temporarily preserve non-rejected tentative review details until Task 4
-  introduces a schema split
-- R4: persistent_id 只分配给最终 reportable objects
-- R5: rejected 保留 provisional_id 和完整审计信息
-"""
+"""Generate consistent JSON/CSV reports and select evidence frames."""
 import csv
 import io
 import json
 from dataclasses import dataclass
+from typing import Callable
 
-from core.types import GlobalObject, GlobalDetection, ConfirmationStatus
+from core.types import ConfirmationStatus, GlobalDetection, GlobalObject, ReviewFlag
 
 
 @dataclass(frozen=True)
@@ -56,17 +47,17 @@ def get_review_candidates(objects: list[GlobalObject]) -> list[GlobalObject]:
     return list(partition_objects(objects).review_candidates)
 
 
+def get_reportable_objects(objects: list[GlobalObject]) -> list[GlobalObject]:
+    """Compatibility alias for formally counted confirmed and uncertain objects."""
+    return get_counted_objects(objects)
+
+
 def _to_serializable(obj):
-    if hasattr(obj, "value"):  # Enum
+    if hasattr(obj, "value"):
         return obj.value
     if hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes)):
         return list(obj)
     return str(obj)
-
-
-def get_reportable_objects(objects: list[GlobalObject]) -> list[GlobalObject]:
-    """Compatibility alias for formally counted confirmed and uncertain objects."""
-    return get_counted_objects(objects)
 
 
 class ReportGenerator:
@@ -75,66 +66,48 @@ class ReportGenerator:
 
     def generate_json_report(self) -> dict:
         objects = self.object_map.get_all() if self.object_map else []
-        # R1: formal total is confirmed + uncertain; tentative is review-only.
         partitions = partition_objects(objects)
-        active_objects = list(partitions.counted)
-        detail_objects = [
-            obj for obj in objects
-            if obj.confirmation_status != ConfirmationStatus.REJECTED
-        ]
+        counted_objects = list(partitions.counted)
+        review_candidates = list(partitions.review_candidates)
         rejected_objects = list(partitions.rejected)
+        resolve_id = self._identity_resolver(partitions)
 
-        confirmed = sum(1 for o in active_objects
-                        if o.confirmation_status == ConfirmationStatus.CONFIRMED)
-        tentative = len(partitions.review_candidates)
-        uncertain = sum(1 for o in active_objects
-                        if o.confirmation_status == ConfirmationStatus.UNCERTAIN)
-
-        # 类别分布
+        confirmed = sum(
+            obj.confirmation_status == ConfirmationStatus.CONFIRMED
+            for obj in counted_objects
+        )
+        uncertain = sum(
+            obj.confirmation_status == ConfirmationStatus.UNCERTAIN
+            for obj in counted_objects
+        )
         class_counts: dict[str, int] = {}
-        for o in active_objects:
-            class_counts[o.class_name] = class_counts.get(o.class_name, 0) + 1
+        for obj in counted_objects:
+            class_counts[obj.class_name] = class_counts.get(obj.class_name, 0) + 1
 
         return {
-            "total_objects": len(active_objects),
+            "total_objects": len(counted_objects),
             "confirmed_count": confirmed,
-            "tentative_count": tentative,
             "uncertain_count": uncertain,
+            "review_candidate_count": len(review_candidates),
+            "tentative_count": len(review_candidates),
+            "likely_partial_duplicate_count": sum(
+                ReviewFlag.LIKELY_PARTIAL_DUPLICATE in obj.review_flags
+                for obj in (*partitions.counted, *partitions.review_candidates)
+            ),
             "rejected_count": len(rejected_objects),
             "review_required_count": sum(
-                1 for o in active_objects
-                if o.confirmation_status == ConfirmationStatus.UNCERTAIN
-                or len(o.review_flags) > 0
-            ),
+                obj.confirmation_status == ConfirmationStatus.UNCERTAIN
+                or bool(obj.review_flags)
+                for obj in counted_objects
+            ) + len(review_candidates),
             "class_counts": class_counts,
             "objects": [
-                {
-                    "persistent_id": obj.persistent_id,
-                    "provisional_id": obj.provisional_id,
-                    "class_name": obj.class_name,
-                    "confirmation_status": obj.confirmation_status.value,
-                    "visibility_status": obj.visibility_status.value,
-                    "confidence": obj.confidence,
-                    "vote_distribution": obj.vote_distribution,
-                    "observation_count": obj.observation_count,
-                    "observation_frame_count": len({obs.frame_id for obs in obj.observations}),
-                    "observation_frame_ids_unique": (
-                        len({obs.frame_id for obs in obj.observations}) == obj.observation_count
-                    ),
-                    "keyframe_count": len(obj.keyframe_ids),
-                    "track_count": len(obj.track_ids),
-                    "centroid_x": obj.centroid_xy[0],
-                    "centroid_y": obj.centroid_xy[1],
-                    "review_flags": [f.value for f in obj.review_flags],
-                    "best_frame_id": obj.best_frame_id,
-                    "uncertainty_reasons": obj.uncertainty_reasons,
-                    "rejected_reason": obj.rejected_reason,
-                    "merged_into_id": obj.merged_into_id,
-                    "track_conflict_count": (
-                        1 if "track_conflict" in [f.value for f in obj.review_flags] else 0
-                    ),
-                }
-                for obj in detail_objects
+                self._serialize_counted_or_review(obj, True, resolve_id)
+                for obj in counted_objects
+            ],
+            "review_candidates": [
+                self._serialize_counted_or_review(obj, False, resolve_id)
+                for obj in review_candidates
             ],
             "rejected_objects": [
                 {
@@ -149,7 +122,65 @@ class ReportGenerator:
             ],
         }
 
+    @staticmethod
+    def _identity_resolver(
+        partitions: ObjectPartitions,
+    ) -> Callable[[str | None], str | None]:
+        persistent_ids = {
+            obj.provisional_id: obj.persistent_id
+            for obj in partitions.counted
+            if obj.persistent_id is not None
+        }
+
+        def resolve(candidate_id: str | None) -> str | None:
+            if candidate_id is None:
+                return None
+            return persistent_ids.get(candidate_id, candidate_id)
+
+        return resolve
+
+    @staticmethod
+    def _serialize_counted_or_review(
+        obj: GlobalObject,
+        counted: bool,
+        resolve_id: Callable[[str | None], str | None],
+    ) -> dict:
+        """Serialize the shared counted/review record contract."""
+        frame_ids = {obs.frame_id for obs in obj.observations}
+        return {
+            "persistent_id": obj.persistent_id,
+            "provisional_id": obj.provisional_id,
+            "class_name": obj.class_name,
+            "confirmation_status": obj.confirmation_status.value,
+            "visibility_status": obj.visibility_status.value,
+            "confidence": obj.confidence,
+            "vote_distribution": obj.vote_distribution,
+            "observation_count": obj.observation_count,
+            "observation_frame_count": len(frame_ids),
+            "observation_frame_ids_unique": len(frame_ids) == obj.observation_count,
+            "keyframe_count": len(obj.keyframe_ids),
+            "track_count": len(obj.track_ids),
+            "centroid_x": obj.centroid_xy[0],
+            "centroid_y": obj.centroid_xy[1],
+            "review_flags": sorted(flag.value for flag in obj.review_flags),
+            "best_frame_id": obj.best_frame_id,
+            "uncertainty_reasons": obj.uncertainty_reasons,
+            "rejected_reason": obj.rejected_reason,
+            "merged_into_id": obj.merged_into_id,
+            "track_conflict_count": int(ReviewFlag.TRACK_CONFLICT in obj.review_flags),
+            "counted": counted,
+            "likely_partial_duplicate_of": resolve_id(obj.likely_partial_duplicate_of),
+            "duplicate_candidate_ids": sorted(
+                resolve_id(candidate_id)
+                for candidate_id in obj.duplicate_candidate_ids
+            ),
+            "duplicate_evidence": obj.duplicate_evidence,
+        }
+
     def generate_csv_report(self, objects: list[GlobalObject]) -> str:
+        partitions = partition_objects(objects)
+        counted_ids = {id(obj) for obj in partitions.counted}
+        resolve_id = self._identity_resolver(partitions)
         buf = io.StringIO(newline="")
         writer = csv.writer(buf, lineterminator="\n")
         writer.writerow([
@@ -157,6 +188,8 @@ class ReportGenerator:
             "visibility_status", "confidence", "observation_count",
             "keyframe_count", "track_count", "centroid_x", "centroid_y",
             "review_flags", "best_frame_id", "rejected_reason", "merged_into_id",
+            "counted", "review_status", "likely_partial_duplicate_of",
+            "duplicate_candidate_ids", "duplicate_evidence",
         ])
         for obj in objects:
             writer.writerow([
@@ -171,21 +204,52 @@ class ReportGenerator:
                 len(obj.track_ids),
                 f"{obj.centroid_xy[0]:.1f}",
                 f"{obj.centroid_xy[1]:.1f}",
-                "|".join(f.value for f in obj.review_flags),
+                "|".join(sorted(flag.value for flag in obj.review_flags)),
                 obj.best_frame_id or "",
                 obj.rejected_reason or "",
                 obj.merged_into_id or "",
+                "true" if id(obj) in counted_ids else "false",
+                self._review_status(obj),
+                resolve_id(obj.likely_partial_duplicate_of) or "",
+                "|".join(sorted(
+                    resolve_id(candidate_id)
+                    for candidate_id in obj.duplicate_candidate_ids
+                )),
+                json.dumps(
+                    obj.duplicate_evidence,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    default=_to_serializable,
+                ),
             ])
         return buf.getvalue()
+
+    @staticmethod
+    def _review_status(obj: GlobalObject) -> str:
+        if obj.confirmation_status == ConfirmationStatus.REJECTED:
+            return "rejected"
+        if ReviewFlag.LIKELY_PARTIAL_DUPLICATE in obj.review_flags:
+            return "likely_partial_duplicate"
+        if ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE in obj.review_flags:
+            return "ambiguous_duplicate_candidate"
+        if obj.confirmation_status == ConfirmationStatus.TENTATIVE:
+            return "tentative"
+        if (obj.confirmation_status == ConfirmationStatus.UNCERTAIN
+                or obj.review_flags):
+            return "uncertain"
+        return ""
 
     def find_evidence_frames(self, objects: list[GlobalObject]) -> dict[str, int]:
         result = {}
         for obj in objects:
             if not obj.observations:
                 continue
-            best = max(
+            best: GlobalDetection = max(
                 obj.observations,
-                key=lambda o: o.sharpness * o.detection_confidence
+                key=lambda observation: (
+                    observation.sharpness * observation.detection_confidence
+                ),
             )
             result[obj.provisional_id] = best.frame_id
             obj.best_frame_id = best.frame_id
