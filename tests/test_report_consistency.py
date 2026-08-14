@@ -87,7 +87,11 @@ def test_r2_rejected_not_in_total():
     assert report["total_objects"] == 2
     assert report["tentative_count"] == 1
     assert report["rejected_count"] == 1
-    assert [obj["provisional_id"] for obj in report["objects"]] == ["P-0001", "P-0003"]
+    assert [obj["provisional_id"] for obj in report["objects"]] == [
+        "P-0001", "P-0002", "P-0003",
+    ]
+    assert report["objects"][1]["confirmation_status"] == "tentative"
+    assert report["class_counts"] == {"wrench": 1, "hammer": 1}
 
 
 def test_r4_persistent_id_only_for_reportable():

@@ -1,7 +1,7 @@
 """报告生成器 — JSON + CSV + 证据帧选择
 
 不变量:
-- R1: total_objects = confirmed + tentative + uncertain
+- R1: total_objects = confirmed + uncertain; tentative is review-only
 - R2: rejected 不进入 total_objects
 - R3: JSON、CSV、控制台、API 使用同一个 reportable_objects
 - R4: persistent_id 只分配给最终 reportable objects
@@ -63,7 +63,7 @@ def _to_serializable(obj):
 
 
 def get_reportable_objects(objects: list[GlobalObject]) -> list[GlobalObject]:
-    """返回所有非 REJECTED 的对象（统一的 reportable 判定）。"""
+    """Compatibility alias for formally counted confirmed and uncertain objects."""
     return get_counted_objects(objects)
 
 
@@ -73,9 +73,13 @@ class ReportGenerator:
 
     def generate_json_report(self) -> dict:
         objects = self.object_map.get_all() if self.object_map else []
-        # R1, R2: 只计算非 REJECTED
+        # R1: formal total is confirmed + uncertain; tentative is review-only.
         partitions = partition_objects(objects)
         active_objects = list(partitions.counted)
+        detail_objects = [
+            obj for obj in objects
+            if obj.confirmation_status != ConfirmationStatus.REJECTED
+        ]
         rejected_objects = list(partitions.rejected)
 
         confirmed = sum(1 for o in active_objects
@@ -128,7 +132,7 @@ class ReportGenerator:
                         1 if "track_conflict" in [f.value for f in obj.review_flags] else 0
                     ),
                 }
-                for obj in active_objects
+                for obj in detail_objects
             ],
             "rejected_objects": [
                 {

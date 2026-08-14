@@ -45,16 +45,17 @@ class GlobalObjectMap:
         return None
 
     def get_reportable(self) -> list[GlobalObject]:
-        """只返回非 REJECTED 对象（R4: persistent ID 只分配给 reportable）。"""
+        """Return formally counted confirmed and uncertain objects."""
         return get_counted_objects(self._objects)
 
     def assign_persistent_ids(self) -> None:
-        """只为非 REJECTED 对象分配 persistent ID（R4）。"""
+        """Assign IDs only to formally counted confirmed and uncertain objects."""
         for obj in self._objects:
             if obj.confirmation_status not in (
                 ConfirmationStatus.CONFIRMED,
                 ConfirmationStatus.UNCERTAIN,
             ):
+                obj.persistent_id = None
                 continue
             if obj.persistent_id is None:
                 self._persistent_counter += 1
@@ -66,6 +67,11 @@ class GlobalObjectMap:
         obj = self.get_by_provisional(provisional_id)
         if obj:
             obj.confirmation_status = status
+            if status not in (
+                ConfirmationStatus.CONFIRMED,
+                ConfirmationStatus.UNCERTAIN,
+            ):
+                obj.persistent_id = None
             if reason:
                 obj.uncertainty_reasons.append(reason)
 

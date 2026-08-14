@@ -47,6 +47,36 @@ def test_assign_persistent_ids():
     assert rejected.persistent_id is None
 
 
+def test_set_confirmation_clears_persistent_id_when_demoted_to_tentative():
+    m = GlobalObjectMap()
+    obj = m.create_object(_gd())
+    m.set_confirmation(obj.provisional_id, ConfirmationStatus.CONFIRMED)
+    m.assign_persistent_ids()
+
+    m.set_confirmation(obj.provisional_id, ConfirmationStatus.TENTATIVE)
+    later_counted = m.create_object(_gd())
+    m.set_confirmation(later_counted.provisional_id, ConfirmationStatus.CONFIRMED)
+    m.assign_persistent_ids()
+
+    assert obj.persistent_id is None
+    assert later_counted.persistent_id == "GO-0002"
+
+
+def test_set_confirmation_clears_persistent_id_when_demoted_to_rejected():
+    m = GlobalObjectMap()
+    obj = m.create_object(_gd())
+    m.set_confirmation(obj.provisional_id, ConfirmationStatus.UNCERTAIN)
+    m.assign_persistent_ids()
+
+    m.set_confirmation(obj.provisional_id, ConfirmationStatus.REJECTED)
+    later_counted = m.create_object(_gd())
+    m.set_confirmation(later_counted.provisional_id, ConfirmationStatus.UNCERTAIN)
+    m.assign_persistent_ids()
+
+    assert obj.persistent_id is None
+    assert later_counted.persistent_id == "GO-0002"
+
+
 def test_get_reportable_returns_only_counted_objects():
     m = GlobalObjectMap()
     confirmed = m.create_object(_gd())
