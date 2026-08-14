@@ -137,6 +137,50 @@ def should_run_l2(fc: int, interval: int = 3) -> bool:
     return fc % interval == 0
 
 
+def _build_associator(acfg: dict) -> ObjectAssociator:
+    return ObjectAssociator(
+        max_position_distance_px=acfg.get("max_position_distance_px", 120.0),
+        position_weight=acfg.get("position_weight", 0.55),
+        overlap_weight=acfg.get("overlap_weight", 0.20),
+        size_weight=acfg.get("size_weight", 0.10),
+        class_weight=acfg.get("class_weight", 0.15),
+        max_cost=acfg.get("max_cost", 0.75),
+        min_observations_confirmed=acfg.get("min_observations_confirmed", 3),
+        min_keyframes_confirmed=acfg.get("min_keyframes_confirmed", 2),
+        min_top_class_ratio=acfg.get("min_top_class_ratio", 0.60),
+        max_votes_per_track=acfg.get("max_votes_per_track", 3),
+        class_compatibility=acfg.get("class_compatibility", {}),
+        online_gate_ratio=acfg.get("online_gate_ratio", 0.5),
+        per_class_gate_ratios=acfg.get("per_class_gate_ratios", {}),
+        per_class_position_gates=acfg.get("per_class_position_gates", {}),
+        track_reactivate_max_gap_frames=acfg.get(
+            "track_reactivate_max_gap_frames", 15
+        ),
+        centroid_distance_threshold=acfg.get(
+            "centroid_distance_threshold", 30.0
+        ),
+        partial_duplicate_min_containment=acfg.get(
+            "partial_duplicate_min_containment", 0.75
+        ),
+        partial_duplicate_max_normalized_distance=acfg.get(
+            "partial_duplicate_max_normalized_distance", 0.75
+        ),
+        partial_duplicate_max_absolute_distance_px=acfg.get(
+            "partial_duplicate_max_absolute_distance_px", 80.0
+        ),
+        partial_duplicate_min_mapping_quality=acfg.get(
+            "partial_duplicate_min_mapping_quality", 0.50
+        ),
+        partial_duplicate_max_area_ratio=acfg.get(
+            "partial_duplicate_max_area_ratio", 0.60
+        ),
+        partial_duplicate_min_candidate_margin=acfg.get(
+            "partial_duplicate_min_candidate_margin", 0.15
+        ),
+        debug_mode=False,
+    )
+
+
 def run_pipeline(
     video_path: str,
     config_dir: str,
@@ -231,25 +275,7 @@ def run_pipeline(
         ),
     )
     projector = GlobalProjector()
-    associator = ObjectAssociator(
-        max_position_distance_px=acfg.get("max_position_distance_px", 120.0),
-        position_weight=acfg.get("position_weight", 0.55),
-        overlap_weight=acfg.get("overlap_weight", 0.20),
-        size_weight=acfg.get("size_weight", 0.10),
-        class_weight=acfg.get("class_weight", 0.15),
-        max_cost=acfg.get("max_cost", 0.75),
-        min_observations_confirmed=acfg.get("min_observations_confirmed", 3),
-        min_keyframes_confirmed=acfg.get("min_keyframes_confirmed", 2),
-        min_top_class_ratio=acfg.get("min_top_class_ratio", 0.60),
-        max_votes_per_track=acfg.get("max_votes_per_track", 3),
-        class_compatibility=acfg.get("class_compatibility", {}),
-        online_gate_ratio=acfg.get("online_gate_ratio", 0.5),
-        per_class_gate_ratios=acfg.get("per_class_gate_ratios", {}),
-        per_class_position_gates=acfg.get("per_class_position_gates", {}),
-        track_reactivate_max_gap_frames=acfg.get("track_reactivate_max_gap_frames", 15),
-        centroid_distance_threshold=acfg.get("centroid_distance_threshold", 30.0),
-        debug_mode=False,
-    )
+    associator = _build_associator(acfg)
     coverage = CoverageMap(grid_resolution=100)
     status = StatusPanel()
     recovery_mgr = RecoveryManager(matcher=matcher)

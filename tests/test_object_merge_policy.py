@@ -34,6 +34,46 @@ def make_gd(frame_id=1, keyframe_id=1, track_id=0, class_name="wrench",
     )
 
 
+def make_review_object(
+    object_id,
+    *,
+    status,
+    frame_id=10,
+    bbox_pixels=(0.0, 0.0, 100.0, 100.0),
+    centroid=(50.0, 50.0),
+    area=10_000.0,
+    observation_count=1,
+    keyframe_ids=None,
+):
+    observations = [
+        make_gd(
+            frame_id=frame_id + offset,
+            keyframe_id=frame_id + offset,
+            track_id=None,
+            centroid=centroid,
+            area=area,
+            bbox_pixels=bbox_pixels,
+        )
+        for offset in range(observation_count)
+    ]
+    return GlobalObject(
+        provisional_id=object_id,
+        persistent_id=None,
+        class_name="wrench",
+        confirmation_status=status,
+        visibility_status=VisibilityStatus.ACTIVE,
+        observations=observations,
+        centroid_xy=centroid,
+        area_range=(area, area),
+        keyframe_ids=set(keyframe_ids or {frame_id}),
+        observation_count=observation_count,
+    )
+
+
+def add_review_objects(assoc, *objects):
+    assoc.map._objects.extend(objects)
+
+
 def test_merge_blocked_by_cooccurrence():
     """同帧共现对象永久禁止自动合并"""
     assoc = ObjectAssociator(debug_mode=False)
@@ -256,3 +296,293 @@ def test_online_gate_uses_ratio_and_class_overrides():
     assert assoc._online_gate_for_class("hammer") == 100.0
     assert assoc._online_gate_for_class("pliers") == 80.0
     assert assoc._online_gate_for_class("screwdriver") == 60.0
+
+
+def test_object_associator_preserves_positional_debug_mode_compatibility():
+    legacy_positional_args = (
+        120.0,
+        0.55,
+        0.20,
+        0.10,
+        0.15,
+        0.75,
+        3,
+        2,
+        0.60,
+        3,
+        None,
+        0.50,
+        None,
+        None,
+        15,
+        30.0,
+        True,
+    )
+
+    assoc = ObjectAssociator(*legacy_positional_args)
+
+    assert assoc._debug_mode is True
+
+
+def test_final_review_runs_merge_close_marking_then_partial_duplicate_review():
+    assoc = ObjectAssociator()
+    calls = []
+    assoc._merge_by_shared_track_safe = lambda: calls.append("shared_track")
+    assoc._mark_close_duplicates = lambda: calls.append("close_duplicates")
+    assoc._review_tentative_partial_duplicates = lambda: calls.append(
+        "partial_duplicates"
+    )
+
+    assoc.final_review()
+
+    assert calls == ["shared_track", "close_duplicates", "partial_duplicates"]
+
+
+def test_final_review_attributes_contained_tentative_without_mutating_objects():
+    assoc = ObjectAssociator()
+    confirmed = make_review_object(
+        "P-0001", status=ConfirmationStatus.CONFIRMED
+    )
+    confirmed.persistent_id = "GO-9999"
+    tentative = make_review_object(
+        "P-0002",
+        status=ConfirmationStatus.TENTATIVE,
+        bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    add_review_objects(assoc, confirmed, tentative)
+    original_confirmed_observations = tuple(confirmed.observations)
+    original_observations = tuple(tentative.observations)
+
+    assoc.final_review()
+
+    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE in tentative.review_flags
+    assert tentative.likely_partial_duplicate_of == confirmed.provisional_id
+    assert tentative.duplicate_candidate_ids == []
+    assert tentative.duplicate_evidence == {
+        "containment": 1.0,
+        "normalized_distance": pytest.approx(np.sqrt(200.0) / 100.0),
+        "mapping_quality": None,
+        "reason": "unique_candidate",
+    }
+    assert tentative.confirmation_status == ConfirmationStatus.TENTATIVE
+    assert confirmed.confirmation_status == ConfirmationStatus.CONFIRMED
+    assert tuple(confirmed.observations) == original_confirmed_observations
+    assert tuple(tentative.observations) == original_observations
+    assert confirmed.observation_count == 1
+    assert tentative.observation_count == 1
+    assert len(assoc.map.get_all()) == 2
+
+
+def test_final_review_cooccurrence_blocks_partial_duplicate_attribution():
+    assoc = ObjectAssociator()
+    confirmed = make_review_object(
+        "P-0001", status=ConfirmationStatus.CONFIRMED
+    )
+    tentative = make_review_object(
+        "P-0002",
+        status=ConfirmationStatus.TENTATIVE,
+        bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    add_review_objects(assoc, confirmed, tentative)
+    assoc._co_occurred_pairs.add(
+        frozenset((confirmed.provisional_id, tentative.provisional_id))
+    )
+    tentative.review_flags.add(ReviewFlag.LIKELY_PARTIAL_DUPLICATE)
+    tentative.likely_partial_duplicate_of = confirmed.provisional_id
+    tentative.duplicate_candidate_ids = [confirmed.provisional_id]
+    tentative.duplicate_evidence = {"reason": "stale"}
+
+    assoc.final_review()
+
+    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE not in tentative.review_flags
+    assert ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE not in tentative.review_flags
+    assert tentative.likely_partial_duplicate_of is None
+    assert tentative.duplicate_candidate_ids == []
+    assert tentative.duplicate_evidence == {}
+
+
+def test_final_review_does_not_mark_complete_adjacent_objects_by_distance():
+    assoc = ObjectAssociator(
+        min_observations_confirmed=5,
+        min_keyframes_confirmed=3,
+    )
+    confirmed = make_review_object(
+        "P-0001", status=ConfirmationStatus.CONFIRMED
+    )
+    complete_tentative = make_review_object(
+        "P-0002",
+        status=ConfirmationStatus.TENTATIVE,
+        centroid=(55.0, 50.0),
+        observation_count=5,
+        keyframe_ids={10, 11, 12},
+    )
+    add_review_objects(assoc, confirmed, complete_tentative)
+    complete_tentative.review_flags.add(ReviewFlag.LIKELY_PARTIAL_DUPLICATE)
+    complete_tentative.likely_partial_duplicate_of = confirmed.provisional_id
+
+    assoc.final_review()
+
+    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE not in complete_tentative.review_flags
+    assert ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE not in complete_tentative.review_flags
+    assert complete_tentative.likely_partial_duplicate_of is None
+
+
+def test_final_review_records_ambiguous_candidate_ids_without_attribution():
+    assoc = ObjectAssociator()
+    confirmed_a = make_review_object(
+        "P-0001", status=ConfirmationStatus.CONFIRMED, centroid=(40.0, 40.0)
+    )
+    confirmed_b = make_review_object(
+        "P-0002", status=ConfirmationStatus.CONFIRMED, centroid=(45.0, 40.0)
+    )
+    tentative = make_review_object(
+        "P-0003",
+        status=ConfirmationStatus.TENTATIVE,
+        bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    add_review_objects(assoc, confirmed_b, tentative, confirmed_a)
+
+    assoc.final_review()
+
+    assert ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE in tentative.review_flags
+    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE not in tentative.review_flags
+    assert tentative.likely_partial_duplicate_of is None
+    assert tentative.duplicate_candidate_ids == ["P-0001", "P-0002"]
+    assert tentative.duplicate_evidence == {
+        "containment": 1.0,
+        "normalized_distance": 0.0,
+        "mapping_quality": None,
+        "reason": "candidate_margin_below_threshold",
+    }
+
+
+def test_repeated_final_review_is_idempotent_for_partial_duplicate_advice():
+    assoc = ObjectAssociator()
+    confirmed = make_review_object(
+        "P-0001", status=ConfirmationStatus.CONFIRMED
+    )
+    tentative = make_review_object(
+        "P-0002",
+        status=ConfirmationStatus.TENTATIVE,
+        bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    add_review_objects(assoc, confirmed, tentative)
+
+    assoc.final_review()
+    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE in tentative.review_flags
+    first_state = (
+        set(tentative.review_flags),
+        tentative.likely_partial_duplicate_of,
+        list(tentative.duplicate_candidate_ids),
+        dict(tentative.duplicate_evidence),
+        tentative.confirmation_status,
+        tentative.observation_count,
+        tuple(tentative.observations),
+    )
+    assoc.final_review()
+
+    assert (
+        set(tentative.review_flags),
+        tentative.likely_partial_duplicate_of,
+        list(tentative.duplicate_candidate_ids),
+        dict(tentative.duplicate_evidence),
+        tentative.confirmation_status,
+        tentative.observation_count,
+        tuple(tentative.observations),
+    ) == first_state
+
+
+def test_final_review_clears_stale_partial_duplicate_advice_on_no_match():
+    assoc = ObjectAssociator()
+    confirmed = make_review_object(
+        "P-0001", status=ConfirmationStatus.CONFIRMED
+    )
+    tentative = make_review_object(
+        "P-0002",
+        status=ConfirmationStatus.TENTATIVE,
+        bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    tentative.review_flags.add(ReviewFlag.LOW_CONFIDENCE)
+    add_review_objects(assoc, confirmed, tentative)
+    assoc.final_review()
+    assert tentative.likely_partial_duplicate_of == confirmed.provisional_id
+
+    tentative.review_flags.add(ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE)
+    tentative.duplicate_candidate_ids = ["stale-id"]
+    assoc._co_occurred_pairs.add(
+        frozenset((confirmed.provisional_id, tentative.provisional_id))
+    )
+    assoc.final_review()
+
+    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE not in tentative.review_flags
+    assert ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE not in tentative.review_flags
+    assert ReviewFlag.LOW_CONFIDENCE in tentative.review_flags
+    assert tentative.likely_partial_duplicate_of is None
+    assert tentative.duplicate_candidate_ids == []
+    assert tentative.duplicate_evidence == {}
+
+
+def test_final_review_clears_partial_duplicate_advice_after_confirmation():
+    assoc = ObjectAssociator()
+    confirmed = make_review_object(
+        "P-0001", status=ConfirmationStatus.CONFIRMED
+    )
+    tentative = make_review_object(
+        "P-0002",
+        status=ConfirmationStatus.TENTATIVE,
+        bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    tentative.review_flags.add(ReviewFlag.LOW_CONFIDENCE)
+    add_review_objects(assoc, confirmed, tentative)
+    assoc.final_review()
+    assert tentative.likely_partial_duplicate_of == confirmed.provisional_id
+
+    tentative.confirmation_status = ConfirmationStatus.CONFIRMED
+    assoc.final_review()
+
+    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE not in tentative.review_flags
+    assert ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE not in tentative.review_flags
+    assert ReviewFlag.LOW_CONFIDENCE in tentative.review_flags
+    assert tentative.likely_partial_duplicate_of is None
+    assert tentative.duplicate_candidate_ids == []
+    assert tentative.duplicate_evidence == {}
+
+
+def test_final_review_clears_advice_when_shared_track_merge_rejects_tentative():
+    assoc = ObjectAssociator()
+    confirmed = make_review_object(
+        "P-0001", status=ConfirmationStatus.CONFIRMED, frame_id=10
+    )
+    tentative = make_review_object(
+        "P-0002",
+        status=ConfirmationStatus.TENTATIVE,
+        frame_id=11,
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    add_review_objects(assoc, confirmed, tentative)
+    assoc.final_review()
+    assert tentative.likely_partial_duplicate_of == confirmed.provisional_id
+
+    confirmed.track_ids.add(7)
+    tentative.track_ids.add(7)
+    assoc.final_review()
+
+    assert tentative.confirmation_status == ConfirmationStatus.REJECTED
+    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE not in tentative.review_flags
+    assert ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE not in tentative.review_flags
+    assert tentative.likely_partial_duplicate_of is None
+    assert tentative.duplicate_candidate_ids == []
+    assert tentative.duplicate_evidence == {}

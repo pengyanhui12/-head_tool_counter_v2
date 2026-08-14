@@ -43,6 +43,40 @@ def test_config_loader_loads_associator():
     assert "per_class_gate_ratios" in cfg
     assert "per_class_position_gates" in cfg
     assert cfg["class_compatibility"]
+    assert cfg["partial_duplicate_min_containment"] == 0.75
+    assert cfg["partial_duplicate_max_normalized_distance"] == 0.75
+    assert cfg["partial_duplicate_max_absolute_distance_px"] == 80.0
+    assert cfg["partial_duplicate_min_mapping_quality"] == 0.50
+    assert cfg["partial_duplicate_max_area_ratio"] == 0.60
+    assert cfg["partial_duplicate_min_candidate_margin"] == 0.15
+
+
+def test_offline_associator_assembly_propagates_partial_duplicate_config():
+    from apps import offline_scan
+
+    acfg = {
+        "min_observations_confirmed": 5,
+        "min_keyframes_confirmed": 3,
+        "partial_duplicate_min_containment": 0.81,
+        "partial_duplicate_max_normalized_distance": 0.62,
+        "partial_duplicate_max_absolute_distance_px": 71.0,
+        "partial_duplicate_min_mapping_quality": 0.58,
+        "partial_duplicate_max_area_ratio": 0.47,
+        "partial_duplicate_min_candidate_margin": 0.19,
+    }
+
+    associator = offline_scan._build_associator(acfg)
+    evaluator_config = associator._partial_duplicate_evaluator.config
+
+    assert evaluator_config is associator._partial_duplicate_config
+    assert evaluator_config.min_observations_confirmed == 5
+    assert evaluator_config.min_keyframes_confirmed == 3
+    assert evaluator_config.min_containment == 0.81
+    assert evaluator_config.max_normalized_distance == 0.62
+    assert evaluator_config.max_absolute_distance_px == 71.0
+    assert evaluator_config.min_mapping_quality == 0.58
+    assert evaluator_config.max_area_ratio == 0.47
+    assert evaluator_config.min_candidate_margin == 0.19
 
 
 def test_config_loader_loads_fusion():

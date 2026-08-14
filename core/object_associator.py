@@ -26,6 +26,10 @@ from core.types import (
 from core.global_object_map import GlobalObjectMap
 from core.exceptions import TrackBindingConflict, SameFrameObservationError
 from core.merge_policy import MergePolicy
+from core.partial_duplicate_evaluator import (
+    PartialDuplicateConfig,
+    PartialDuplicateEvaluator,
+)
 
 
 class ObjectAssociator:
@@ -48,6 +52,12 @@ class ObjectAssociator:
         track_reactivate_max_gap_frames: int = 15,
         centroid_distance_threshold: float = 30.0,
         debug_mode: bool = False,
+        partial_duplicate_min_containment: float = 0.75,
+        partial_duplicate_max_normalized_distance: float = 0.75,
+        partial_duplicate_max_absolute_distance_px: float = 80.0,
+        partial_duplicate_min_mapping_quality: float = 0.50,
+        partial_duplicate_max_area_ratio: float = 0.60,
+        partial_duplicate_min_candidate_margin: float = 0.15,
     ):
         self.max_position_distance = max_position_distance_px
         self.w_pos = position_weight
@@ -68,6 +78,19 @@ class ObjectAssociator:
         self.per_class_position_gates = per_class_position_gates or {}
         self.track_reactivate_max_gap_frames = track_reactivate_max_gap_frames
         self.centroid_distance_threshold = centroid_distance_threshold
+        self._partial_duplicate_config = PartialDuplicateConfig(
+            min_containment=partial_duplicate_min_containment,
+            max_normalized_distance=partial_duplicate_max_normalized_distance,
+            max_absolute_distance_px=partial_duplicate_max_absolute_distance_px,
+            min_mapping_quality=partial_duplicate_min_mapping_quality,
+            max_area_ratio=partial_duplicate_max_area_ratio,
+            min_candidate_margin=partial_duplicate_min_candidate_margin,
+            min_observations_confirmed=min_observations_confirmed,
+            min_keyframes_confirmed=min_keyframes_confirmed,
+        )
+        self._partial_duplicate_evaluator = PartialDuplicateEvaluator(
+            self._partial_duplicate_config
+        )
 
         self.map = GlobalObjectMap()
         self._all_gd: list[GlobalDetection] = []
@@ -325,6 +348,55 @@ class ObjectAssociator:
         """
         self._merge_by_shared_track_safe()
         self._mark_close_duplicates()
+        self._review_tentative_partial_duplicates()
+
+    def _review_tentative_partial_duplicates(self) -> None:
+        objects = self.map.get_all()
+        for obj in objects:
+            self._clear_partial_duplicate_advice(obj)
+
+        confirmed = [
+            obj
+            for obj in objects
+            if obj.confirmation_status == ConfirmationStatus.CONFIRMED
+        ]
+        tentative = [
+            obj
+            for obj in objects
+            if obj.confirmation_status == ConfirmationStatus.TENTATIVE
+        ]
+
+        for obj in tentative:
+            decision = self._partial_duplicate_evaluator.evaluate(
+                obj,
+                confirmed,
+                self._co_occurred_pairs,
+            )
+            evidence = {
+                "containment": decision.containment_score,
+                "normalized_distance": decision.normalized_distance,
+                "mapping_quality": decision.mapping_quality,
+                "reason": decision.reason,
+            }
+
+            if decision.decision == "attributed":
+                obj.review_flags.add(ReviewFlag.LIKELY_PARTIAL_DUPLICATE)
+                obj.likely_partial_duplicate_of = decision.candidate_id
+                obj.duplicate_evidence = evidence
+            elif decision.decision == "ambiguous":
+                obj.review_flags.add(
+                    ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE
+                )
+                obj.duplicate_candidate_ids = sorted(decision.candidate_ids)
+                obj.duplicate_evidence = evidence
+
+    @staticmethod
+    def _clear_partial_duplicate_advice(obj: GlobalObject) -> None:
+        obj.review_flags.discard(ReviewFlag.LIKELY_PARTIAL_DUPLICATE)
+        obj.review_flags.discard(ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE)
+        obj.likely_partial_duplicate_of = None
+        obj.duplicate_candidate_ids = []
+        obj.duplicate_evidence = {}
 
     def _merge_by_shared_track_safe(self) -> None:
         """仅当 shared track + 全部安全条件满足时才合并。
