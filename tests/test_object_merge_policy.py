@@ -44,6 +44,7 @@ def make_review_object(
     area=10_000.0,
     observation_count=1,
     keyframe_ids=None,
+    mapping_quality=0.7,
 ):
     observations = [
         make_gd(
@@ -53,6 +54,7 @@ def make_review_object(
             centroid=centroid,
             area=area,
             bbox_pixels=bbox_pixels,
+            mapping_quality=mapping_quality,
         )
         for offset in range(observation_count)
     ]
@@ -465,7 +467,7 @@ def test_final_review_attributes_contained_tentative_without_mutating_objects():
         "decision": "likely_partial_duplicate",
         "containment_score": 1.0,
         "normalized_distance": pytest.approx(np.sqrt(200.0) / 100.0),
-        "mapping_quality": None,
+        "mapping_quality": 0.7,
         "co_occurrence_blocked": False,
         "reason": "unique_candidate",
         "candidates": [
@@ -478,7 +480,7 @@ def test_final_review_attributes_contained_tentative_without_mutating_objects():
                 "normalized_distance": pytest.approx(
                     np.sqrt(200.0) / 100.0
                 ),
-                "mapping_quality": None,
+                "mapping_quality": 0.7,
             }
         ],
     }
@@ -489,6 +491,35 @@ def test_final_review_attributes_contained_tentative_without_mutating_objects():
     assert confirmed.observation_count == 1
     assert tentative.observation_count == 1
     assert len(assoc.map.get_all()) == 2
+
+
+@pytest.mark.parametrize("mapping_quality", [0.1, float("nan")])
+def test_final_review_does_not_flag_same_frame_candidate_with_unreliable_mapping(
+    mapping_quality,
+):
+    assoc = ObjectAssociator()
+    confirmed = make_review_object(
+        "P-0001", status=ConfirmationStatus.CONFIRMED
+    )
+    tentative = make_review_object(
+        "P-0002",
+        status=ConfirmationStatus.TENTATIVE,
+        bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+        mapping_quality=mapping_quality,
+    )
+    add_review_objects(assoc, confirmed, tentative)
+
+    assoc.final_review()
+
+    assert ReviewFlag.LIKELY_PARTIAL_DUPLICATE not in tentative.review_flags
+    assert ReviewFlag.AMBIGUOUS_DUPLICATE_CANDIDATE not in tentative.review_flags
+    assert tentative.likely_partial_duplicate_of is None
+    assert tentative.duplicate_candidate_ids == []
+    assert tentative.duplicate_evidence["decision"] == "no_match"
+    assert tentative.duplicate_evidence["reason"] == "low_mapping_quality"
+    assert tentative.duplicate_evidence["candidates"] == []
 
 
 def test_associator_reportable_api_uses_four_status_counted_semantics():
@@ -601,7 +632,7 @@ def test_final_review_records_ambiguous_candidate_ids_without_attribution():
         "decision": "ambiguous",
         "containment_score": 1.0,
         "normalized_distance": 0.0,
-        "mapping_quality": None,
+        "mapping_quality": 0.7,
         "co_occurrence_blocked": False,
         "reason": "candidate_margin_below_threshold",
         "candidates": [
@@ -610,14 +641,14 @@ def test_final_review_records_ambiguous_candidate_ids_without_attribution():
                 "score": 1.0,
                 "containment_score": 1.0,
                 "normalized_distance": 0.0,
-                "mapping_quality": None,
+                "mapping_quality": 0.7,
             },
             {
                 "candidate_id": "P-0002",
                 "score": 0.95,
                 "containment_score": 1.0,
                 "normalized_distance": 0.05,
-                "mapping_quality": None,
+                "mapping_quality": 0.7,
             },
         ],
     }

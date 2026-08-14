@@ -192,9 +192,11 @@ def test_positive_decision_uses_canonical_vocabulary_and_evidence_fields():
 
     assert decision.decision == "likely_partial_duplicate"
     assert decision.co_occurrence_blocked is False
+    assert decision.mapping_quality == pytest.approx(0.9)
     assert [item.candidate_id for item in decision.candidate_evidence] == [
         "C-1"
     ]
+    assert decision.candidate_evidence[0].mapping_quality == pytest.approx(0.9)
     assert decision.candidate_evidence[0].score == pytest.approx(
         decision.containment_score - decision.normalized_distance
     )
@@ -281,6 +283,33 @@ def test_non_finite_mapping_quality_does_not_meet_cross_frame_threshold():
     decision = PartialDuplicateEvaluator().evaluate(tentative, [confirmed], set())
 
     assert decision.decision == "no_match"
+    assert decision.reason == "low_mapping_quality"
+
+
+@pytest.mark.parametrize("mapping_quality", [0.1, float("nan")])
+def test_unreliable_same_frame_mapping_quality_blocks_attribution(
+    mapping_quality,
+):
+    tentative = make_object(
+        "T-1",
+        status=ConfirmationStatus.TENTATIVE,
+        frame_id=10,
+        bbox_pixels=(20.0, 20.0, 60.0, 60.0),
+        mapping_quality=mapping_quality,
+        centroid=(40.0, 40.0),
+        area=1_600.0,
+    )
+    confirmed = make_object(
+        "C-1", status=ConfirmationStatus.CONFIRMED, frame_id=10
+    )
+
+    decision = PartialDuplicateEvaluator().evaluate(
+        tentative, [confirmed], set()
+    )
+
+    assert decision.decision == "no_match"
+    assert decision.candidate_id is None
+    assert decision.candidate_evidence == ()
     assert decision.reason == "low_mapping_quality"
 
 

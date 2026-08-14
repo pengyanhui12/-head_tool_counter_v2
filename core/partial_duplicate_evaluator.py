@@ -262,13 +262,28 @@ class PartialDuplicateEvaluator:
 
         for tentative_observation in tentative.observations:
             for confirmed_observation in confirmed.observations:
+                mapping_qualities = (
+                    tentative_observation.mapping_quality,
+                    confirmed_observation.mapping_quality,
+                )
+                if not all(
+                    _is_finite_real(quality)
+                    and float(quality) >= self.config.min_mapping_quality
+                    for quality in mapping_qualities
+                ):
+                    low_mapping_quality = True
+                    continue
+                mapping_quality = min(
+                    float(quality) for quality in mapping_qualities
+                )
+
                 if tentative_observation.frame_id == confirmed_observation.frame_id:
                     containment = rectangle_containment(
                         tentative_observation.bbox_pixels,
                         confirmed_observation.bbox_pixels,
                     )
                     if containment is not None:
-                        comparisons.append((containment, None))
+                        comparisons.append((containment, mapping_quality))
                     continue
 
                 if not (
@@ -276,18 +291,6 @@ class PartialDuplicateEvaluator:
                     and _valid_polygon(confirmed_observation.projected_corners)
                 ):
                     continue
-                mapping_qualities = (
-                    tentative_observation.mapping_quality,
-                    confirmed_observation.mapping_quality,
-                )
-                if not all(
-                    np.isfinite(quality)
-                    and quality >= self.config.min_mapping_quality
-                    for quality in mapping_qualities
-                ):
-                    low_mapping_quality = True
-                    continue
-                mapping_quality = min(mapping_qualities)
                 containment = _polygon_containment(
                     tentative_observation.projected_corners,
                     confirmed_observation.projected_corners,

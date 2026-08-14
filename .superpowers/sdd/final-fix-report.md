@@ -166,3 +166,55 @@ fail-closed scale validation, complete advisory evidence, atomic merge demotion,
 canonical output partitions, schema compatibility, and target acceptance. Its
 only Minor observation was that this report had not yet been written when the
 review snapshot was read; this committed document resolves that handoff item.
+
+## Independent re-review mapping-quality fix
+
+A subsequent independent re-review found one Important issue: same-frame
+rectangle geometry bypassed `min_mapping_quality`, while downstream scoring
+still used global-centroid distance, and positive same-frame evidence emitted
+`mapping_quality: null`. The root cause was the early same-frame branch in
+`PartialDuplicateEvaluator._compare_geometry()`; mapping-quality validation was
+located only in the later cross-frame branch.
+
+The evaluator now validates both observation qualities before either geometry
+path. Both values must be finite and meet `min_mapping_quality`; their minimum is
+the effective quality retained on positive/ambiguous decisions and every
+candidate-evidence record. Same-frame and cross-frame containment calculations
+remain distinct, and no containment, distance, scale, mapping-quality, or
+co-occurrence safeguard was weakened.
+
+TDD RED command:
+
+```powershell
+C:\Users\PC\.conda\envs\head_tool_counter\python.exe -m pytest \
+  tests/test_partial_duplicate_evaluator.py::test_positive_decision_uses_canonical_vocabulary_and_evidence_fields \
+  tests/test_partial_duplicate_evaluator.py::test_unreliable_same_frame_mapping_quality_blocks_attribution \
+  tests/test_object_merge_policy.py::test_final_review_does_not_flag_same_frame_candidate_with_unreliable_mapping \
+  -v --basetemp .test-tmp-final-rereview-red-20260815-01 -p no:cacheprovider
+```
+
+Result: `5 failed`. The positive same-frame result reported `None`, and both
+`0.1` and `NaN` same-frame qualities incorrectly produced
+`likely_partial_duplicate` plus an integration-level positive flag.
+
+GREEN evidence:
+
+- the same five regressions: `5 passed`;
+- focused evaluator/association/same-frame/report/output/API suite:
+  `115 passed in 0.74s`;
+- full suite with workspace-local basetemp and cache disabled:
+  `243 passed in 1.97s`, exit code `0`.
+
+Fresh target-video output was written to the previously absent, untracked
+`apps/outputs_final_rereview_acceptance_20260815_01` directory. The scan exited
+`0` after 196 frames and 17 accepted keyframes. JSON, CSV, and session assertions
+confirmed `21` counted, `3` review, `1` likely partial duplicate, and `0`
+rejected. `P-0024` remains linked to `GO-0007`; its decision and candidate
+evidence both retain effective finite mapping quality
+`0.9735503560528993`, above the unchanged `0.50` threshold. The evidence
+directory contains 24 files, and report/session review payloads are identical.
+
+Fresh mosaic inspection and identity assertions confirmed `GO-0004`,
+`GO-0005`, `GO-0006`, and `GO-0007` remain four separate confirmed, counted
+headlamps with no merge target. Generated acceptance files remain untracked and
+are not part of the fix commit.
