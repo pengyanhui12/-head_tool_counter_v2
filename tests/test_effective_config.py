@@ -13,6 +13,10 @@ def test_config_loader_loads_pipeline():
     assert "l2_interval_frames" in cfg
     assert "max_keyframe_interval_frames" in cfg
     assert "min_keyframe_interval_frames" in cfg
+    assert cfg["quality_evaluation_scale"] == 0.5
+    assert cfg["detection_sharpness_threshold"] == 63.0
+    assert cfg["sharpness_threshold"] == 89.0
+    assert cfg["enable_performance_stats"] is False
 
 
 def test_config_loader_loads_tracker():
@@ -21,6 +25,7 @@ def test_config_loader_loads_tracker():
     assert "min_iou" in cfg
     assert "max_center_distance_ratio" in cfg
     assert "quality_drop_trigger_ratio" in cfg
+    assert cfg["new_detection_confirmation_runs"] == 3
 
 
 def test_config_loader_loads_matcher():
@@ -34,8 +39,18 @@ def test_config_loader_loads_associator():
     loader = ConfigLoader(Path(__file__).parent.parent / "configs")
     cfg = loader.associator
     assert "max_position_distance_px" in cfg
-    # class_compatibility 在顶层，不在 association 里
-    assert loader.load("associator").get("class_compatibility") is not None
+    assert cfg["online_gate_ratio"] == 0.5
+    assert "per_class_gate_ratios" in cfg
+    assert "per_class_position_gates" in cfg
+    assert cfg["class_compatibility"]
+
+
+def test_config_loader_loads_fusion():
+    loader = ConfigLoader(Path(__file__).parent.parent / "configs")
+    cfg = loader.detector["fusion"]
+    assert cfg["iou_threshold"] == 0.65
+    assert cfg["center_merge_distance_px"] == 40.0
+    assert cfg["center_merge_min_ios"] == 0.30
 
 
 def test_config_loader_caches():

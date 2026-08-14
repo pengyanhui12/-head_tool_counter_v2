@@ -41,7 +41,10 @@ class ConfigLoader:
 
     @property
     def associator(self) -> dict:
-        return self.load("associator")["association"]
+        raw = self.load("associator")
+        config = dict(raw["association"])
+        config["class_compatibility"] = raw.get("class_compatibility", {})
+        return config
 
     @property
     def coverage(self) -> dict:

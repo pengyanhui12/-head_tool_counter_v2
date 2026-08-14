@@ -74,6 +74,17 @@ class DebugStats:
         self.debug_image_write_ms: float = 0.0
         self.final_review_ms: float = 0.0
         self.report_ms: float = 0.0
+        self.recovery_ms: float = 0.0
+        self.graph_update_ms: float = 0.0
+        self.coverage_update_ms: float = 0.0
+        self.end_window_ms: float = 0.0
+        self.event_log_io_ms: float = 0.0
+        self.initialization_ms: float = 0.0
+        self.mosaic_ms: float = 0.0
+        self.evidence_ms: float = 0.0
+        self.session_store_ms: float = 0.0
+
+        self.timing_calls: dict[str, int] = {}
 
         # ── frame计数 ──
         self.total_frames: int = 0
@@ -86,6 +97,17 @@ class DebugStats:
         else:
             self._consecutive_current = 0
 
+    def record_l2_result(self, detection_count: int) -> None:
+        """Record one completed L2 inference and whether its result was empty."""
+        self.l2_run_frames += 1
+        if detection_count == 0:
+            self.l2_empty_frames += 1
+
+    @property
+    def l2_run_count_inconsistency(self) -> int:
+        inference_calls = self.timing_calls.get("l2_inference_ms", 0)
+        return 0 if self.l2_run_frames == inference_calls else 1
+
     @property
     def core_algorithm_ms(self) -> float:
         """核心算法耗时（不含 debug 图片写盘）。"""
@@ -93,12 +115,53 @@ class DebugStats:
                 self.tracker_preview_ms + self.keyframe_decision_ms + self.feature_match_ms +
                 self.l1_inference_ms + self.l3_inference_ms + self.fusion_ms +
                 self.tracker_update_ms + self.projection_ms + self.association_ms +
-                self.final_review_ms + self.report_ms)
+                self.recovery_ms + self.graph_update_ms +
+                self.coverage_update_ms + self.end_window_ms +
+                self.initialization_ms + self.mosaic_ms + self.evidence_ms +
+                self.session_store_ms + self.final_review_ms + self.report_ms)
 
     @property
     def total_ms(self) -> float:
         """包含 debug 图片写盘的总耗时。"""
-        return self.core_algorithm_ms + self.debug_image_write_ms
+        return self.accounted_ms
+
+    @property
+    def timing_fields(self) -> tuple[str, ...]:
+        return (
+            "initialization_ms", "video_decode_ms", "quality_ms", "l2_inference_ms",
+            "tracker_preview_ms", "tracker_update_ms",
+            "keyframe_decision_ms", "feature_match_ms", "recovery_ms",
+            "l1_inference_ms", "l3_inference_ms", "fusion_ms",
+            "graph_update_ms", "projection_ms", "association_ms",
+            "coverage_update_ms", "end_window_ms", "final_review_ms",
+            "mosaic_ms", "evidence_ms", "session_store_ms", "report_ms",
+            "event_log_io_ms", "debug_image_write_ms",
+        )
+
+    def add_timing(self, field_name: str, elapsed_ms: float) -> None:
+        setattr(self, field_name, getattr(self, field_name, 0.0) + elapsed_ms)
+        self.timing_calls[field_name] = self.timing_calls.get(field_name, 0) + 1
+
+    @property
+    def accounted_ms(self) -> float:
+        return sum(float(getattr(self, field)) for field in self.timing_fields)
+
+    def unaccounted_ms(self, wall_ms: float) -> float:
+        return max(0.0, wall_ms - self.accounted_ms)
+
+    def coverage_ratio(self, wall_ms: float) -> float:
+        if wall_ms <= 0:
+            return 0.0
+        return min(1.0, self.accounted_ms / wall_ms)
+
+    def performance_rows(self) -> list[tuple[str, float, int, float]]:
+        rows = []
+        for field in self.timing_fields:
+            total = float(getattr(self, field))
+            calls = self.timing_calls.get(field, 0)
+            average = total / calls if calls else 0.0
+            rows.append((field, total, calls, average))
+        return rows
 
 
 class DebugEventWriter:
@@ -141,5 +204,19 @@ class PerfTimer:
 
     def __exit__(self, *args):
         elapsed = (time.perf_counter() - self._t0) * 1000.0  # ms
-        current = getattr(self._stats, self._field, 0.0)
-        setattr(self._stats, self._field, current + elapsed)
+        self._stats.add_timing(self._field, elapsed)
+
+
+class TimedMatcher:
+    """为 matcher.match 增加独立计时，同时透明代理其他属性。"""
+
+    def __init__(self, matcher, stats: DebugStats):
+        self._matcher = matcher
+        self._stats = stats
+
+    def match(self, source, target):
+        with PerfTimer(self._stats, "feature_match_ms"):
+            return self._matcher.match(source, target)
+
+    def __getattr__(self, name):
+        return getattr(self._matcher, name)

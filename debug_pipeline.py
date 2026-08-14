@@ -40,7 +40,7 @@ from core.types import (
     ConfirmationStatus, ReviewFlag, RawDetection,
 )
 from core.video_reader import VideoReader
-from core.quality_evaluator import QualityEvaluator
+from core.quality_evaluator import InitialKeyframeFallback, QualityEvaluator
 from core.frame_buffer import FrameBuffer
 from core.feature_matcher import FeatureMatcher
 from core.homography_graph import HomographyGraph
@@ -54,10 +54,11 @@ from core.coverage_map import CoverageMap
 from core.report_generator import ReportGenerator, get_reportable_objects
 from core.recovery_manager import RecoveryManager, RecoveryState
 from core.config_loader import ConfigLoader
-from core.debug_events import DebugEvent, DebugStats, DebugEventWriter, PerfTimer
+from core.debug_events import DebugEvent, DebugStats, DebugEventWriter, PerfTimer, TimedMatcher
 
 # ── 配置 ──
-VIDEO_PATH = r"D:\杭州供电段\头戴设备作业工具识别\01公司拍摄数据20260717\测试用\test_cut.mp4"
+# VIDEO_PATH = r"D:\杭州供电段\头戴设备作业工具识别\01公司拍摄数据20260717\测试用\test_cut.mp4"
+VIDEO_PATH = r"D:\杭州供电段\头戴设备作业工具识别\260814拍摄测试\test.mp4"
 CONFIG_DIR = _proj_root / "configs"
 MAX_FRAMES = None  # None=全部, 设为数字可限制帧数
 
@@ -114,11 +115,18 @@ LOG_FILE = OUTPUT_DIR / "log.txt"
 LOG_FILE.write_text("", encoding="utf-8")
 
 
+PERF_COLLECTION_ACTIVE = False
+
+
 def log(msg: str):
     """同时输出到控制台和日志文件。"""
+    t0 = time.perf_counter()
     print(msg)
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(msg + "\n")
+    stats = globals().get("dbg")
+    if PERF_COLLECTION_ACTIVE and stats is not None:
+        stats.add_timing("event_log_io_ms", (time.perf_counter() - t0) * 1000.0)
 
 
 # ── 事件写入器 ──
@@ -126,7 +134,11 @@ event_writer = DebugEventWriter(OUTPUT_DIR / "events.jsonl")
 
 
 def emit_event(event_type: str, frame_id: int | None, **payload):
+    t0 = time.perf_counter()
     event_writer.emit(DebugEvent(event_type=event_type, frame_id=frame_id, payload=payload))
+    stats = globals().get("dbg")
+    if PERF_COLLECTION_ACTIVE and stats is not None:
+        stats.add_timing("event_log_io_ms", (time.perf_counter() - t0) * 1000.0)
 
 
 # ── 运行元数据 ──
@@ -215,6 +227,8 @@ cfg = cfg_loader.pipeline
 mcfg = cfg_loader.matcher
 acfg = cfg_loader.associator
 tcfg = cfg_loader.tracker
+detector_cfg = cfg_loader.detector
+l3cfg = detector_cfg.get("l3", {})
 
 # 保存 effective config
 effective_config = {
@@ -261,11 +275,16 @@ t0 = time.perf_counter()
 reader = VideoReader(VIDEO_PATH, max_fps=cfg.get("max_input_fps", 30))
 quality = QualityEvaluator(
     sharpness_threshold=cfg.get("sharpness_threshold", 20.0),
+    detection_sharpness_threshold=cfg.get(
+        "detection_sharpness_threshold", 63.0
+    ),
+    quality_evaluation_scale=cfg.get("quality_evaluation_scale", 0.5),
     dark_pixel_threshold=cfg.get("dark_pixel_threshold", 10),
     bright_pixel_threshold=cfg.get("bright_pixel_threshold", 245),
 )
 frame_buffer = FrameBuffer(max_size=end_window)
-matcher = FeatureMatcher(
+dbg = DebugStats()
+matcher = TimedMatcher(FeatureMatcher(
     min_good_matches=mcfg.get("min_good_matches", 20),
     min_inliers=mcfg.get("min_inliers", 30),
     min_inlier_ratio=mcfg.get("min_inlier_ratio", 0.30),
@@ -276,7 +295,7 @@ matcher = FeatureMatcher(
     max_projected_area_ratio=mcfg.get("max_projected_area_ratio", 10.0),
     min_projected_area_ratio=mcfg.get("min_projected_area_ratio", 0.10),
     max_condition_number=mcfg.get("max_condition_number", 500000),
-)
+), dbg)
 graph = HomographyGraph()
 selector = KeyframeSelector(
     max_interval=max_interval,
@@ -286,11 +305,20 @@ selector = KeyframeSelector(
     emergency_keyframe_interval_frames=cfg.get("emergency_keyframe_interval_frames", 2),
 )
 detector = Detector(model_path=str(_proj_root / "models" / "best.pt"))
-fusion = DetectionFusion(iou_threshold=0.65, center_merge_distance_px=40.0)
+fcfg = detector_cfg.get("fusion", {})
+fusion = DetectionFusion(
+    iou_threshold=fcfg.get("iou_threshold", 0.65),
+    center_merge_distance_px=fcfg.get("center_merge_distance_px", 40.0),
+    center_merge_min_ios=fcfg.get("center_merge_min_ios", 0.30),
+    per_class_center_merge_distances=fcfg.get(
+        "per_class_center_merge_distances", {}
+    ),
+)
 tracker = SimpleDetectionTracker(
     max_missed_detection_frames=tcfg.get("max_missed_detection_frames", 5),
     lost_reactivation_frames=tcfg.get("lost_reactivation_frames", 10),
     min_iou=tcfg.get("min_iou", 0.20),
+    max_center_distance_ratio=tcfg.get("max_center_distance_ratio", 0.20),
     iou_weight=tcfg.get("iou_weight", 0.60),
     center_weight=tcfg.get("center_weight", 0.40),
     class_compatibility=acfg.get("class_compatibility", {}),
@@ -299,6 +327,9 @@ tracker = SimpleDetectionTracker(
     quality_drop_trigger_ratio=tcfg.get("quality_drop_trigger_ratio", 0.70),
     quality_drop_rearm_ratio=tcfg.get("quality_drop_rearm_ratio", 0.85),
     quality_drop_min_history=tcfg.get("quality_drop_min_history", 5),
+    new_detection_confirmation_runs=tcfg.get(
+        "new_detection_confirmation_runs", 3
+    ),
 )
 projector = GlobalProjector()
 associator = ObjectAssociator(
@@ -313,7 +344,7 @@ associator = ObjectAssociator(
     min_top_class_ratio=acfg.get("min_top_class_ratio", 0.60),
     max_votes_per_track=acfg.get("max_votes_per_track", 3),
     class_compatibility=acfg.get("class_compatibility", {}),
-    online_gate_ratio=acfg.get("online_gate_ratio", 0.6),
+    online_gate_ratio=acfg.get("online_gate_ratio", 0.5),
     per_class_gate_ratios=acfg.get("per_class_gate_ratios", {}),
     per_class_position_gates=acfg.get("per_class_position_gates", {}),
     track_reactivate_max_gap_frames=acfg.get("track_reactivate_max_gap_frames", 15),
@@ -336,11 +367,12 @@ keyframe_images: dict[int, np.ndarray] = {}
 fc = 0
 # 质量拒绝连续区间跟踪
 quality_reject_start: int | None = None
+initial_fallback = InitialKeyframeFallback(
+    min_sharpness=cfg.get("detection_sharpness_threshold", 63.0),
+    max_interval_frames=max_interval,
+)
 
 # ── 性能统计 ──
-dbg = DebugStats()
-
-
 def build_raw_detections(tracked_dets, kf_id: int, sharpness: float, mapping_quality: float):
     raw = []
     for td in tracked_dets:
@@ -363,13 +395,27 @@ def build_raw_detections(tracked_dets, kf_id: int, sharpness: float, mapping_qua
     return raw
 
 
+def build_untracked_raw_detections(candidates, kf_id: int, sharpness: float,
+                                   mapping_quality: float):
+    raw = []
+    for c in candidates:
+        x1, y1, x2, y2 = c.bbox
+        raw.append(RawDetection(
+            frame_id=c.frame_id, keyframe_id=kf_id, track_id=None,
+            bbox=c.bbox, center=((x1 + x2) / 2, (y1 + y2) / 2),
+            corners=((x1, y1), (x2, y1), (x2, y2), (x1, y2)),
+            class_id=c.class_id, class_name=c.class_name,
+            confidence=c.confidence, sharpness=sharpness,
+            mapping_quality=mapping_quality, source=c.source,
+        ))
+    return raw
+
+
 def process_accepted_keyframe(frame, keyframe_id, H_kf_to_global, l3_regions, l3_required,
-                               parent_node_id=None):
+                               parent_node_id=None, update_tracker=True):
     """关键帧的完整处理（L1检测→L3检测→融合→追踪→投影→关联）。"""
     with PerfTimer(dbg, "l1_inference_ms"):
         l1_candidates = detector.detect(image=frame.image, level="L1", frame_id=frame.frame_id)
-    dbg.l2_run_frames += 1
-
     l3_candidates = []
     if l3_required and l3_regions:
         with PerfTimer(dbg, "l3_inference_ms"):
@@ -380,11 +426,21 @@ def process_accepted_keyframe(frame, keyframe_id, H_kf_to_global, l3_regions, l3
     with PerfTimer(dbg, "fusion_ms"):
         fused_candidates = fusion.fuse(l1=l1_candidates, l3=l3_candidates)
 
-    with PerfTimer(dbg, "tracker_update_ms"):
-        tracked = tracker.update(fused_candidates, frame_id=frame.frame_id)
+    tracked = []
+    if update_tracker:
+        with PerfTimer(dbg, "tracker_update_ms"):
+            tracked = tracker.update(fused_candidates, frame_id=frame.frame_id)
 
     with PerfTimer(dbg, "projection_ms"):
-        raw_detections = build_raw_detections(tracked, keyframe_id, frame.sharpness_score, frame.mapping_quality)
+        if update_tracker:
+            raw_detections = build_raw_detections(
+                tracked, keyframe_id, frame.sharpness_score, frame.mapping_quality,
+            )
+        else:
+            raw_detections = build_untracked_raw_detections(
+                fused_candidates, keyframe_id, frame.sharpness_score,
+                frame.mapping_quality,
+            )
         global_detections = [
             projector.project(detection=rd, H_keyframe_to_global=H_kf_to_global,
                               transform_version=graph.transform_version)
@@ -394,13 +450,15 @@ def process_accepted_keyframe(frame, keyframe_id, H_kf_to_global, l3_regions, l3
     with PerfTimer(dbg, "association_ms"):
         affected = associator.ingest_frame(frame_id=frame.frame_id, global_detections=global_detections)
 
-    projected_fov = projector.project_frame_corners(
-        image_shape=frame.image.shape, H_keyframe_to_global=H_kf_to_global,
-    )
-    coverage.update(frame.frame_id, projected_fov)
+    with PerfTimer(dbg, "coverage_update_ms"):
+        projected_fov = projector.project_frame_corners(
+            image_shape=frame.image.shape, H_keyframe_to_global=H_kf_to_global,
+        )
+        coverage.update(frame.frame_id, projected_fov)
 
+    tracking_label = str(len(tracked)) if update_tracker else "historical-untracked"
     log(f"  [KEYFRAME #{keyframe_id}] L1={len(l1_candidates)} L3={len(l3_candidates)} "
-        f"fused={len(fused_candidates)} tracked={len(tracked)} objects_affected={len(affected)}")
+        f"fused={len(fused_candidates)} tracked={tracking_label} objects_affected={len(affected)}")
 
     emit_event("KEYFRAME_ACCEPT", frame.frame_id,
                keyframe_id=keyframe_id, l1_count=len(l1_candidates),
@@ -425,8 +483,15 @@ log("=" * 80)
 log("")
 
 pipeline_start = time.perf_counter()
+PERF_COLLECTION_ACTIVE = True
+frame_iterator = iter(reader.read())
 
-for frame in reader.read():
+while True:
+    try:
+        with PerfTimer(dbg, "video_decode_ms"):
+            frame = next(frame_iterator)
+    except StopIteration:
+        break
     fc += 1
     dbg.total_frames += 1
     frame_start = time.perf_counter()
@@ -439,7 +504,19 @@ for frame in reader.read():
                sharpness=round(frame.sharpness_score, 1),
                exposure=round(frame.exposure_score, 3))
 
-    if not quality.is_acceptable(frame):
+    mapping_eligible = quality.is_acceptable(frame)
+    historical_keyframe = False
+    if last_keyframe is None:
+        initial_fallback.consider(frame)
+        fallback_frame = initial_fallback.select(frame.frame_id)
+        if not mapping_eligible and fallback_frame is not None:
+            historical_keyframe = fallback_frame.frame_id < tracker.current_frame_id
+            frame = fallback_frame
+            mapping_eligible = True
+        if mapping_eligible:
+            initial_fallback.clear()
+
+    if not quality.is_acceptable_for_detection(frame):
         # 质量差帧：推进 tracker 时间，但不建图不检测
         tracker.advance_frame(frame.frame_id)
         recovery_mgr.cache_frame(frame)
@@ -463,8 +540,7 @@ for frame in reader.read():
     if l2_was_run:
         with PerfTimer(dbg, "l2_inference_ms"):
             l2_candidates = detector.detect(image=frame.image, level="L2", frame_id=frame.frame_id)
-        if not l2_candidates:
-            dbg.l2_empty_frames += 1
+        dbg.record_l2_result(len(l2_candidates))
         emit_event("L2_RESULT", frame.frame_id, count=len(l2_candidates), was_run=True)
     else:
         emit_event("L2_NOT_RUN", frame.frame_id)
@@ -477,25 +553,38 @@ for frame in reader.read():
                unmatched_count=len(preview.unmatched_detection_indices),
                quality_drop=preview.track_quality_drop)
 
+    if not mapping_eligible:
+        if l2_was_run:
+            with PerfTimer(dbg, "tracker_update_ms"):
+                tracker.update(l2_candidates, frame_id=frame.frame_id)
+        recovery_mgr.cache_frame(frame)
+        log(
+            f"F{frame.frame_id:04d} | QUALITY DETECTION_ONLY | "
+            f"sharpness={frame.sharpness_score:.1f} L2={len(l2_candidates)}"
+        )
+        continue
+
     # ── 4. 触发上下文 ──
     frames_since_kf = frame.frame_id - last_keyframe_frame_id if last_keyframe_frame_id >= 0 else 999
 
+    l3_regions = Detector.select_l3_regions(l2_candidates, l3cfg)
     trigger_context = KeyframeTriggerContext(
         max_interval_reached=(frames_since_kf >= max_interval),
         l2_new_unmatched_detection=preview.l2_new_unmatched_detection,
         track_quality_drop=preview.track_quality_drop,
-        l3_required=(any(c.confidence < 0.35 for c in l2_candidates) if l2_candidates else False),
-        l3_regions=[
-            tuple(int(v) for v in c.bbox)
-            for c in l2_candidates if c.confidence < 0.35
-        ] if l2_candidates else [],
+        l3_required=bool(l3_regions),
+        l3_regions=l3_regions,
     )
 
     # ── 5. 关键帧评估 ──
-    with PerfTimer(dbg, "keyframe_decision_ms"):
-        keyframe_result = selector.evaluate(
-            frame=frame, previous_keyframe=last_keyframe, trigger_context=trigger_context,
-        )
+    match_ms_before = dbg.feature_match_ms
+    decision_t0 = time.perf_counter()
+    keyframe_result = selector.evaluate(
+        frame=frame, previous_keyframe=last_keyframe, trigger_context=trigger_context,
+    )
+    decision_ms = (time.perf_counter() - decision_t0) * 1000.0
+    match_ms_delta = dbg.feature_match_ms - match_ms_before
+    dbg.add_timing("keyframe_decision_ms", max(0.0, decision_ms - match_ms_delta))
 
     if trigger_context.track_quality_drop:
         dbg.keyframe_trigger_quality_drop += 1
@@ -523,13 +612,14 @@ for frame in reader.read():
                    reason=keyframe_result.reason, decision="accepted")
 
         # 添加到图（带显式 parent）
+        graph_t0 = time.perf_counter()
         if last_keyframe is None:
             keyframe_id = graph.add_first_keyframe(frame_id=frame.frame_id)
             frame.mapping_quality = 1.0
             parent_node_id = None
         else:
             parent_node_id = last_keyframe_node_id
-            with PerfTimer(dbg, "feature_match_ms"):
+            if False:
                 # 注意：match 已经在 selector.evaluate() 中运行过了
                 pass
             keyframe_id = graph.add_keyframe(
@@ -542,6 +632,7 @@ for frame in reader.read():
 
         H_kf_to_global = graph.get_transform(keyframe_id)
         keyframe_images[keyframe_id] = frame.image
+        dbg.add_timing("graph_update_ms", (time.perf_counter() - graph_t0) * 1000.0)
 
         emit_event("HOMOGRAPHY_MATCH", frame.frame_id,
                    keyframe_id=keyframe_id, parent_node_id=parent_node_id,
@@ -559,6 +650,7 @@ for frame in reader.read():
             l3_regions=trigger_context.l3_regions if trigger_context.l3_required else [],
             l3_required=trigger_context.l3_required,
             parent_node_id=parent_node_id,
+            update_tracker=not historical_keyframe,
         )
         processed_keyframe_frame_ids.add(frame.frame_id)
         recovery_mgr.reset()
@@ -585,10 +677,21 @@ for frame in reader.read():
 
         status_parts.append(f"RECOVERY: {keyframe_result.reason}")
 
+        recovery_match_before = dbg.feature_match_ms
+        recovery_t0 = time.perf_counter()
         recovery_result = recovery_mgr.recover(
             current_frame=frame, previous_keyframe=last_keyframe,
             frame_buffer=frame_buffer, graph=graph,
             keyframe_images=keyframe_images if keyframe_images else None,
+        )
+        recovery_elapsed_ms = (time.perf_counter() - recovery_t0) * 1000.0
+        dbg.add_timing(
+            "recovery_ms",
+            max(
+                0.0,
+                recovery_elapsed_ms
+                - (dbg.feature_match_ms - recovery_match_before),
+            ),
         )
 
         if recovery_result.state == RecoveryState.RECOVERED:
@@ -639,7 +742,8 @@ for frame in reader.read():
 
         # 仅 L2 更新 tracker
         if l2_was_run:
-            tracker.update(l2_candidates, frame_id=frame.frame_id)
+            with PerfTimer(dbg, "tracker_update_ms"):
+                tracker.update(l2_candidates, frame_id=frame.frame_id)
 
         # 普通帧可视化
         if l2_was_run and l2_candidates:
@@ -652,7 +756,7 @@ for frame in reader.read():
         log(f"\nReached max frames limit ({MAX_FRAMES}), stopping early.")
         break
 
-pipeline_time = time.perf_counter() - pipeline_start
+main_loop_time = time.perf_counter() - pipeline_start
 
 # ══════════════════════════════════════════════════════════════════
 # 后处理
@@ -664,25 +768,52 @@ log("POST-PROCESSING")
 log("=" * 80)
 
 # 尾帧关键帧——按 frame_id 升序确保正确的 parent 链
+end_match_before = dbg.feature_match_ms
+end_t0 = time.perf_counter()
 end_kfs = selector.select_end_keyframes(list(end_window_deque))
+end_elapsed_ms = (time.perf_counter() - end_t0) * 1000.0
+dbg.add_timing(
+    "end_window_ms",
+    max(0.0, end_elapsed_ms - (dbg.feature_match_ms - end_match_before)),
+)
 log(f"End-window keyframes: {len(end_kfs)} candidates")
 for ekf in end_kfs:
     if ekf.frame_id in processed_keyframe_frame_ids:
         continue
-    result = selector.evaluate(ekf, last_keyframe, KeyframeTriggerContext(force_end_candidate=True))
+    end_eval_match_before = dbg.feature_match_ms
+    end_eval_t0 = time.perf_counter()
+    result = selector.evaluate(
+        ekf,
+        last_keyframe,
+        KeyframeTriggerContext(force_end_candidate=True),
+    )
+    dbg.add_timing(
+        "end_window_ms",
+        max(
+            0.0,
+            (time.perf_counter() - end_eval_t0) * 1000.0
+            - (dbg.feature_match_ms - end_eval_match_before),
+        ),
+    )
     if result.decision == KeyframeDecision.ACCEPTED:
         parent_id = last_keyframe_node_id
         try:
+            end_graph_t0 = time.perf_counter()
             keyframe_id = graph.add_keyframe(
                 frame_id=ekf.frame_id,
                 H_current_to_parent=result.H_current_to_previous,
                 parent_node_id=parent_id,
             )
             H_kf_to_global = graph.get_transform(keyframe_id)
+            dbg.add_timing(
+                "graph_update_ms",
+                (time.perf_counter() - end_graph_t0) * 1000.0,
+            )
             log(f"  Adding end KF: frame {ekf.frame_id} → node {keyframe_id} (parent={parent_id})")
             process_accepted_keyframe(frame=ekf, keyframe_id=keyframe_id,
                                       H_kf_to_global=H_kf_to_global,
-                                      l3_regions=[], l3_required=False)
+                                      l3_regions=[], l3_required=False,
+                                      update_tracker=False)
             processed_keyframe_frame_ids.add(ekf.frame_id)
             last_keyframe = ekf
             last_keyframe_frame_id = ekf.frame_id
@@ -718,6 +849,7 @@ with PerfTimer(dbg, "report_ms"):
     csv_path.write_text(gen.generate_csv_report(associator.map.get_all()), encoding="utf-8")
 
 # 关键帧统计
+artifact_report_t0 = time.perf_counter()
 kf_data = []
 for nid, fid, h2g in graph.nodes:
     parent_id = graph.get_parent_node_id(nid)
@@ -759,6 +891,7 @@ for obj in associator.map.get_all():
     })
 with open(OUTPUT_DIR / "object_lifecycle.json", "w", encoding="utf-8") as f:
     json.dump(lifecycle, f, indent=2, ensure_ascii=False)
+dbg.add_timing("report_ms", (time.perf_counter() - artifact_report_t0) * 1000.0)
 
 # ── 汇总 ──
 
@@ -777,9 +910,13 @@ json_uncertain = json_report["uncertain_count"]
 r1_check = (reportable_total == json_confirmed + json_tentative + json_uncertain)
 
 # CSV 行数检查
-csv_lines = (OUTPUT_DIR / "reports" / "report.csv").read_text(encoding="utf-8").strip().split("\n")
-csv_data_rows = len(csv_lines) - 1  # minus header
+with open(csv_path, newline="", encoding="utf-8") as csv_file:
+    csv_data_rows = sum(1 for _ in csv_mod.reader(csv_file)) - 1
 all_objects = len(associator.map.get_all())
+
+pipeline_time = time.perf_counter() - pipeline_start
+PERF_COLLECTION_ACTIVE = False
+wall_ms = pipeline_time * 1000.0
 
 log("")
 log("=" * 80)
@@ -825,24 +962,55 @@ log(f"  same_frame_duplicate_observations: {associator.stats['same_frame_duplica
 log(f"  unexplained_rejected_objects: {rejected_reasons.get('unexplained', 0)}")
 log(f"  invalid_homography_nodes: {dbg.invalid_homography_nodes}")
 log(f"  report_count_inconsistency: {0 if r1_check and csv_data_rows == all_objects else 1}")
+log(f"  tracker_time_regressions: {tracker.time_regressions}")
+log(f"  l2_run_count_inconsistency: {dbg.l2_run_count_inconsistency}")
 log(f"")
 log(f"FPS:")
 core_fps = dbg.total_frames / (dbg.core_algorithm_ms / 1000.0) if dbg.core_algorithm_ms > 0 else 0
 total_fps = dbg.total_frames / pipeline_time if pipeline_time > 0 else 0
 log(f"  Core algorithm: {core_fps:.1f} FPS")
 log(f"  Total (inc I/O): {total_fps:.1f} FPS")
-log(f"  Quality: {dbg.quality_ms:.0f}ms")
-log(f"  L2 inference: {dbg.l2_inference_ms:.0f}ms")
-log(f"  Feature match: {dbg.feature_match_ms:.0f}ms")
-log(f"  L1 inference: {dbg.l1_inference_ms:.0f}ms")
-log(f"  L3 inference: {dbg.l3_inference_ms:.0f}ms")
-log(f"  Fusion: {dbg.fusion_ms:.0f}ms")
-log(f"  Tracker update: {dbg.tracker_update_ms:.0f}ms")
-log(f"  Projection: {dbg.projection_ms:.0f}ms")
-log(f"  Association: {dbg.association_ms:.0f}ms")
-log(f"  Debug image I/O: {dbg.debug_image_write_ms:.0f}ms")
-log(f"  Final review: {dbg.final_review_ms:.0f}ms")
-log(f"  Report: {dbg.report_ms:.0f}ms")
+log(f"  Main loop: {main_loop_time:.3f}s")
+log(f"  End-to-end: {pipeline_time:.3f}s")
+log("")
+log("Performance breakdown:")
+log(f"  {'Stage':<24} {'Total(ms)':>10} {'Calls':>8} {'Avg(ms)':>10} {'Wall%':>8}")
+performance_labels = {
+    "initialization_ms": "Initialization",
+    "video_decode_ms": "Video decode",
+    "quality_ms": "Quality evaluation",
+    "l2_inference_ms": "L2 inference",
+    "tracker_preview_ms": "Tracker preview",
+    "tracker_update_ms": "Tracker update",
+    "keyframe_decision_ms": "Keyframe decision",
+    "feature_match_ms": "Feature matching",
+    "recovery_ms": "Recovery",
+    "l1_inference_ms": "L1 inference",
+    "l3_inference_ms": "L3 inference",
+    "fusion_ms": "Fusion",
+    "graph_update_ms": "Graph update",
+    "projection_ms": "Projection",
+    "association_ms": "Association",
+    "coverage_update_ms": "Coverage update",
+    "end_window_ms": "End-window selection",
+    "final_review_ms": "Final review",
+    "mosaic_ms": "Global mosaic",
+    "evidence_ms": "Evidence extraction",
+    "session_store_ms": "Session storage",
+    "report_ms": "Report generation",
+    "event_log_io_ms": "Event/log I/O",
+    "debug_image_write_ms": "Debug image I/O",
+}
+for field, total, calls, average in dbg.performance_rows():
+    wall_pct = total / wall_ms * 100.0 if wall_ms > 0 else 0.0
+    log(
+        f"  {performance_labels[field]:<24} {total:>10.1f} "
+        f"{calls:>8d} {average:>10.3f} {wall_pct:>7.1f}%"
+    )
+unaccounted_ms = dbg.unaccounted_ms(wall_ms)
+log(f"  {'Unaccounted overhead':<24} {unaccounted_ms:>10.1f} "
+    f"{'-':>8} {'-':>10} {unaccounted_ms / wall_ms * 100.0:>7.1f}%")
+log(f"  Accounted coverage: {dbg.coverage_ratio(wall_ms) * 100.0:.1f}%")
 log(f"")
 log(f"Class distribution (reportable):")
 for cls_name, count in sorted(json_report["class_counts"].items()):

@@ -12,7 +12,7 @@ update() 每帧最多调用一次。
 - T5: 未运行检测不等于检测结果为空
 - T6: missed 按真实 frame_id 差推进
 """
-from typing import Any
+from dataclasses import dataclass
 
 import numpy as np
 from scipy.optimize import linear_sum_assignment
@@ -23,6 +23,14 @@ from core.types import (
     TrackerPreview,
     Track,
 )
+
+
+@dataclass
+class _PreviewCandidate:
+    bbox: tuple
+    class_name: str
+    consecutive_runs: int = 1
+    triggered: bool = False
 
 
 class SimpleDetectionTracker:
@@ -41,11 +49,14 @@ class SimpleDetectionTracker:
         quality_drop_rearm_ratio: float = 0.85,
         quality_drop_min_history: int = 5,
         max_history_size: int = 1000,
+        new_detection_confirmation_runs: int = 3,
     ):
         if max_history_size < quality_drop_min_history:
             raise ValueError(
                 "max_history_size must be >= quality_drop_min_history"
             )
+        if new_detection_confirmation_runs < 1:
+            raise ValueError("new_detection_confirmation_runs must be >= 1")
         self.max_missed = max_missed_detection_frames
         self.lost_reactivation = lost_reactivation_frames
         self.min_iou = min_iou
@@ -61,15 +72,20 @@ class SimpleDetectionTracker:
         self.quality_drop_rearm_ratio = quality_drop_rearm_ratio
         self.quality_drop_min_history = quality_drop_min_history
         self.max_history_size = max_history_size
+        self.new_detection_confirmation_runs = new_detection_confirmation_runs
 
         self._tracks: dict[int, Track] = {}
         self._next_track_id = 0
         self._image_w: int = 640
         self._image_h: int = 480
         self._current_frame_id: int = 0
+        self._time_regressions: int = 0
 
         # quality_drop 边沿触发状态
         self._track_in_drop: dict[int, bool] = {}
+        self._preview_candidates: list[_PreviewCandidate] = []
+        self._last_preview_detection_frame_id: int | None = None
+        self._last_preview_new_detection_signal: bool = False
 
     # ── public API ──
 
@@ -94,18 +110,20 @@ class SimpleDetectionTracker:
         if not l2_was_run:
             return self.no_detection_run()
 
-        unmatched_indices = self._unmatched_indices(detections)
-        l2_new = len(unmatched_indices) > 0
-
-        active_ids = [
-            tid for tid, t in self._tracks.items() if t.state == "active"
-        ]
-        active_matches = self._match_tracks(
-            active_ids,
-            detections,
-            min_iou=self.min_iou,
-            max_center_dist_ratio=self.max_center_dist_ratio,
-        )
+        active_matches, unmatched_indices = self._preview_matches(detections)
+        detection_frame_id = detections[0].frame_id if detections else None
+        if (
+            detection_frame_id is not None
+            and detection_frame_id == self._last_preview_detection_frame_id
+        ):
+            l2_new = self._last_preview_new_detection_signal
+        else:
+            l2_new = self._confirm_unmatched_detections(
+                detections,
+                unmatched_indices,
+            )
+            self._last_preview_detection_frame_id = detection_frame_id
+            self._last_preview_new_detection_signal = l2_new
         quality_drop = any(
             self._track_quality_drop_signal(
                 track_id,
@@ -124,7 +142,7 @@ class SimpleDetectionTracker:
         """推进时间但不运行检测——用于质量不合格帧。
         只更新 last_update_frame_id，不增加 missed_frames。
         """
-        self._current_frame_id = frame_id
+        self._set_current_frame_id(frame_id)
         for t in self._tracks.values():
             t.last_update_frame_id = frame_id
 
@@ -139,9 +157,10 @@ class SimpleDetectionTracker:
         - lost: 不参与任何匹配，不清除
         """
         if frame_id is not None:
-            self._current_frame_id = frame_id
+            self._set_current_frame_id(frame_id)
         else:
             self._current_frame_id += 1
+        self._last_preview_detection_frame_id = None
 
         if detections:
             self._image_w = detections[0].image_width
@@ -253,6 +272,23 @@ class SimpleDetectionTracker:
 
         return results
 
+    @property
+    def current_frame_id(self) -> int:
+        return self._current_frame_id
+
+    @property
+    def time_regressions(self) -> int:
+        return self._time_regressions
+
+    def _set_current_frame_id(self, frame_id: int) -> None:
+        if self._tracks and frame_id < self._current_frame_id:
+            self._time_regressions += 1
+            raise ValueError(
+                "tracker frame_id cannot move backwards: "
+                f"current={self._current_frame_id}, requested={frame_id}"
+            )
+        self._current_frame_id = frame_id
+
     def get_active_tracks(self) -> list[Track]:
         return [t for t in self._tracks.values() if t.state == "active"]
 
@@ -353,6 +389,14 @@ class SimpleDetectionTracker:
         del track.detection_history[:-self.max_history_size]
 
     def _unmatched_indices(self, detections: list[DetectionCandidate]) -> list[int]:
+        _, unmatched_indices = self._preview_matches(detections)
+        return unmatched_indices
+
+    def _preview_matches(
+        self,
+        detections: list[DetectionCandidate],
+    ) -> tuple[list[tuple[int, int]], list[int]]:
+        """只读执行与 update 相同的 active → inactive 两阶段匹配。"""
         active_ids = [
             tid for tid, t in self._tracks.items() if t.state == "active"
         ]
@@ -381,10 +425,87 @@ class SimpleDetectionTracker:
             remaining[local_di][0] for _, local_di in inactive_matches
         )
 
-        return [
+        unmatched_indices = [
             di for di in range(len(detections))
             if di not in matched_detection_indices
         ]
+        return active_matches, unmatched_indices
+
+    def _confirm_unmatched_detections(
+        self,
+        detections: list[DetectionCandidate],
+        unmatched_indices: list[int],
+    ) -> bool:
+        """连续 L2 中关联同一未匹配目标，仅在达到阈值时触发一次。"""
+        unmatched = [detections[index] for index in unmatched_indices]
+        if not unmatched:
+            self._preview_candidates = []
+            return False
+
+        previous = self._preview_candidates
+        cost = np.full((len(previous), len(unmatched)), 1e9)
+        diag = np.hypot(self._image_w, self._image_h)
+        for candidate_index, candidate in enumerate(previous):
+            for detection_index, detection in enumerate(unmatched):
+                if candidate.class_name != detection.class_name:
+                    continue
+                iou = self._compute_iou(candidate.bbox, detection.bbox)
+                center_distance = (
+                    self._center_distance(candidate.bbox, detection.bbox) / diag
+                )
+                if (
+                    iou < self.min_iou
+                    or center_distance > self.max_center_dist_ratio
+                ):
+                    continue
+                cost[candidate_index, detection_index] = (
+                    self.iou_weight * (1.0 - iou)
+                    + self.center_weight * center_distance
+                )
+
+        matches: list[tuple[int, int]] = []
+        if previous:
+            rows, columns = linear_sum_assignment(cost)
+            matches = [
+                (row, column)
+                for row, column in zip(rows, columns)
+                if cost[row, column] < 1e9
+            ]
+
+        matched_detection_indices = {column for _, column in matches}
+        next_candidates: list[_PreviewCandidate] = []
+        triggered_now = False
+        for candidate_index, detection_index in matches:
+            old = previous[candidate_index]
+            detection = unmatched[detection_index]
+            count = old.consecutive_runs + 1
+            triggered = old.triggered
+            if (
+                not triggered
+                and count >= self.new_detection_confirmation_runs
+            ):
+                triggered = True
+                triggered_now = True
+            next_candidates.append(_PreviewCandidate(
+                bbox=detection.bbox,
+                class_name=detection.class_name,
+                consecutive_runs=count,
+                triggered=triggered,
+            ))
+
+        for detection_index, detection in enumerate(unmatched):
+            if detection_index in matched_detection_indices:
+                continue
+            triggered = self.new_detection_confirmation_runs == 1
+            triggered_now = triggered_now or triggered
+            next_candidates.append(_PreviewCandidate(
+                bbox=detection.bbox,
+                class_name=detection.class_name,
+                triggered=triggered,
+            ))
+
+        self._preview_candidates = next_candidates
+        return triggered_now
 
     def _match_tracks(
         self,
@@ -392,7 +513,7 @@ class SimpleDetectionTracker:
         detections: list[DetectionCandidate],
         min_iou: float,
         max_center_dist_ratio: float,
-    ) -> list[tuple[int | list[int], Any]] | list[Any]:
+    ) -> list[tuple[int, int]]:
         """只读执行一对一关联，返回 ``(track_id, detection_index)``。"""
         if not track_ids or not detections:
             return []

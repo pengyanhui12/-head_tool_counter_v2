@@ -11,3 +11,5 @@ tracker:
   quality_drop_trigger_ratio: 0.70
   quality_drop_rearm_ratio: 0.85
   quality_drop_min_history: 5
+  # 同一未匹配目标需连续出现在多少次实际 L2 运行中才触发关键帧
+  new_detection_confirmation_runs: 3

@@ -46,6 +46,40 @@ def test_first_binding():
     assert obj.class_name == "wrench"
 
 
+def test_untracked_historical_detections_use_spatial_matching_without_binding():
+    assoc = ObjectAssociator(debug_mode=True)
+    first = make_gd(frame_id=25, track_id=None, centroid=(100.0, 100.0))
+    second = make_gd(frame_id=216, track_id=None, centroid=(102.0, 101.0))
+
+    first_affected = assoc.ingest_frame(25, [first])
+    second_affected = assoc.ingest_frame(216, [second])
+
+    assert first_affected == second_affected
+    obj = assoc.map.get_all()[0]
+    assert obj.observation_count == 2
+    assert obj.track_ids == set()
+    assert assoc._track_to_object == {}
+
+
+def test_first_tracked_cost_match_adopts_binding_for_historical_object():
+    assoc = ObjectAssociator(debug_mode=True)
+    historical = make_gd(frame_id=25, track_id=None, centroid=(100.0, 100.0))
+    tracked = make_gd(frame_id=35, track_id=7, centroid=(102.0, 101.0))
+
+    historical_affected = assoc.ingest_frame(25, [historical])
+    tracked_affected = assoc.ingest_frame(35, [tracked])
+
+    assert historical_affected == tracked_affected
+    logical_key = assoc._make_logical_key(7)
+    assert assoc._track_to_object[logical_key] == historical_affected[0]
+    assert assoc.map.get_all()[0].track_ids == {7}
+
+    # Once adopted, the same track remains attached even outside the spatial gate.
+    moved = make_gd(frame_id=36, track_id=7, centroid=(1000.0, 1000.0))
+    assert assoc.ingest_frame(36, [moved]) == historical_affected
+    assert len(assoc.map.get_all()) == 1
+
+
 def test_same_object_repeated_binding():
     """同对象重复绑定不抛异常"""
     assoc = ObjectAssociator(debug_mode=True)

@@ -152,3 +152,14 @@ def test_generation_field():
     t = tracker._tracks[0]
     assert hasattr(t, 'generation')
     assert t.generation == 0
+
+
+def test_update_rejects_frame_id_regression_once_tracking_has_started():
+    tracker = SimpleDetectionTracker()
+    tracker.update([make_det(frame_id=10)], frame_id=10)
+
+    with pytest.raises(ValueError, match="cannot move backwards"):
+        tracker.update([make_det(frame_id=9)], frame_id=9)
+
+    assert tracker.current_frame_id == 10
+    assert tracker.time_regressions == 1

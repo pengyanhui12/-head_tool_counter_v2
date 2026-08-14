@@ -28,7 +28,8 @@ class GlobalObjectMap:
         obj.observations.append(detection)
         obj.observation_count = 1
         obj.centroid_xy = detection.polygon_centroid
-        obj.track_ids.add(detection.track_id)
+        if detection.track_id is not None:
+            obj.track_ids.add(detection.track_id)
         obj.keyframe_ids.add(detection.keyframe_id)
         self._objects.append(obj)
         return obj

@@ -3,8 +3,12 @@ pipeline:
   l2_interval_frames: 3
   max_keyframe_interval_frames: 30
   end_window_frames: 30
-  sharpness_threshold: 20.0
+  # 1/2 尺寸 Laplacian 标定值；对应原尺寸阈值约 20 / 15
+  quality_evaluation_scale: 0.5
+  sharpness_threshold: 89.0
+  detection_sharpness_threshold: 63.0
   save_debug_artifacts: true
+  enable_performance_stats: false #收集和输出性能表
   random_seed: 42
   min_keyframe_interval_frames: 5
   emergency_keyframe_interval_frames: 2

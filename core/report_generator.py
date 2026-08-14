@@ -107,7 +107,7 @@ class ReportGenerator:
 
     def generate_csv_report(self, objects: list[GlobalObject]) -> str:
         buf = io.StringIO(newline="")
-        writer = csv.writer(buf)
+        writer = csv.writer(buf, lineterminator="\n")
         writer.writerow([
             "persistent_id", "provisional_id", "class_name", "confirmation_status",
             "visibility_status", "confidence", "observation_count",

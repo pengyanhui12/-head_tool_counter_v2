@@ -21,3 +21,9 @@ l3:
   min_box_area_ratio: 0.001
   low_confidence_upper: 0.35
   roi_margin_ratio: 0.20
+
+fusion:
+  iou_threshold: 0.65
+  center_merge_distance_px: 40.0
+  center_merge_min_ios: 0.30
+  per_class_center_merge_distances: {}

@@ -50,8 +50,7 @@ def test_merge_blocked_by_cooccurrence():
     # 由于两个 bbox IoU=0 且同类，应该记录为共现
     # 但检测器也可能因为 class_id 不同等原因未记录
     # 我们手动设置共现状态以测试 merge 阻止逻辑
-    assoc._co_occurred_pairs.add(pair)
-    assoc._merge_policy.record_co_occurrence(1, objs[0].provisional_id, objs[1].provisional_id)
+    assert pair in assoc._co_occurred_pairs
 
     # 标记为 CONFIRMED
     for o in objs:
@@ -61,6 +60,42 @@ def test_merge_blocked_by_cooccurrence():
     assoc.final_review()
     # 两个对象应该仍然独立
     assert len(assoc.get_reportable_objects()) == 2
+
+
+def test_cooccurrence_is_recorded_when_all_detections_match_existing_tracks():
+    assoc = ObjectAssociator(debug_mode=False)
+    assoc.ingest_frame(1, [
+        make_gd(frame_id=1, track_id=1, centroid=(100, 100),
+                bbox_pixels=(0, 0, 50, 50)),
+        make_gd(frame_id=1, track_id=2, centroid=(500, 500),
+                bbox_pixels=(60, 0, 110, 50)),
+    ])
+    assoc._co_occurred_pairs.clear()
+
+    assoc.ingest_frame(2, [
+        make_gd(frame_id=2, track_id=1, centroid=(101, 100),
+                bbox_pixels=(0, 0, 50, 50)),
+        make_gd(frame_id=2, track_id=2, centroid=(499, 500),
+                bbox_pixels=(60, 0, 110, 50)),
+    ])
+
+    objs = assoc.map.get_all()
+    pair = frozenset([objs[0].provisional_id, objs[1].provisional_id])
+    assert pair in assoc._co_occurred_pairs
+
+
+def test_overlapping_boxes_assigned_to_distinct_objects_are_cooccurrence():
+    assoc = ObjectAssociator(debug_mode=False)
+    assoc.ingest_frame(1, [
+        make_gd(frame_id=1, track_id=1, centroid=(100, 100),
+                bbox_pixels=(0, 0, 100, 100)),
+        make_gd(frame_id=1, track_id=2, centroid=(120, 100),
+                bbox_pixels=(70, 0, 170, 100)),
+    ])
+
+    objs = assoc.map.get_all()
+    pair = frozenset([objs[0].provisional_id, objs[1].provisional_id])
+    assert pair in assoc._co_occurred_pairs
 
 
 def test_merge_blocked_by_frame_overlap():
@@ -208,3 +243,16 @@ def test_track_conflict_blocks_merge():
     allowed, reason, audit = policy.can_merge(primary, secondary)
     assert not allowed
     assert "track_conflict" in reason
+
+
+def test_online_gate_uses_ratio_and_class_overrides():
+    assoc = ObjectAssociator(
+        max_position_distance_px=200.0,
+        online_gate_ratio=0.5,
+        per_class_gate_ratios={"pliers": 0.4},
+        per_class_position_gates={"screwdriver": 60.0},
+    )
+
+    assert assoc._online_gate_for_class("hammer") == 100.0
+    assert assoc._online_gate_for_class("pliers") == 80.0
+    assert assoc._online_gate_for_class("screwdriver") == 60.0

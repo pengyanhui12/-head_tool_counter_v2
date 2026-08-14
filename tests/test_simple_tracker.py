@@ -47,14 +47,14 @@ def test_unmatched_becomes_new_track():
 
 
 def test_preview_detects_new_unmatched():
-    tracker = SimpleDetectionTracker()
+    tracker = SimpleDetectionTracker(new_detection_confirmation_runs=1)
     tracker.update([_cand(0, 0, "wrench", (100, 100, 200, 200))])
     preview = tracker.preview([_cand(1, 1, "plier", (300, 300, 400, 400))])
     assert preview.l2_new_unmatched_detection
 
 
 def test_preview_uses_one_to_one_assignment():
-    tracker = SimpleDetectionTracker()
+    tracker = SimpleDetectionTracker(new_detection_confirmation_runs=1)
     tracker.update([_cand(0, 0, "wrench", (100, 100, 200, 200))])
 
     preview = tracker.preview([
@@ -64,6 +64,74 @@ def test_preview_uses_one_to_one_assignment():
 
     assert len(preview.unmatched_detection_indices) == 1
     assert preview.l2_new_unmatched_detection
+
+
+def test_preview_requires_three_consecutive_matches_for_new_detection():
+    tracker = SimpleDetectionTracker(new_detection_confirmation_runs=3)
+
+    first = tracker.preview([_cand(1, 1, "plier", (300, 300, 400, 400))])
+    second = tracker.preview([_cand(2, 1, "plier", (302, 301, 402, 401))])
+    third = tracker.preview([_cand(3, 1, "plier", (304, 302, 404, 402))])
+    fourth = tracker.preview([_cand(4, 1, "plier", (306, 303, 406, 403))])
+
+    assert not first.l2_new_unmatched_detection
+    assert not second.l2_new_unmatched_detection
+    assert third.l2_new_unmatched_detection
+    assert not fourth.l2_new_unmatched_detection
+
+
+def test_preview_does_not_accumulate_different_unmatched_objects():
+    tracker = SimpleDetectionTracker(new_detection_confirmation_runs=3)
+
+    assert not tracker.preview([
+        _cand(1, 1, "plier", (50, 50, 100, 100))
+    ]).l2_new_unmatched_detection
+    assert not tracker.preview([
+        _cand(2, 1, "plier", (300, 300, 350, 350))
+    ]).l2_new_unmatched_detection
+    assert not tracker.preview([
+        _cand(3, 1, "plier", (50, 50, 100, 100))
+    ]).l2_new_unmatched_detection
+
+
+def test_preview_empty_l2_run_breaks_new_detection_confirmation():
+    tracker = SimpleDetectionTracker(new_detection_confirmation_runs=3)
+
+    tracker.preview([_cand(1, 1, "plier", (300, 300, 400, 400))])
+    tracker.preview([_cand(2, 1, "plier", (302, 302, 402, 402))])
+    tracker.preview([], l2_was_run=True)
+    tracker.preview([_cand(4, 1, "plier", (302, 302, 402, 402))])
+    result = tracker.preview([_cand(5, 1, "plier", (304, 304, 404, 404))])
+
+    assert not result.l2_new_unmatched_detection
+
+
+def test_preview_l2_not_run_preserves_new_detection_confirmation():
+    tracker = SimpleDetectionTracker(new_detection_confirmation_runs=3)
+
+    tracker.preview([_cand(1, 1, "plier", (300, 300, 400, 400))])
+    tracker.preview([], l2_was_run=False)
+    tracker.preview([_cand(3, 1, "plier", (302, 302, 402, 402))])
+    result = tracker.preview([_cand(4, 1, "plier", (304, 304, 404, 404))])
+
+    assert result.l2_new_unmatched_detection
+
+
+def test_repeated_preview_for_same_l2_frame_counts_only_once():
+    tracker = SimpleDetectionTracker(new_detection_confirmation_runs=3)
+    first_run = [_cand(1, 1, "plier", (300, 300, 400, 400))]
+
+    tracker.preview(first_run)
+    tracker.preview(first_run)
+    second = tracker.preview([
+        _cand(2, 1, "plier", (302, 302, 402, 402))
+    ])
+    third = tracker.preview([
+        _cand(3, 1, "plier", (304, 304, 404, 404))
+    ])
+
+    assert not second.l2_new_unmatched_detection
+    assert third.l2_new_unmatched_detection
 
 
 def test_preview_accounts_for_inactive_reactivation():

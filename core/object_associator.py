@@ -42,7 +42,7 @@ class ObjectAssociator:
         min_top_class_ratio: float = 0.60,
         max_votes_per_track: int = 3,
         class_compatibility: dict[str, list[str]] | None = None,
-        online_gate_ratio: float = 0.60,
+        online_gate_ratio: float = 0.50,
         per_class_gate_ratios: dict[str, float] | None = None,
         per_class_position_gates: dict[str, float] | None = None,
         track_reactivate_max_gap_frames: int = 15,
@@ -144,6 +144,9 @@ class ObjectAssociator:
 
         for di, gd in enumerate(global_detections):
             self._all_gd.append(gd)
+            if gd.track_id is None:
+                unmatched_gds.append((di, gd))
+                continue
             logical_key = self._make_logical_key(gd.track_id)
 
             existing_pid = self._track_to_object.get(logical_key)
@@ -169,6 +172,7 @@ class ObjectAssociator:
             unmatched_gds.append((di, gd))
 
         if not unmatched_gds:
+            self._record_co_occurrences(frame_id, global_detections)
             self._prune(frame_id)
             self._validate_frame_invariants(frame_id)
             return affected
@@ -179,13 +183,16 @@ class ObjectAssociator:
                 if di in assigned_detection_indices:
                     continue
                 obj = self.map.create_object(gd)
-                logical_key = self._make_logical_key(gd.track_id)
-                self._bind_track_to_object(logical_key, obj.provisional_id)
+                if gd.track_id is not None:
+                    logical_key = self._make_logical_key(gd.track_id)
+                    self._bind_track_to_object(logical_key, obj.provisional_id)
                 affected.append(obj.provisional_id)
                 assigned_object_ids.add(obj.provisional_id)
                 assigned_detection_indices.add(di)
                 self.stats["objects_created"] += 1
-                self._track_last_seen_frame[gd.track_id] = frame_id
+                if gd.track_id is not None:
+                    self._track_last_seen_frame[gd.track_id] = frame_id
+            self._record_co_occurrences(frame_id, global_detections)
             self._prune(frame_id)
             self._validate_frame_invariants(frame_id)
             return affected
@@ -237,7 +244,8 @@ class ObjectAssociator:
             assigned_object_ids.add(obj.provisional_id)
             cost_matched_det.add(r)
             self.stats["objects_matched_by_cost"] += 1
-            self._track_last_seen_frame[gd.track_id] = frame_id
+            if gd.track_id is not None:
+                self._track_last_seen_frame[gd.track_id] = frame_id
 
         # 创建新对象（未被 track 强关联、也未通过匈牙利匹配的 detection）
         for di, gd in unmatched_gds:
@@ -252,12 +260,14 @@ class ObjectAssociator:
             if gd_idx_in_list is not None and gd_idx_in_list in cost_matched_det:
                 continue
             obj = self.map.create_object(gd)
-            logical_key = self._make_logical_key(gd.track_id)
-            self._bind_track_to_object(logical_key, obj.provisional_id)
+            if gd.track_id is not None:
+                logical_key = self._make_logical_key(gd.track_id)
+                self._bind_track_to_object(logical_key, obj.provisional_id)
             affected.append(obj.provisional_id)
             assigned_object_ids.add(obj.provisional_id)
             self.stats["objects_created"] += 1
-            self._track_last_seen_frame[gd.track_id] = frame_id
+            if gd.track_id is not None:
+                self._track_last_seen_frame[gd.track_id] = frame_id
 
         # 记录共现
         self._record_co_occurrences(frame_id, global_detections)
@@ -279,8 +289,10 @@ class ObjectAssociator:
         """记录本帧内不同对象间的共现关系。"""
         pid_per_det: list[tuple[GlobalDetection, str | None]] = []
         for gd in global_detections:
-            logical_key = self._make_logical_key(gd.track_id)
-            pid = self._track_to_object.get(logical_key)
+            pid = None
+            if gd.track_id is not None:
+                logical_key = self._make_logical_key(gd.track_id)
+                pid = self._track_to_object.get(logical_key)
             if pid is None:
                 pid = self._find_pid_for_detection(gd)
             pid_per_det.append((gd, pid))
@@ -296,12 +308,9 @@ class ObjectAssociator:
                     continue
                 if gd_a.class_name != gd_b.class_name:
                     continue
-                if gd_a.bbox_pixels and gd_b.bbox_pixels:
-                    iou = self._compute_bbox_iou(gd_a.bbox_pixels, gd_b.bbox_pixels)
-                    if iou == 0.0:
-                        self._frame_co_occurred.add((frame_id, pid_a, pid_b))
-                        self._co_occurred_pairs.add(pair)
-                        self._merge_policy.record_co_occurrence(frame_id, pid_a, pid_b)
+                self._frame_co_occurred.add((frame_id, pid_a, pid_b))
+                self._co_occurred_pairs.add(pair)
+                self._merge_policy.record_co_occurrence(frame_id, pid_a, pid_b)
 
     # ── 后处理合并（final_review）──
 
@@ -522,9 +531,13 @@ class ObjectAssociator:
         """用 frame_id + track_id 查找检测归属的 object provisional_id。"""
         for obj in self.map.get_all():
             for obs in obj.observations:
-                if obs.frame_id == gd.frame_id and obs.track_id == gd.track_id:
+                if obs is gd:
                     return obj.provisional_id
-            if gd.track_id in obj.track_ids:
+                if (gd.track_id is not None
+                        and obs.frame_id == gd.frame_id
+                        and obs.track_id == gd.track_id):
+                    return obj.provisional_id
+            if gd.track_id is not None and gd.track_id in obj.track_ids:
                 return obj.provisional_id
         return None
 
@@ -546,7 +559,12 @@ class ObjectAssociator:
         """更新对象，累计投票权重。"""
         obj.observations.append(gd)
         obj.observation_count = len(obj.observations)  # O8
-        obj.track_ids.add(gd.track_id)
+        if gd.track_id is not None:
+            obj.track_ids.add(gd.track_id)
+            self._bind_track_to_object(
+                self._make_logical_key(gd.track_id),
+                obj.provisional_id,
+            )
         obj.keyframe_ids.add(gd.keyframe_id)
         alpha = 0.3
         obj.centroid_xy = (
@@ -557,8 +575,12 @@ class ObjectAssociator:
         if areas:
             obj.area_range = (min(areas), max(areas))
 
-        logical_key = self._make_logical_key(gd.track_id)
-        votes_used = self._track_vote_counts.get(logical_key, 0)
+        logical_key = (
+            self._make_logical_key(gd.track_id)
+            if gd.track_id is not None
+            else None
+        )
+        votes_used = self._track_vote_counts.get(logical_key, 0) if logical_key else 0
         if votes_used < self.max_votes_per_track:
             weight = (
                 gd.detection_confidence
@@ -570,7 +592,8 @@ class ObjectAssociator:
             obj.vote_distribution[gd.class_name] = (
                 obj.vote_distribution.get(gd.class_name, 0.0) + weight
             )
-            self._track_vote_counts[logical_key] = votes_used + 1
+            if logical_key is not None:
+                self._track_vote_counts[logical_key] = votes_used + 1
 
         self._reevaluate(obj)
 

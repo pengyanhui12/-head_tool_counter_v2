@@ -110,6 +110,7 @@ def test_csv_includes_rejected():
     csv = gen.generate_csv_report(obj_map.get_all())
     lines = csv.strip().split("\n")
     assert len(lines) == 3  # header + 2 data rows
+    assert "\r" not in csv
 
 
 def test_observation_field_consistency():

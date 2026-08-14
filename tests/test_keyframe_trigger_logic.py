@@ -48,7 +48,7 @@ def test_l2_empty_detection_produces_no_new_det():
 def test_l2_new_detection_produces_new_det():
     """L2 有新检测 → unmatched=True"""
     from core.types import DetectionCandidate
-    tracker = SimpleDetectionTracker()
+    tracker = SimpleDetectionTracker(new_detection_confirmation_runs=1)
     det = DetectionCandidate(frame_id=1, bbox=(100, 100, 200, 200),
                              class_id=0, class_name="wrench", confidence=0.8,
                              source="L2", image_width=640, image_height=480)

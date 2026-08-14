@@ -157,7 +157,7 @@ class TrackedDetection:
 class RawDetection:
     frame_id: int
     keyframe_id: int
-    track_id: int
+    track_id: int | None
     bbox: tuple[float, float, float, float]
     center: tuple[float, float]
     corners: tuple[
@@ -197,7 +197,7 @@ class Track:
 class GlobalDetection:
     frame_id: int
     keyframe_id: int
-    track_id: int
+    track_id: int | None
     projected_corners: np.ndarray
     projected_center: tuple[float, float]
     polygon_centroid: tuple[float, float]

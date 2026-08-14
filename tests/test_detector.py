@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import numpy as np
 
 from core.detector import Detector
+from core.types import DetectionCandidate
 
 
 class FakeModel:
@@ -85,3 +86,53 @@ def test_none_regions_uses_full_image_and_empty_regions_run_nothing():
     assert [call.shape[:2] for call in model.images] == [(40, 60)]
     assert full_image_candidates[0].bbox == (1.0, 2.0, 5.0, 10.0)
     assert empty_region_candidates == []
+
+
+def _candidate(
+    bbox=(20, 20, 40, 40),
+    confidence=0.2,
+    image_width=100,
+    image_height=100,
+):
+    return DetectionCandidate(
+        frame_id=1,
+        bbox=bbox,
+        class_id=0,
+        class_name="wrench",
+        confidence=confidence,
+        source="L2",
+        image_width=image_width,
+        image_height=image_height,
+    )
+
+
+def test_l3_regions_are_empty_when_l3_is_disabled():
+    regions = Detector.select_l3_regions(
+        [_candidate()],
+        {
+            "enabled": False,
+            "low_confidence_upper": 0.35,
+            "min_box_area_ratio": 0.001,
+            "roi_margin_ratio": 0.20,
+        },
+    )
+
+    assert regions == []
+
+
+def test_l3_regions_filter_and_expand_low_confidence_boxes():
+    regions = Detector.select_l3_regions(
+        [
+            _candidate(bbox=(20, 20, 40, 40), confidence=0.20),
+            _candidate(bbox=(50, 50, 52, 52), confidence=0.20),
+            _candidate(bbox=(60, 60, 80, 80), confidence=0.50),
+        ],
+        {
+            "enabled": True,
+            "low_confidence_upper": 0.35,
+            "min_box_area_ratio": 0.01,
+            "roi_margin_ratio": 0.20,
+        },
+    )
+
+    assert regions == [(16, 16, 44, 44)]

@@ -121,3 +121,40 @@ class Detector:
                         )
                     )
         return candidates
+
+    @staticmethod
+    def select_l3_regions(
+        detections: list[DetectionCandidate],
+        config: dict,
+    ) -> list[tuple[int, int, int, int]]:
+        """按 L3 配置筛选低置信度检测并生成带边距的 ROI。"""
+        if not config.get("enabled", False):
+            return []
+
+        confidence_upper = float(config.get("low_confidence_upper", 0.35))
+        min_area_ratio = float(config.get("min_box_area_ratio", 0.001))
+        margin_ratio = max(0.0, float(config.get("roi_margin_ratio", 0.20)))
+        regions: list[tuple[int, int, int, int]] = []
+
+        for detection in detections:
+            if detection.confidence >= confidence_upper:
+                continue
+            x1, y1, x2, y2 = detection.bbox
+            box_width = max(0.0, x2 - x1)
+            box_height = max(0.0, y2 - y1)
+            image_area = detection.image_width * detection.image_height
+            if image_area <= 0:
+                continue
+            if box_width * box_height / image_area < min_area_ratio:
+                continue
+
+            margin_x = box_width * margin_ratio
+            margin_y = box_height * margin_ratio
+            regions.append((
+                max(0, int(x1 - margin_x)),
+                max(0, int(y1 - margin_y)),
+                min(detection.image_width, int(x2 + margin_x)),
+                min(detection.image_height, int(y2 + margin_y)),
+            ))
+
+        return regions
