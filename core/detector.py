@@ -33,6 +33,8 @@ class Detector:
         self.l3_imgsz = l3_imgsz
         self.l3_conf = l3_conf
         self.l3_iou = l3_iou
+        # 保存推理设备，并在每次 Ultralytics 调用时显式传递。
+        self.device = device
 
         self._model = None
         self._names: dict[int, str] = {}
@@ -91,6 +93,7 @@ class Detector:
                 imgsz=imgsz,
                 conf=conf,
                 iou=iou,
+                device=self.device,
                 verbose=False,
             )
             for result in results:

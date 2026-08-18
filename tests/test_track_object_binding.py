@@ -61,7 +61,8 @@ def test_untracked_historical_detections_use_spatial_matching_without_binding():
     assert assoc._track_to_object == {}
 
 
-def test_first_tracked_cost_match_adopts_binding_for_historical_object():
+def test_bound_track_outside_spatial_gate_does_not_pollute_original_object():
+    """已绑定 Track 发生大幅跳变时必须降级，不能污染原对象。"""
     assoc = ObjectAssociator(debug_mode=True)
     historical = make_gd(frame_id=25, track_id=None, centroid=(100.0, 100.0))
     tracked = make_gd(frame_id=35, track_id=7, centroid=(102.0, 101.0))
@@ -74,10 +75,57 @@ def test_first_tracked_cost_match_adopts_binding_for_historical_object():
     assert assoc._track_to_object[logical_key] == historical_affected[0]
     assert assoc.map.get_all()[0].track_ids == {7}
 
-    # Once adopted, the same track remains attached even outside the spatial gate.
+    # 同一 Track 跳到远处时应创建新对象，并保留冲突审计。
     moved = make_gd(frame_id=36, track_id=7, centroid=(1000.0, 1000.0))
-    assert assoc.ingest_frame(36, [moved]) == historical_affected
+    moved_affected = assoc.ingest_frame(36, [moved])
+
+    assert moved_affected != historical_affected
+    assert len(assoc.map.get_all()) == 2
+    original = assoc.map.get_by_provisional(historical_affected[0])
+    replacement = assoc.map.get_by_provisional(moved_affected[0])
+    assert original.observation_count == 2
+    assert replacement.observation_count == 1
+    assert ReviewFlag.TRACK_CONFLICT in original.review_flags
+    assert ReviewFlag.TRACK_CONFLICT in replacement.review_flags
+    assert assoc.stats["track_binding_spatial_rejections"] == 1
+
+
+def test_disconnected_track_uses_spatial_matching_before_rebinding():
+    """断联 Track 位置仍一致时可回原对象，但必须走空间匹配。"""
+    assoc = ObjectAssociator(
+        debug_mode=True,
+        track_reactivate_max_gap_frames=5,
+    )
+    first = make_gd(frame_id=1, track_id=9, centroid=(100.0, 100.0))
+    first_affected = assoc.ingest_frame(1, [first])
+    reappeared = make_gd(frame_id=20, track_id=9, centroid=(103.0, 101.0))
+
+    second_affected = assoc.ingest_frame(20, [reappeared])
+
+    assert second_affected == first_affected
     assert len(assoc.map.get_all()) == 1
+    assert assoc.map.get_all()[0].observation_count == 2
+    assert assoc.stats["objects_matched_by_track"] == 0
+    assert assoc.stats["objects_matched_by_cost"] == 1
+    assert assoc.stats["track_binding_disconnect_rejections"] == 1
+    assert ReviewFlag.TRACK_CONFLICT not in assoc.map.get_all()[0].review_flags
+
+
+def test_connected_track_inside_spatial_gate_keeps_strong_binding():
+    """未断联且位置正常的 Track 应继续使用强关联。"""
+    assoc = ObjectAssociator(
+        debug_mode=True,
+        track_reactivate_max_gap_frames=10,
+    )
+    first = make_gd(frame_id=1, track_id=3, centroid=(100.0, 100.0))
+    first_affected = assoc.ingest_frame(1, [first])
+    nearby = make_gd(frame_id=2, track_id=3, centroid=(105.0, 103.0))
+
+    second_affected = assoc.ingest_frame(2, [nearby])
+
+    assert second_affected == first_affected
+    assert assoc.stats["objects_matched_by_track"] == 1
+    assert assoc.stats["objects_matched_by_cost"] == 0
 
 
 def test_same_object_repeated_binding():

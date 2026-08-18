@@ -9,9 +9,11 @@ from core.types import DetectionCandidate
 class FakeModel:
     def __init__(self):
         self.images = []
+        self.kwargs = []
 
     def __call__(self, image, **kwargs):
         self.images.append(image.copy())
+        self.kwargs.append(kwargs)
         boxes = SimpleNamespace(
             xyxy=np.array([[1.0, 2.0, 5.0, 10.0]]),
             cls=np.array([0]),
@@ -118,6 +120,22 @@ def test_l3_regions_are_empty_when_l3_is_disabled():
     )
 
     assert regions == []
+
+
+def test_detect_forwards_configured_device_to_ultralytics():
+    """配置的推理设备必须传给 Ultralytics 调用。"""
+    detector = Detector(model_path="", device="cpu")
+    model = FakeModel()
+    detector._model = model
+    detector._names = {0: "wrench"}
+
+    detector.detect(
+        image=np.zeros((20, 20, 3), dtype=np.uint8),
+        level="L2",
+        frame_id=1,
+    )
+
+    assert model.kwargs[0]["device"] == "cpu"
 
 
 def test_l3_regions_filter_and_expand_low_confidence_boxes():

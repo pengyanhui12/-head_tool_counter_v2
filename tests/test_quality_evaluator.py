@@ -114,3 +114,16 @@ def test_quality_evaluation_scale_must_be_in_valid_range():
         QualityEvaluator(quality_evaluation_scale=0)
     with np.testing.assert_raises(ValueError):
         QualityEvaluator(quality_evaluation_scale=1.1)
+
+
+def test_offline_mapping_gate_requires_exposure_and_sharpness():
+    """正式流水线的建图门控必须使用严格的 mapping 判断。"""
+    from apps.offline_scan import is_mapping_eligible
+
+    evaluator = QualityEvaluator(sharpness_threshold=20.0)
+    frame = Frame(1, 0.0, np.zeros((2, 2, 3), dtype=np.uint8))
+    frame.sharpness_score = 30.0
+    frame.exposure_score = 0.2
+
+    assert evaluator.is_acceptable(frame) is True
+    assert is_mapping_eligible(evaluator, frame) is False

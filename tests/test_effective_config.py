@@ -90,6 +90,81 @@ def test_config_loader_loads_fusion():
     assert cfg["center_merge_min_ios"] == 0.30
 
 
+def test_offline_detector_assembly_propagates_all_detector_config(monkeypatch):
+    """正式流水线装配必须传递模型、设备和 L1/L2/L3 参数。"""
+    from apps import offline_scan
+
+    captured = {}
+
+    class RecordingDetector:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+    monkeypatch.setattr(offline_scan, "Detector", RecordingDetector)
+    detector_cfg = {
+        "model": {"path": "weights/custom.pt", "device": "cpu"},
+        "levels": {
+            "L1": {"imgsz": 1024, "conf": 0.21, "iou": 0.61},
+            "L2": {"imgsz": 512, "conf": 0.12, "iou": 0.62},
+            "L3": {"imgsz": 896, "conf": 0.13, "iou": 0.63},
+        },
+    }
+
+    project_root = Path("D:/project-root")
+    detector = offline_scan._build_detector(detector_cfg, project_root)
+
+    assert isinstance(detector, RecordingDetector)
+    assert captured == {
+        "model_path": str(project_root / "weights" / "custom.pt"),
+        "device": "cpu",
+        "l1_imgsz": 1024,
+        "l1_conf": 0.21,
+        "l1_iou": 0.61,
+        "l2_imgsz": 512,
+        "l2_conf": 0.12,
+        "l2_iou": 0.62,
+        "l3_imgsz": 896,
+        "l3_conf": 0.13,
+        "l3_iou": 0.63,
+    }
+
+
+def test_offline_detector_assembly_preserves_absolute_model_path(monkeypatch):
+    """绝对模型路径不能再次拼接项目根目录。"""
+    from apps import offline_scan
+
+    captured = {}
+    absolute_model = Path("D:/models/custom.pt")
+
+    class RecordingDetector:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+    monkeypatch.setattr(offline_scan, "Detector", RecordingDetector)
+    offline_scan._build_detector(
+        {"model": {"path": str(absolute_model), "device": "cuda:1"}},
+        Path("ignored-root"),
+    )
+
+    assert captured["model_path"] == str(absolute_model)
+    assert captured["device"] == "cuda:1"
+
+
+def test_offline_coverage_assembly_propagates_all_coverage_config():
+    """覆盖地图必须使用 YAML 中的分辨率、最小面积和目标覆盖率。"""
+    from apps import offline_scan
+
+    coverage = offline_scan._build_coverage_map({
+        "grid_resolution": 37,
+        "minimum_valid_polygon_area": 123.0,
+        "target_coverage_ratio": 0.87,
+    })
+
+    assert coverage.grid_resolution == 37
+    assert coverage.minimum_valid_polygon_area == 123.0
+    assert coverage.target_coverage_ratio == 0.87
+
+
 def test_config_loader_caches():
     loader = ConfigLoader(Path(__file__).parent.parent / "configs")
     cfg1 = loader.pipeline

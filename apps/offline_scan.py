@@ -145,6 +145,49 @@ def should_run_l2(fc: int, interval: int = 3) -> bool:
     return fc % interval == 0
 
 
+def is_mapping_eligible(quality: QualityEvaluator, frame: Frame) -> bool:
+    """使用清晰度和曝光的严格条件判断帧是否适合建图。"""
+    return quality.is_acceptable_for_mapping(frame)
+
+
+def _build_detector(detector_cfg: dict, project_root: Path) -> Detector:
+    """根据 detector.yaml 完整装配检测器。"""
+    model_cfg = detector_cfg.get("model", {})
+    levels = detector_cfg.get("levels", {})
+    l1_cfg = levels.get("L1", {})
+    l2_cfg = levels.get("L2", {})
+    l3_cfg = levels.get("L3", {})
+
+    model_path = Path(model_cfg.get("path", "models/best.pt"))
+    if not model_path.is_absolute():
+        model_path = project_root / model_path
+
+    return Detector(
+        model_path=str(model_path),
+        device=model_cfg.get("device", "cuda:0"),
+        l1_imgsz=l1_cfg.get("imgsz", 1280),
+        l1_conf=l1_cfg.get("conf", 0.15),
+        l1_iou=l1_cfg.get("iou", 0.65),
+        l2_imgsz=l2_cfg.get("imgsz", 640),
+        l2_conf=l2_cfg.get("conf", 0.10),
+        l2_iou=l2_cfg.get("iou", 0.65),
+        l3_imgsz=l3_cfg.get("imgsz", 1280),
+        l3_conf=l3_cfg.get("conf", 0.10),
+        l3_iou=l3_cfg.get("iou", 0.65),
+    )
+
+
+def _build_coverage_map(coverage_cfg: dict) -> CoverageMap:
+    """根据 coverage.yaml 装配覆盖地图。"""
+    return CoverageMap(
+        grid_resolution=coverage_cfg.get("grid_resolution", 100),
+        minimum_valid_polygon_area=coverage_cfg.get(
+            "minimum_valid_polygon_area", 0.0
+        ),
+        target_coverage_ratio=coverage_cfg.get("target_coverage_ratio", 0.95),
+    )
+
+
 def _build_associator(acfg: dict) -> ObjectAssociator:
     return ObjectAssociator(
         max_position_distance_px=acfg.get("max_position_distance_px", 120.0),
@@ -211,6 +254,7 @@ def run_pipeline(
     acfg = loader.associator
     tcfg = loader.tracker
     detector_cfg = loader.detector
+    coverage_cfg = loader.coverage
     fcfg = detector_cfg.get("fusion", {})
     l3cfg = detector_cfg.get("l3", {})
     performance_enabled = resolve_performance_enabled(cfg, performance)
@@ -259,7 +303,7 @@ def run_pipeline(
         min_keyframe_interval_frames=min_kf_interval,
         emergency_keyframe_interval_frames=cfg.get("emergency_keyframe_interval_frames", 2),
     )
-    detector = Detector(model_path=str(_proj_root / "models" / "best.pt"))
+    detector = _build_detector(detector_cfg, _proj_root)
     fusion = DetectionFusion(
         iou_threshold=fcfg.get("iou_threshold", 0.65),
         center_merge_distance_px=fcfg.get("center_merge_distance_px", 40.0),
@@ -287,7 +331,7 @@ def run_pipeline(
     )
     projector = GlobalProjector()
     associator = _build_associator(acfg)
-    coverage = CoverageMap(grid_resolution=100)
+    coverage = _build_coverage_map(coverage_cfg)
     status = StatusPanel()
     recovery_mgr = RecoveryManager(matcher=matcher)
     if stats is not None:
@@ -319,7 +363,7 @@ def run_pipeline(
         fc += 1
         with timer("quality_ms"):
             frame = quality.evaluate(frame)
-        mapping_eligible = quality.is_acceptable(frame)
+        mapping_eligible = is_mapping_eligible(quality, frame)
         historical_keyframe = False
         if last_keyframe is None:
             initial_fallback.consider(frame)
@@ -655,9 +699,9 @@ def run_pipeline(
 
 def main():
     parser = argparse.ArgumentParser(description="Head Tool Counter - Offline Scan")
-    parser.add_argument("--video", default=r"D:\杭州供电段\头戴设备作业工具识别\260814拍摄测试\test.mp4")
+    parser.add_argument("--video", default=r"D:\杭州供电段\头戴设备作业工具识别\260814拍摄测试\d863fa0e831970c073fd4d8fbe42d559.mp4")
     parser.add_argument("--config-dir", default="configs")
-    parser.add_argument("--output-dir", default="./outputs1")
+    parser.add_argument("--output-dir", default="./outputs10")
     parser.add_argument(
         "--performance",
         action="store_true",

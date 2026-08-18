@@ -401,6 +401,125 @@ def test_online_gate_uses_ratio_and_class_overrides():
     assert assoc._online_gate_for_class("screwdriver") == 60.0
 
 
+def test_global_assignment_uses_projected_polygon_overlap_cost():
+    """位置代价接近时，投影重叠应把检测分配给几何一致的对象。"""
+    assoc = ObjectAssociator(
+        max_position_distance_px=200.0,
+        position_weight=0.55,
+        overlap_weight=0.20,
+        size_weight=0.10,
+        class_weight=0.15,
+        online_gate_ratio=1.0,
+    )
+    position_favored = make_review_object(
+        "P-0001",
+        status=ConfirmationStatus.CONFIRMED,
+        frame_id=1,
+        centroid=(100.0, 100.0),
+        area=1_600.0,
+    )
+    overlap_favored = make_review_object(
+        "P-0002",
+        status=ConfirmationStatus.CONFIRMED,
+        frame_id=2,
+        centroid=(105.0, 100.0),
+        area=1_600.0,
+    )
+    position_favored.observations[0].projected_corners = np.array([
+        [40.0, 40.0], [80.0, 40.0], [80.0, 80.0], [40.0, 80.0],
+    ])
+    overlap_favored.observations[0].projected_corners = np.array([
+        [80.0, 80.0], [120.0, 80.0], [120.0, 120.0], [80.0, 120.0],
+    ])
+    add_review_objects(assoc, position_favored, overlap_favored)
+
+    detection = make_gd(
+        frame_id=10,
+        keyframe_id=10,
+        track_id=None,
+        centroid=(101.0, 100.0),
+        area=1_600.0,
+    )
+    detection.projected_corners = np.array([
+        [80.0, 80.0], [120.0, 80.0], [120.0, 120.0], [80.0, 120.0],
+    ])
+
+    affected = assoc.ingest_frame(10, [detection])
+
+    assert affected == [overlap_favored.provisional_id]
+    assert overlap_favored.observation_count == 2
+    assert position_favored.observation_count == 1
+
+
+def test_track_conflict_block_does_not_imply_likely_duplicate():
+    """Track 冲突表示身份不可靠，不等同于两个对象疑似重复。"""
+    assoc = ObjectAssociator(centroid_distance_threshold=30.0)
+    primary = make_review_object(
+        "P-0001",
+        status=ConfirmationStatus.CONFIRMED,
+        frame_id=10,
+        centroid=(100.0, 100.0),
+    )
+    secondary = make_review_object(
+        "P-0002",
+        status=ConfirmationStatus.CONFIRMED,
+        frame_id=20,
+        centroid=(300.0, 100.0),
+    )
+    primary.track_ids.add(7)
+    secondary.track_ids.add(7)
+    primary.review_flags.add(ReviewFlag.TRACK_CONFLICT)
+    secondary.review_flags.add(ReviewFlag.TRACK_CONFLICT)
+    add_review_objects(assoc, primary, secondary)
+
+    assoc.final_review()
+
+    assert primary.confirmation_status == ConfirmationStatus.CONFIRMED
+    assert secondary.confirmation_status == ConfirmationStatus.CONFIRMED
+    assert ReviewFlag.TRACK_CONFLICT in primary.review_flags
+    assert ReviewFlag.TRACK_CONFLICT in secondary.review_flags
+    assert ReviewFlag.LIKELY_DUPLICATE not in primary.review_flags
+    assert ReviewFlag.LIKELY_DUPLICATE not in secondary.review_flags
+
+
+def test_track_conflict_with_cooccurrence_does_not_imply_likely_duplicate():
+    """共现先于冲突返回时，Track 冲突仍不应被误报为疑似重复。"""
+    assoc = ObjectAssociator(centroid_distance_threshold=30.0)
+    primary = make_review_object(
+        "P-0001",
+        status=ConfirmationStatus.CONFIRMED,
+        frame_id=10,
+        centroid=(100.0, 100.0),
+    )
+    secondary = make_review_object(
+        "P-0002",
+        status=ConfirmationStatus.CONFIRMED,
+        frame_id=20,
+        centroid=(300.0, 100.0),
+    )
+    primary.track_ids.add(7)
+    secondary.track_ids.add(7)
+    primary.review_flags.add(ReviewFlag.TRACK_CONFLICT)
+    secondary.review_flags.add(ReviewFlag.TRACK_CONFLICT)
+    add_review_objects(assoc, primary, secondary)
+
+    # 同时记录共现，复现 MergePolicy 优先返回 co_occurrence 的实际场景。
+    pair = frozenset([primary.provisional_id, secondary.provisional_id])
+    assoc._co_occurred_pairs.add(pair)
+    assoc._merge_policy.record_co_occurrence(
+        5,
+        primary.provisional_id,
+        secondary.provisional_id,
+    )
+
+    assoc.final_review()
+
+    assert ReviewFlag.TRACK_CONFLICT in primary.review_flags
+    assert ReviewFlag.TRACK_CONFLICT in secondary.review_flags
+    assert ReviewFlag.LIKELY_DUPLICATE not in primary.review_flags
+    assert ReviewFlag.LIKELY_DUPLICATE not in secondary.review_flags
+
+
 def test_object_associator_preserves_positional_debug_mode_compatibility():
     legacy_positional_args = (
         120.0,

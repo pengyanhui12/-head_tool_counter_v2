@@ -4,15 +4,37 @@ from shapely.geometry import Polygon, Point
 
 
 class CoverageMap:
-    def __init__(self, grid_resolution: int = 100):
+    def __init__(
+        self,
+        grid_resolution: int = 100,
+        minimum_valid_polygon_area: float = 0.0,
+        target_coverage_ratio: float = 0.95,
+    ):
+        if grid_resolution <= 0:
+            raise ValueError("grid_resolution must be positive")
+        if minimum_valid_polygon_area < 0:
+            raise ValueError("minimum_valid_polygon_area must be non-negative")
+        if not 0.0 <= target_coverage_ratio <= 1.0:
+            raise ValueError("target_coverage_ratio must be in [0, 1]")
         self.grid_resolution = grid_resolution
+        self.minimum_valid_polygon_area = minimum_valid_polygon_area
+        self.target_coverage_ratio = target_coverage_ratio
         self._polys: list[Polygon] = []
         self._bounds: tuple[float, float, float, float] | None = None
 
     def update(self, frame_id: int, projected_fov_polygon: Polygon) -> None:
-        if projected_fov_polygon.is_empty or projected_fov_polygon.area <= 0:
+        # 过滤无效或面积过小的投影视野，避免噪声污染覆盖率。
+        if (
+            projected_fov_polygon.is_empty
+            or projected_fov_polygon.area <= 0
+            or projected_fov_polygon.area < self.minimum_valid_polygon_area
+        ):
             return
         self._polys.append(projected_fov_polygon)
+
+    def is_target_reached(self, region_polygon: Polygon) -> bool:
+        """判断指定区域是否已经达到配置的目标覆盖率。"""
+        return self.get_coverage(region_polygon) >= self.target_coverage_ratio
 
     def get_coverage(self, region_polygon: Polygon) -> float:
         if not self._polys:

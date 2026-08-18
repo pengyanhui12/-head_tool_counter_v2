@@ -20,10 +20,58 @@ class EvidenceExtractor:
     def select_best(obj: GlobalObject) -> GlobalDetection | None:
         if not obj.observations:
             return None
-        return max(
-            obj.observations,
-            key=lambda o: o.sharpness * o.detection_confidence,
+
+        # 只有全局几何有效时才做空间一致性判断；否则保持原有回退行为。
+        object_centroid = np.asarray(obj.centroid_xy, dtype=float)
+        valid_observations = [
+            observation
+            for observation in obj.observations
+            if np.all(np.isfinite(observation.polygon_centroid))
+        ]
+        if not np.all(np.isfinite(object_centroid)) or not valid_observations:
+            return max(
+                obj.observations,
+                key=lambda observation: (
+                    observation.sharpness
+                    * observation.detection_confidence
+                ),
+            )
+
+        # 用对象典型边长归一化距离，使不同尺寸工具采用一致的空间惩罚。
+        valid_areas = [
+            float(observation.polygon_area)
+            for observation in valid_observations
+            if np.isfinite(observation.polygon_area)
+            and observation.polygon_area > 0
+        ]
+        spatial_scale = (
+            float(np.sqrt(np.median(valid_areas)))
+            if valid_areas
+            else 1.0
         )
+        spatial_scale = max(spatial_scale, 1.0)
+
+        def evidence_score(observation: GlobalDetection) -> float:
+            """综合图像质量、映射质量和全局位置一致性。"""
+            observation_centroid = np.asarray(
+                observation.polygon_centroid, dtype=float
+            )
+            normalized_distance = float(
+                np.linalg.norm(observation_centroid - object_centroid)
+                / spatial_scale
+            )
+            spatial_consistency = 1.0 / (1.0 + normalized_distance ** 2)
+            mapping_quality = float(np.clip(
+                observation.mapping_quality, 0.0, 1.0
+            ))
+            return (
+                max(float(observation.sharpness), 0.0)
+                * max(float(observation.detection_confidence), 0.0)
+                * mapping_quality
+                * spatial_consistency
+            )
+
+        return max(valid_observations, key=evidence_score)
 
     def extract(
         self,

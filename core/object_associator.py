@@ -15,6 +15,7 @@ from numbers import Real
 
 import numpy as np
 from scipy.optimize import linear_sum_assignment
+from shapely.geometry import Polygon
 
 from core.types import (
     GlobalDetection,
@@ -149,6 +150,8 @@ class ObjectAssociator:
             "merge_blocked_by_cooccurrence": 0,
             "merge_blocked_by_frame_overlap": 0,
             "track_binding_conflicts": 0,
+            "track_binding_spatial_rejections": 0,
+            "track_binding_disconnect_rejections": 0,
             "same_frame_duplicate_observations": 0,
             "track_reactivations": 0,
             "track_reactivation_missed": 0,
@@ -160,6 +163,54 @@ class ObjectAssociator:
             return gate
         ratio = self.per_class_gate_ratios.get(class_name, self.online_gate_ratio)
         return self.max_position_distance * ratio
+
+    @staticmethod
+    def _projected_polygon(points: np.ndarray) -> Polygon | None:
+        """将投影角点转换为可计算重叠的有效多边形。"""
+        try:
+            coordinates = np.asarray(points, dtype=float)
+            if coordinates.ndim != 2 or coordinates.shape[0] < 3:
+                return None
+            if not np.all(np.isfinite(coordinates)):
+                return None
+            polygon = Polygon(coordinates)
+            if polygon.is_empty or not polygon.is_valid or polygon.area <= 0:
+                return None
+            return polygon
+        except (TypeError, ValueError):
+            return None
+
+    def _overlap_cost(
+        self,
+        detection: GlobalDetection,
+        obj: GlobalObject,
+    ) -> float:
+        """返回 ``1 - 最大投影 IoU``，无有效几何时使用最差代价 1。"""
+        detection_polygon = self._projected_polygon(
+            detection.projected_corners
+        )
+        if detection_polygon is None:
+            return 1.0
+
+        maximum_iou = 0.0
+        # 最近观测最能反映对象当前投影，同时限制关联计算量。
+        for observation in obj.observations[-10:]:
+            object_polygon = self._projected_polygon(
+                observation.projected_corners
+            )
+            if object_polygon is None:
+                continue
+            union_area = detection_polygon.union(object_polygon).area
+            if union_area <= 0:
+                continue
+            intersection_area = detection_polygon.intersection(
+                object_polygon
+            ).area
+            maximum_iou = max(
+                maximum_iou,
+                float(intersection_area / union_area),
+            )
+        return 1.0 - maximum_iou
 
     def _is_track_disconnected(self, track_id: int, current_frame_id: int) -> bool:
         """判断一个 track 是否已断联太久（不应强关联回同一对象）。"""
@@ -190,6 +241,8 @@ class ObjectAssociator:
         assigned_object_ids: set[str] = set()
         assigned_detection_indices: set[int] = set()
         unmatched_gds: list[tuple[int, GlobalDetection]] = []
+        # 被安全门控降级的绑定先临时释放，允许本帧重新做空间匹配。
+        downgraded_bindings: dict[tuple[int, int], str] = {}
 
         for di, gd in enumerate(global_detections):
             self._all_gd.append(gd)
@@ -205,6 +258,30 @@ class ObjectAssociator:
                     continue
                 obj = self.map.get_by_provisional(existing_pid)
                 if obj is not None and self._class_compatible(obj.class_name, gd.class_name):
+                    disconnected = self._is_track_disconnected(
+                        gd.track_id, frame_id
+                    )
+                    position_distance = float(np.linalg.norm(
+                        np.array(gd.polygon_centroid)
+                        - np.array(obj.centroid_xy)
+                    ))
+                    outside_spatial_gate = (
+                        not np.isfinite(position_distance)
+                        or position_distance
+                        > self._online_gate_for_class(obj.class_name)
+                    )
+                    if disconnected or outside_spatial_gate:
+                        # 断联或位置异常时不能继承旧身份，降级到全局匹配。
+                        downgraded_bindings[logical_key] = existing_pid
+                        self._track_to_object.pop(logical_key, None)
+                        stat_name = (
+                            "track_binding_disconnect_rejections"
+                            if disconnected
+                            else "track_binding_spatial_rejections"
+                        )
+                        self.stats[stat_name] += 1
+                        unmatched_gds.append((di, gd))
+                        continue
                     # 检查同帧重复 observation
                     if self._has_observation_in_frame(obj, frame_id):
                         self.stats["same_frame_duplicate_observations"] += 1
@@ -270,8 +347,10 @@ class ObjectAssociator:
                 size_cost = (abs(gd.polygon_area - (area_min + area_max) / 2) / area_max
                              if area_max > 0 else 0.0)
                 class_cost = self._class_cost(obj.class_name, gd.class_name)
+                overlap_cost = self._overlap_cost(gd, obj)
                 global_cost[di, oi] = (
                     self.w_pos * pos_dist / self.max_position_distance
+                    + self.w_overlap * overlap_cost
                     + self.w_size * min(size_cost, 1.0)
                     + self.w_class * class_cost
                 )
@@ -318,12 +397,36 @@ class ObjectAssociator:
             if gd.track_id is not None:
                 self._track_last_seen_frame[gd.track_id] = frame_id
 
+        self._finalize_downgraded_bindings(downgraded_bindings)
+
         # 记录共现
         self._record_co_occurrences(frame_id, global_detections)
 
         self._prune(frame_id)
         self._validate_frame_invariants(frame_id)
         return affected
+
+    def _finalize_downgraded_bindings(
+        self,
+        downgraded_bindings: dict[tuple[int, int], str],
+    ) -> None:
+        """完成降级绑定审计，并阻止冲突对象在后处理中自动合并。"""
+        for logical_key, previous_object_id in downgraded_bindings.items():
+            current_object_id = self._track_to_object.get(logical_key)
+            if current_object_id is None:
+                # 本帧没有找到新归属时恢复旧绑定，避免无故丢失身份信息。
+                self._track_to_object[logical_key] = previous_object_id
+                continue
+            if current_object_id == previous_object_id:
+                continue
+
+            previous = self.map.get_by_provisional(previous_object_id)
+            current = self.map.get_by_provisional(current_object_id)
+            if previous is not None:
+                previous.review_flags.add(ReviewFlag.TRACK_CONFLICT)
+            if current is not None:
+                current.review_flags.add(ReviewFlag.TRACK_CONFLICT)
+            self.stats["track_binding_conflicts"] += 1
 
     def _validate_frame_invariants(self, frame_id: int) -> None:
         """验证不变量 O8 + O9。"""
@@ -503,8 +606,21 @@ class ObjectAssociator:
                             self.stats["merge_blocked_by_cooccurrence"] += 1
                         elif reason == "observation_frame_overlap":
                             self.stats["merge_blocked_by_frame_overlap"] += 1
-                        primary.review_flags.add(ReviewFlag.LIKELY_DUPLICATE)
-                        secondary.review_flags.add(ReviewFlag.LIKELY_DUPLICATE)
+                        # 合并策略只返回首个阻止原因，因此直接检查对象标记，
+                        # 避免共现或帧重叠掩盖 Track 冲突并误报疑似重复。
+                        has_track_conflict = (
+                            ReviewFlag.TRACK_CONFLICT
+                            in primary.review_flags
+                            or ReviewFlag.TRACK_CONFLICT
+                            in secondary.review_flags
+                        )
+                        if not has_track_conflict:
+                            primary.review_flags.add(
+                                ReviewFlag.LIKELY_DUPLICATE
+                            )
+                            secondary.review_flags.add(
+                                ReviewFlag.LIKELY_DUPLICATE
+                            )
 
     def _mark_close_duplicates(self) -> None:
         """质心接近但无 shared track → 仅标记 LIKELY_DUPLICATE，不自动合并。"""
