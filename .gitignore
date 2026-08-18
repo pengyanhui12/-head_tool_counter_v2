@@ -6,3 +6,13 @@ outputs/
 *.pth
 .venv/
 .env
+# 运行输出
+apps/outputs*/
+debug_output/
+# 本地工具配置
+.claude/
+# 视频数据
+*.mp4
+*.avi
+*.mov
+*.mkv
