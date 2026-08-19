@@ -1,5 +1,7 @@
 matcher:
   mode: sift
+  # 缓存近期图像的SIFT特征；设为0可关闭，便于消融和问题回退。
+  feature_cache_size: 4
   ratio_test: 0.75
   ransac_threshold_px: 3.0
   min_good_matches: 20

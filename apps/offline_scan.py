@@ -135,6 +135,55 @@ def _build_coverage_map(coverage_cfg: dict) -> CoverageMap:
     )
 
 
+def _build_matcher(matcher_cfg: dict) -> FeatureMatcher:
+    """使用正式Matcher配置构造可缓存的SIFT匹配器。"""
+    return FeatureMatcher(
+        min_good_matches=matcher_cfg.get("min_good_matches", 20),
+        min_inliers=matcher_cfg.get("min_inliers", 30),
+        min_inlier_ratio=matcher_cfg.get("min_inlier_ratio", 0.30),
+        max_reprojection_error=matcher_cfg.get(
+            "max_reprojection_error_px", 3.0
+        ),
+        min_occupied_quadrants=matcher_cfg.get(
+            "min_occupied_quadrants", 3
+        ),
+        min_inlier_bbox_area_ratio=matcher_cfg.get(
+            "min_inlier_bbox_area_ratio", 0.15
+        ),
+        roi_center_ratio=matcher_cfg.get("roi_center_ratio", 0.70),
+        max_projected_area_ratio=matcher_cfg.get(
+            "max_projected_area_ratio", 50.0
+        ),
+        min_projected_area_ratio=matcher_cfg.get(
+            "min_projected_area_ratio", 0.01
+        ),
+        feature_cache_size=matcher_cfg.get("feature_cache_size", 4),
+    )
+
+
+def _build_keyframe_selector(
+    pipeline_cfg: dict,
+    matcher,
+) -> KeyframeSelector:
+    """集中接入关键帧间隔和尾窗预筛配置。"""
+    return KeyframeSelector(
+        max_interval=pipeline_cfg.get(
+            "max_keyframe_interval_frames", 30
+        ),
+        end_window_frames=pipeline_cfg.get("end_window_frames", 30),
+        end_window_match_candidates=pipeline_cfg.get(
+            "end_window_match_candidates", 6
+        ),
+        matcher=matcher,
+        min_keyframe_interval_frames=pipeline_cfg.get(
+            "min_keyframe_interval_frames", 5
+        ),
+        emergency_keyframe_interval_frames=pipeline_cfg.get(
+            "emergency_keyframe_interval_frames", 2
+        ),
+    )
+
+
 def _build_associator(acfg: dict) -> ObjectAssociator:
     return ObjectAssociator(
         max_position_distance_px=acfg.get("max_position_distance_px", 120.0),
@@ -215,7 +264,6 @@ def run_pipeline(
     l2_interval = cfg.get("l2_interval_frames", 3)
     max_interval = cfg.get("max_keyframe_interval_frames", 30)
     end_window = cfg.get("end_window_frames", 30)
-    min_kf_interval = cfg.get("min_keyframe_interval_frames", 5)
 
     # Modules
     reader = VideoReader(video_path, max_fps=cfg.get("max_input_fps", 30))
@@ -229,26 +277,10 @@ def run_pipeline(
         bright_pixel_threshold=cfg.get("bright_pixel_threshold", 245),
     )
     frame_buffer = FrameBuffer(max_size=end_window)
-    matcher = FeatureMatcher(
-        min_good_matches=mcfg.get("min_good_matches", 20),
-        min_inliers=mcfg.get("min_inliers", 30),
-        min_inlier_ratio=mcfg.get("min_inlier_ratio", 0.30),
-        max_reprojection_error=mcfg.get("max_reprojection_error_px", 3.0),
-        min_occupied_quadrants=mcfg.get("min_occupied_quadrants", 3),
-        min_inlier_bbox_area_ratio=mcfg.get("min_inlier_bbox_area_ratio", 0.15),
-        roi_center_ratio=mcfg.get("roi_center_ratio", 0.70),
-        max_projected_area_ratio=mcfg.get("max_projected_area_ratio", 50.0),
-        min_projected_area_ratio=mcfg.get("min_projected_area_ratio", 0.01),
-    )
+    matcher = _build_matcher(mcfg)
     matcher = profiler.wrap_matcher(matcher)
     graph = HomographyGraph()
-    selector = KeyframeSelector(
-        max_interval=max_interval,
-        end_window_frames=end_window,
-        matcher=matcher,
-        min_keyframe_interval_frames=min_kf_interval,
-        emergency_keyframe_interval_frames=cfg.get("emergency_keyframe_interval_frames", 2),
-    )
+    selector = _build_keyframe_selector(cfg, matcher)
     detector = _build_detector(detector_cfg, _proj_root)
     fusion = DetectionFusion(
         iou_threshold=fcfg.get("iou_threshold", 0.65),
@@ -659,7 +691,7 @@ def main():
     parser = argparse.ArgumentParser(description="Head Tool Counter - Offline Scan")
     parser.add_argument("--video", default=r"D:\杭州供电段\头戴设备作业工具识别\260814拍摄测试\test.mp4")
     parser.add_argument("--config-dir", default="configs")
-    parser.add_argument("--output-dir", default="./outputs11")
+    parser.add_argument("--output-dir", default="outputs12")
     parser.add_argument(
         "--performance",
         action="store_true",

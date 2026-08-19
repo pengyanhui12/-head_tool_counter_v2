@@ -1,4 +1,6 @@
 """特征匹配器——SIFT + RANSAC + 双图空间分布 + 退化检查"""
+from collections import OrderedDict
+
 import cv2
 import numpy as np
 
@@ -21,7 +23,14 @@ class FeatureMatcher:
         max_projected_area_ratio: float = 10.0,
         min_projected_area_ratio: float = 0.10,
         max_condition_number: float = 5e5,
+        feature_cache_size: int = 4,
     ):
+        if (
+            not isinstance(feature_cache_size, int)
+            or isinstance(feature_cache_size, bool)
+            or feature_cache_size < 0
+        ):
+            raise ValueError("feature_cache_size must be a non-negative integer")
         self.mode = mode
         self.ratio_test = ratio_test
         self.ransac_threshold = ransac_threshold_px
@@ -35,7 +44,12 @@ class FeatureMatcher:
         self.max_projected_area_ratio = max_projected_area_ratio
         self.min_projected_area_ratio = min_projected_area_ratio
         self.max_condition_number = max_condition_number
+        self.feature_cache_size = feature_cache_size
         self._detector = cv2.SIFT_create()
+        # 缓存图像强引用以防对象ID复用；小容量限制额外图像内存占用。
+        self._feature_cache: OrderedDict[int, tuple[np.ndarray, tuple]] = (
+            OrderedDict()
+        )
 
     def _to_gray(self, image: np.ndarray) -> np.ndarray:
         if image.ndim == 2:
@@ -53,9 +67,29 @@ class FeatureMatcher:
         return mask
 
     def extract_features(self, image: np.ndarray):
+        cache_key = id(image)
+        cached = self._feature_cache.get(cache_key)
+        if cached is not None:
+            cached_image, cached_features = cached
+            if cached_image is image:
+                self._feature_cache.move_to_end(cache_key)
+                return cached_features
+            # 理论上强引用会阻止ID复用；仍保留防御检查以保护缓存契约。
+            self._feature_cache.pop(cache_key, None)
+
         gray = self._to_gray(image)
         mask = self._roi_mask(*gray.shape)
-        return self._detector.detectAndCompute(gray, mask)
+        features = self._detector.detectAndCompute(gray, mask)
+        if self.feature_cache_size > 0:
+            self._feature_cache[cache_key] = (image, features)
+            self._feature_cache.move_to_end(cache_key)
+            while len(self._feature_cache) > self.feature_cache_size:
+                self._feature_cache.popitem(last=False)
+        return features
+
+    def clear_feature_cache(self) -> None:
+        """图像可能被原地修改时，由调用方显式清除陈旧特征。"""
+        self._feature_cache.clear()
 
     def match(self, source_image: np.ndarray, target_image: np.ndarray) -> MatchResult:
         kp_src, desc_src = self.extract_features(source_image)

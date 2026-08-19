@@ -1,9 +1,21 @@
 """FeatureMatcher 单元测试"""
 import numpy as np
 import cv2
+import pytest
 
 from core.feature_matcher import FeatureMatcher
 from core.types import MatchResult
+
+
+class _CountingDetector:
+    """只统计特征提取次数，返回可触发安全失败的空特征。"""
+
+    def __init__(self):
+        self.calls = 0
+
+    def detectAndCompute(self, gray, mask):
+        self.calls += 1
+        return [], None
 
 
 def _make_feature_image(w: int = 640, h: int = 480, seed: int = 0,
@@ -74,3 +86,62 @@ def test_reprojection_error_calculated():
     result = m.match(img0, img1)
     assert result.reprojection_error != float("inf")
     assert result.reprojection_error >= 0.0
+
+
+def test_feature_cache_reuses_same_image_object():
+    matcher = FeatureMatcher(feature_cache_size=2)
+    detector = _CountingDetector()
+    matcher._detector = detector
+    image = np.zeros((16, 16, 3), dtype=np.uint8)
+
+    matcher.match(image, image)
+    matcher.match(image, image)
+
+    assert detector.calls == 1
+
+
+def test_feature_cache_evicts_least_recently_used_image():
+    matcher = FeatureMatcher(feature_cache_size=2)
+    detector = _CountingDetector()
+    matcher._detector = detector
+    first = np.zeros((16, 16, 3), dtype=np.uint8)
+    second = np.ones((16, 16, 3), dtype=np.uint8)
+    third = np.full((16, 16, 3), 2, dtype=np.uint8)
+
+    matcher.extract_features(first)
+    matcher.extract_features(second)
+    matcher.extract_features(first)  # first成为最近使用项，second应先被淘汰。
+    matcher.extract_features(third)
+    matcher.extract_features(second)
+
+    assert detector.calls == 4
+
+
+def test_feature_cache_can_be_cleared():
+    matcher = FeatureMatcher(feature_cache_size=2)
+    detector = _CountingDetector()
+    matcher._detector = detector
+    image = np.zeros((16, 16, 3), dtype=np.uint8)
+
+    matcher.extract_features(image)
+    matcher.clear_feature_cache()
+    matcher.extract_features(image)
+
+    assert detector.calls == 2
+
+
+def test_zero_feature_cache_size_disables_cache():
+    matcher = FeatureMatcher(feature_cache_size=0)
+    detector = _CountingDetector()
+    matcher._detector = detector
+    image = np.zeros((16, 16, 3), dtype=np.uint8)
+
+    matcher.extract_features(image)
+    matcher.extract_features(image)
+
+    assert detector.calls == 2
+
+
+def test_negative_feature_cache_size_is_rejected():
+    with pytest.raises(ValueError, match="feature_cache_size"):
+        FeatureMatcher(feature_cache_size=-1)

@@ -17,6 +17,7 @@ def test_config_loader_loads_pipeline():
     assert cfg["detection_sharpness_threshold"] == 63.0
     assert cfg["sharpness_threshold"] == 89.0
     assert cfg["enable_performance_stats"] is False
+    assert cfg["end_window_match_candidates"] == 6
 
 
 def test_config_loader_loads_tracker():
@@ -33,6 +34,50 @@ def test_config_loader_loads_matcher():
     cfg = loader.matcher
     assert "min_good_matches" in cfg
     assert "min_inliers" in cfg
+    assert cfg["feature_cache_size"] == 4
+
+
+def test_offline_matcher_assembly_propagates_feature_cache_size(monkeypatch):
+    from apps import offline_scan
+
+    captured = {}
+
+    class RecordingMatcher:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+    monkeypatch.setattr(offline_scan, "FeatureMatcher", RecordingMatcher)
+
+    offline_scan._build_matcher({"feature_cache_size": 7})
+
+    assert captured["feature_cache_size"] == 7
+
+
+def test_offline_selector_assembly_propagates_end_window_candidates(
+    monkeypatch,
+):
+    from apps import offline_scan
+
+    captured = {}
+
+    class RecordingSelector:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+    monkeypatch.setattr(offline_scan, "KeyframeSelector", RecordingSelector)
+
+    matcher = object()
+    offline_scan._build_keyframe_selector(
+        {
+            "max_keyframe_interval_frames": 30,
+            "end_window_frames": 30,
+            "end_window_match_candidates": 8,
+        },
+        matcher,
+    )
+
+    assert captured["matcher"] is matcher
+    assert captured["end_window_match_candidates"] == 8
 
 
 def test_config_loader_loads_associator():

@@ -36,6 +36,7 @@ class KeyframeSelector:
         max_interval: int = 30,
         end_window_frames: int = 30,
         end_best: int = 2,
+        end_window_match_candidates: int = 6,
         min_keyframe_interval_frames: int = 5,
         emergency_keyframe_interval_frames: int = 2,
         matcher: FeatureMatcher | None = None,
@@ -43,6 +44,7 @@ class KeyframeSelector:
         self.max_interval = max_interval
         self.end_window_frames = end_window_frames
         self.end_best = end_best
+        self.end_window_match_candidates = int(end_window_match_candidates)
         self.min_keyframe_interval = min_keyframe_interval_frames
         self.emergency_keyframe_interval = emergency_keyframe_interval_frames
         self._matcher = matcher or FeatureMatcher()
@@ -122,8 +124,9 @@ class KeyframeSelector:
         if not end_frames or self._last_kf_gray is None:
             return sorted(end_frames[: self.end_best], key=lambda f: f.frame_id)
 
+        match_candidates = self._prefilter_end_frames(end_frames)
         scored = []
-        for f in end_frames:
+        for f in match_candidates:
             mr = self._matcher.match(f.image, self._last_kf_gray)
             score = f.sharpness_score * (mr.num_inliers if mr.valid else 0)
             scored.append((score, f))
@@ -132,6 +135,31 @@ class KeyframeSelector:
             [f for _, f in scored[: self.end_best]],
             key=lambda f: f.frame_id,
         )
+
+    def _prefilter_end_frames(self, end_frames: list[Frame]) -> list[Frame]:
+        """按时间分段选择高质量帧，减少尾窗全量SIFT匹配。"""
+        ordered = sorted(end_frames, key=lambda frame: frame.frame_id)
+        candidate_count = self.end_window_match_candidates
+        if candidate_count <= 0 or candidate_count >= len(ordered):
+            return ordered
+
+        selected = []
+        frame_count = len(ordered)
+        for index in range(candidate_count):
+            start = index * frame_count // candidate_count
+            end = (index + 1) * frame_count // candidate_count
+            segment = ordered[start:end]
+            # 质量相同时优先更晚帧，确保结果确定并覆盖视频末端。
+            selected.append(max(
+                segment,
+                key=lambda frame: (
+                    frame.sharpness_score * frame.exposure_score,
+                    frame.sharpness_score,
+                    frame.exposure_score,
+                    frame.frame_id,
+                ),
+            ))
+        return selected
 
     def _check_triggers(
         self, frame: Frame, ctx: KeyframeTriggerContext

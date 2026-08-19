@@ -201,6 +201,18 @@ H_current_to_previous
 
 匹配结果还要通过内点数、内点率、重投影误差、空间分布、面积变化和矩阵条件数检查。
 
+`FeatureMatcher` 默认缓存最近4张图像的SIFT关键点和描述子，仅当输入是
+同一个 `numpy.ndarray` 对象时命中。流水线因此将质量评估后的
+`Frame.image` 视为只读数据；若原地修改图像，必须调用
+`clear_feature_cache()`。可在 `matcher.yaml` 将
+`feature_cache_size` 设为0以关闭缓存并执行消融对比。
+
+视频结束时不会再对尾窗30帧全部执行SIFT。系统按时间把尾窗划分为6段，
+每段按清晰度、曝光质量和帧号确定性选择1帧，再对最多6个候选运行完整
+SIFT并选择最佳2帧。`pipeline.yaml` 中
+`end_window_match_candidates` 控制候选数；设为0或不小于尾窗帧数可恢复
+旧的全量匹配行为。
+
 结果：
 
 - `ACCEPTED`：单应矩阵有效；
@@ -525,7 +537,11 @@ python -m pytest tests/test_effective_config.py -v
 9. `core/report_generator.py`：理解最终计数；
 10. `tests/`：理解不能破坏的业务不变量。
 
-## 23. 后续值得独立实施的能力
+## 23. Global Mosaic 生成流程
+
+`core/global_mosaic.py` 先根据正式计数对象和审核候选的投影角点、质心规划最终画布，再按原节点顺序融合抽样关键帧。视频在该阶段只打开一次，每个抽样关键帧最多执行一次 `warpPerspective()`；透明边界的目标缓冲区会显式清零，避免未初始化像素进入融合结果。网格、纹理、对象标注的绘制顺序保持不变。单帧读取失败时跳过该帧，视频无法打开或缺少有效对象坐标时不生成 Mosaic。
+
+## 24. 后续值得独立实施的能力
 
 以下内容目前尚未形成完整闭环，适合分别设计和测试：
 

@@ -1,11 +1,189 @@
-"""全局拼接可视化 — 将关键帧 warped 到全局画布，绘制检测框和对象标注"""
+"""全局拼接可视化：在统一坐标系中融合关键帧并绘制对象标注。"""
+
 from pathlib import Path
 
 import cv2
 import numpy as np
 
-from core.types import GlobalObject
 from core.report_generator import get_display_objects
+from core.types import GlobalObject
+
+
+_OBJECT_COLORS = [
+    (0, 255, 0),
+    (0, 255, 255),
+    (255, 0, 255),
+    (255, 255, 0),
+    (0, 128, 255),
+    (255, 128, 0),
+    (128, 255, 0),
+    (255, 0, 128),
+    (0, 200, 100),
+    (200, 0, 200),
+    (200, 200, 0),
+    (0, 100, 255),
+]
+
+
+def _sample_nodes(nodes: list[tuple], max_keyframes: int) -> list[tuple]:
+    """沿用原抽样规则，保证关键帧集合和融合顺序不变。"""
+    if isinstance(max_keyframes, bool) or not isinstance(max_keyframes, int):
+        raise ValueError("max_keyframes must be a positive integer")
+    if max_keyframes <= 0:
+        raise ValueError("max_keyframes must be a positive integer")
+    step = max(1, len(nodes) // max_keyframes)
+    return nodes[::step]
+
+
+def _collect_object_points(objects: list[GlobalObject]) -> np.ndarray | None:
+    """收集有限投影角点和质心，防止异常坐标生成无效画布。"""
+    groups: list[np.ndarray] = []
+    for obj in objects:
+        for observation in obj.observations:
+            corners = getattr(observation, "projected_corners", None)
+            if corners is None or len(corners) < 4:
+                continue
+            points = np.asarray(corners, dtype=float)
+            if points.ndim == 2 and points.shape[1] == 2:
+                finite_points = points[np.all(np.isfinite(points), axis=1)]
+                if len(finite_points) > 0:
+                    groups.append(finite_points)
+
+        centroid = np.asarray(obj.centroid_xy, dtype=float)
+        if centroid.shape == (2,) and np.all(np.isfinite(centroid)):
+            groups.append(centroid.reshape(1, 2))
+
+    return np.vstack(groups) if groups else None
+
+
+def _plan_canvas(
+    points: np.ndarray,
+) -> tuple[int, int, float, float, float]:
+    """按原最终画布规则返回宽、高、缩放与全局坐标偏移。"""
+    x_min, y_min = points.min(axis=0)
+    x_max, y_max = points.max(axis=0)
+    margin = 50
+    width = max(int(x_max - x_min) + 2 * margin, 400)
+    height = max(int(y_max - y_min) + 2 * margin, 300)
+
+    scale = 1.0
+    if max(height, width) > 2000:
+        scale = 2000.0 / max(height, width)
+        height = int(height * scale)
+        width = int(width * scale)
+
+    return width, height, scale, -x_min + margin, -y_min + margin
+
+
+def _draw_grid(canvas: np.ndarray) -> None:
+    """沿用原最终画布的100像素网格。"""
+    height, width = canvas.shape[:2]
+    for x in range(0, width, 100):
+        cv2.line(canvas, (x, 0), (x, height), (60, 60, 60), 1)
+    for y in range(0, height, 100):
+        cv2.line(canvas, (0, y), (width, y), (60, 60, 60), 1)
+
+
+def _warp_sampled_frames(
+    video_path: str,
+    sampled_nodes: list[tuple],
+    canvas: np.ndarray,
+    scale: float,
+    offset_x: float,
+    offset_y: float,
+) -> bool:
+    """只打开一次视频，每个抽样节点最多读取并Warp一次。"""
+    capture = cv2.VideoCapture(video_path)
+    if not capture.isOpened():
+        capture.release()
+        return False
+
+    try:
+        height, width = canvas.shape[:2]
+        canvas_transform = np.array(
+            [
+                [scale, 0, offset_x * scale],
+                [0, scale, offset_y * scale],
+                [0, 0, 1],
+            ]
+        )
+        for _node_id, frame_id, transform_to_global in sampled_nodes:
+            capture.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
+            ok, frame = capture.read()
+            if not ok:
+                # 单个关键帧损坏不应阻止其余帧和对象标注输出。
+                continue
+            # 透明边界模式不会主动初始化目标区；显式清零可避免随机内存进入融合掩码。
+            warp_buffer = np.zeros_like(canvas)
+            warped = cv2.warpPerspective(
+                frame,
+                canvas_transform @ transform_to_global,
+                (width, height),
+                dst=warp_buffer,
+                flags=cv2.INTER_LINEAR,
+                borderMode=cv2.BORDER_TRANSPARENT,
+            )
+            mask = warped.sum(axis=2) > 0
+            canvas[mask] = cv2.addWeighted(
+                canvas[mask], 0.75, warped[mask], 0.25, 0
+            ).astype(np.uint8)
+        return True
+    finally:
+        capture.release()
+
+
+def _draw_objects(
+    canvas: np.ndarray,
+    objects: list[GlobalObject],
+    scale: float,
+    offset_x: float,
+    offset_y: float,
+) -> None:
+    """绘制最近观测轮廓、对象质心及稳定身份标签。"""
+    for index, obj in enumerate(objects):
+        color = _OBJECT_COLORS[index % len(_OBJECT_COLORS)]
+        projected_observations = []
+        for observation in obj.observations:
+            corners = getattr(observation, "projected_corners", None)
+            if corners is None or len(corners) < 4:
+                continue
+            points = np.asarray(corners, dtype=float)
+            if (
+                points.ndim == 2
+                and points.shape[1] == 2
+                and np.all(np.isfinite(points))
+            ):
+                projected_observations.append(points)
+
+        for corners in projected_observations[-10:]:
+            pixel_corners = np.array(
+                [
+                    [
+                        int(point[0] * scale + offset_x * scale),
+                        int(point[1] * scale + offset_y * scale),
+                    ]
+                    for point in corners
+                ],
+                dtype=np.int32,
+            )
+            overlay = canvas.copy()
+            cv2.polylines(overlay, [pixel_corners], True, color, 1)
+            cv2.addWeighted(overlay, 0.3, canvas, 0.7, 0, canvas)
+
+        centroid_x, centroid_y = obj.centroid_xy
+        pixel_x = int(centroid_x * scale + offset_x * scale)
+        pixel_y = int(centroid_y * scale + offset_y * scale)
+        cv2.circle(canvas, (pixel_x, pixel_y), 5, color, -1)
+        identity = obj.persistent_id or obj.provisional_id
+        cv2.putText(
+            canvas,
+            f"{identity} {obj.class_name}",
+            (pixel_x + 6, pixel_y - 6),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.35,
+            color,
+            1,
+        )
 
 
 def generate_global_mosaic(
@@ -16,224 +194,37 @@ def generate_global_mosaic(
     max_keyframes: int = 20,
     skip_warp: bool = False,
 ) -> str | None:
-    """生成全局拼接图。
-
-    Args:
-        video_path: 原始视频路径
-        skip_warp: 跳过 warp 帧纹理，只画对象在全局坐标系下的 centroid 和 bbox
-        graph: HomographyGraph 实例
-        objects: GlobalObject 列表
-        output_dir: 输出目录
-        max_keyframes: 最多绘制多少个关键帧
-    """
+    """生成全局拼接图；纹理只经过一次最终画布Warp。"""
     if graph.num_keyframes == 0:
         return None
-
-    objects = get_display_objects(objects)
 
     nodes = graph.nodes
     if not nodes:
         return None
 
-    if skip_warp:
-        h_img, w_img = 720, 1280
-    else:
-        cap = cv2.VideoCapture(video_path)
-        if not cap.isOpened():
-            cap.release()
-            return None
-        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-        ok, sample = cap.read()
-        if not ok:
-            cap.release()
-            return None
-        h_img, w_img = sample.shape[:2]
-
-    # 计算全局边界
-    step = max(1, len(nodes) // max_keyframes)
-    corners_local = np.array([[0, 0], [w_img, 0], [w_img, h_img], [0, h_img]], dtype=float)
-    all_pts = []
-    for _node_id, _frame_id, H_to_global in nodes[::step]:
-        ones = np.ones((4, 1))
-        proj = (H_to_global @ np.hstack([corners_local, ones]).T).T
-        denom = proj[:, 2]
-        valid = np.abs(denom) > 1e-8
-        proj[valid, :2] /= denom[valid, None]
-        proj[~valid, :2] = 0
-        all_pts.append(proj[:, :2])
-
-    if not all_pts:
-        if not skip_warp:
-            cap.release()
+    display_objects = get_display_objects(objects)
+    object_points = _collect_object_points(display_objects)
+    if object_points is None:
         return None
 
-    all_pts = np.vstack(all_pts)
-    x_min, y_min = all_pts.min(axis=0)
-    x_max, y_max = all_pts.max(axis=0)
+    sampled_nodes = _sample_nodes(nodes, max_keyframes)
+    width, height, scale, offset_x, offset_y = _plan_canvas(object_points)
+    canvas = np.full((height, width, 3), 40, dtype=np.uint8)
 
-    margin = 100
-    canvas_w = int(x_max - x_min) + 2 * margin
-    canvas_h = int(y_max - y_min) + 2 * margin
-    canvas_w = max(canvas_w, 400)
-    canvas_h = max(canvas_h, 300)
+    # 当前视觉效果要求网格先于纹理绘制，纹理会自然覆盖部分网格。
+    _draw_grid(canvas)
+    if not skip_warp and not _warp_sampled_frames(
+        video_path,
+        sampled_nodes,
+        canvas,
+        scale,
+        offset_x,
+        offset_y,
+    ):
+        return None
+    _draw_objects(canvas, display_objects, scale, offset_x, offset_y)
 
-    offset_x = -x_min + margin
-    offset_y = -y_min + margin
-
-    max_canvas = 4000
-    scale = 1.0
-    if max(canvas_h, canvas_w) > max_canvas:
-        scale = max_canvas / max(canvas_h, canvas_w)
-        canvas_h = int(canvas_h * scale)
-        canvas_w = int(canvas_w * scale)
-        offset_x *= scale
-        offset_y *= scale
-
-    canvas = np.full((canvas_h, canvas_w, 3), 30, dtype=np.uint8)
-
-    # Warp keyframe textures
-    if not skip_warp:
-        sampled = nodes[::step]
-        for _node_id, frame_id, H_to_global in sampled:
-            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
-            ok, frame = cap.read()
-            if not ok:
-                continue
-            T = np.array([
-                [scale, 0, offset_x * scale],
-                [0, scale, offset_y * scale],
-                [0, 0, 1],
-            ])
-            M = T @ H_to_global
-            warped = cv2.warpPerspective(
-                frame, M, (canvas_w, canvas_h),
-                flags=cv2.INTER_LINEAR,
-                borderMode=cv2.BORDER_TRANSPARENT,
-            )
-            alpha = 0.25
-            mask = warped.sum(axis=2) > 0
-            canvas[mask] = cv2.addWeighted(
-                canvas[mask], 1 - alpha, warped[mask], alpha, 0
-            ).astype(np.uint8)
-        cap.release()
-
-    # Draw grid
-    grid_step = 200
-    for gx in range(0, canvas_w, grid_step):
-        cv2.line(canvas, (gx, 0), (gx, canvas_h), (60, 60, 60), 1)
-    for gy in range(0, canvas_h, grid_step):
-        cv2.line(canvas, (0, gy), (canvas_w, gy), (60, 60, 60), 1)
-
-    # 收集所有对象的 projected_corners 范围（用于自动缩放）
-    all_corners_global = []
-    for obj in objects:
-        for obs in obj.observations:
-            corners = getattr(obs, 'projected_corners', None)
-            if corners is not None and len(corners) >= 4:
-                all_corners_global.append(np.array(corners))
-        cx, cy = obj.centroid_xy
-        all_corners_global.append(np.array([[cx, cy]]))
-
-    if all_corners_global:
-        all_pts2 = np.vstack(all_corners_global)
-        x_min2, y_min2 = all_pts2.min(axis=0)
-        x_max2, y_max2 = all_pts2.max(axis=0)
-
-        # 用对象范围重新计算画布，使对象填满画面
-        margin2 = 50
-        new_w = int(x_max2 - x_min2) + 2 * margin2
-        new_h = int(y_max2 - y_min2) + 2 * margin2
-        new_w = max(new_w, 400)
-        new_h = max(new_h, 300)
-
-        # 计算新的 scale 和 offset
-        new_scale = 1.0
-        if max(new_h, new_w) > 2000:
-            new_scale = 2000.0 / max(new_h, new_w)
-            new_h = int(new_h * new_scale)
-            new_w = int(new_w * new_scale)
-
-        # 缩放并移位
-        new_offset_x = -x_min2 + margin2
-        new_offset_y = -y_min2 + margin2
-
-        # 用新参数重建画布
-        canvas2 = np.full((new_h, new_w, 3), 40, dtype=np.uint8)
-
-        # Draw grid on zoomed canvas
-        for gx in range(0, new_w, grid_step // 2):
-            cv2.line(canvas2, (gx, 0), (gx, new_h), (60, 60, 60), 1)
-        for gy in range(0, new_h, grid_step // 2):
-            cv2.line(canvas2, (0, gy), (new_w, gy), (60, 60, 60), 1)
-
-        # Warp frames if needed
-        if not skip_warp:
-            cap2 = cv2.VideoCapture(video_path)
-            for _node_id, frame_id, H_to_global in nodes[::step]:
-                cap2.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
-                ok, frame = cap2.read()
-                if not ok:
-                    continue
-                T = np.array([
-                    [new_scale, 0, new_offset_x * new_scale],
-                    [0, new_scale, new_offset_y * new_scale],
-                    [0, 0, 1],
-                ])
-                M = T @ H_to_global
-                warped = cv2.warpPerspective(
-                    frame, M, (new_w, new_h),
-                    flags=cv2.INTER_LINEAR,
-                    borderMode=cv2.BORDER_TRANSPARENT,
-                )
-                alpha = 0.25
-                mask = warped.sum(axis=2) > 0
-                canvas2[mask] = cv2.addWeighted(
-                    canvas2[mask], 1 - alpha, warped[mask], alpha, 0
-                ).astype(np.uint8)
-            cap2.release()
-
-        # Draw objects on zoomed canvas
-        # Draw objects on zoomed canvas
-        colors = [
-            (0, 255, 0), (0, 255, 255), (255, 0, 255), (255, 255, 0),
-            (0, 128, 255), (255, 128, 0), (128, 255, 0), (255, 0, 128),
-            (0, 200, 100), (200, 0, 200), (200, 200, 0), (0, 100, 255),
-        ]
-        for i, obj in enumerate(objects):
-            color = colors[i % len(colors)]
-
-            all_corners_list = []
-            for obs in obj.observations:
-                corners = getattr(obs, 'projected_corners', None)
-                if corners is not None and len(corners) >= 4:
-                    all_corners_list.append(np.array(corners))
-
-            cx, cy = obj.centroid_xy
-            px = int(cx * new_scale + new_offset_x * new_scale)
-            py = int(cy * new_scale + new_offset_y * new_scale)
-
-            if all_corners_list:
-                for corners_np in all_corners_list[-10:]:
-                    px_corners = np.array([
-                        [int(c[0] * new_scale + new_offset_x * new_scale),
-                         int(c[1] * new_scale + new_offset_y * new_scale)]
-                        for c in corners_np
-                    ], dtype=np.int32)
-                    overlay = canvas2.copy()
-                    cv2.polylines(overlay, [px_corners], True, color, 1)
-                    cv2.addWeighted(overlay, 0.3, canvas2, 0.7, 0, canvas2)
-
-            cv2.circle(canvas2, (px, py), 5, color, -1)
-            pid = obj.persistent_id or obj.provisional_id
-            cv2.putText(
-                canvas2, f"{pid} {obj.class_name}",
-                (px + 6, py - 6),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.35, color, 1,
-            )
-
-        out = Path(output_dir)
-        (out / "global").mkdir(parents=True, exist_ok=True)
-        filepath = out / "global" / "global_mosaic.jpg"
-        cv2.imwrite(str(filepath), canvas2)
-
-        return str(filepath)
+    output_path = Path(output_dir) / "global" / "global_mosaic.jpg"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(output_path), canvas)
+    return str(output_path)
