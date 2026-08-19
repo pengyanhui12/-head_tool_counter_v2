@@ -1,5 +1,5 @@
 # Head Tool Counter 项目流程参考手册
-时间：2026:08:17
+时间：2026-08-19
 
 > 本手册面向后续代码修改、参数调优和问题定位。内容以当前正式流水线为准；正式入口为 `apps/offline_scan.py::run_pipeline()`。
 
@@ -56,6 +56,7 @@ head_tool_counter/
 │  ├─ offline_scan.py       # 正式离线入口和流水线编排
 │  └─ api_server.py         # FastAPI 服务封装
 ├─ core/                    # 算法、领域对象和输出逻辑
+│  └─ performance_profiler.py # 离线性能计时、展示和报告保存
 ├─ configs/                 # YAML 运行配置
 ├─ models/best.pt           # YOLO 模型权重
 ├─ tests/                   # pytest 测试
@@ -368,7 +369,9 @@ coverage:
 outputs/
 ├─ reports/
 │  ├─ report.json
-│  └─ report.csv
+│  ├─ report.csv
+│  ├─ performance.json
+│  └─ performance.txt
 ├─ global/
 │  └─ global_mosaic.jpg
 ├─ evidence/
@@ -396,6 +399,17 @@ tentative_count == review_candidate_count
 
 ### 19.1 运行速度慢
 
+使用命令行 `--performance`，或将 `configs/pipeline.yaml` 中的
+`enable_performance_stats` 设为 `true`。启用后，控制台会显示阶段耗时，
+并在输出目录的 `reports/` 下保存 `performance.json` 和
+`performance.txt`；关闭时不会生成这两个文件。
+
+`Pipeline wall time` 从 `run_pipeline()` 入口开始，包含配置加载、模块
+初始化、逐帧识别和 Mosaic/Evidence 等产物生成，但不包含 Python 进程
+启动及模块导入。`pipeline_fps` 因此表示完整离线任务吞吐量，不等同于
+纯识别循环 FPS。若 `timing_overlap_detected` 为 `true`，说明阶段计时发生
+重叠，不应直接使用该次覆盖率进行论文对比。
+
 依次考虑：
 
 1. 降低 `max_input_fps`；
@@ -403,6 +417,10 @@ tentative_count == review_candidate_count
 3. 降低 L1/L2 `imgsz`；
 4. 关闭 L3；
 5. 使用 `--performance` 确认瓶颈。
+
+论文实验必须固定视频、配置、模型、运行设备和软件环境；先进行预热，
+重复运行并报告中位数或均值及离散程度。核心算法性能与 Global Mosaic、
+Evidence 等产物生成耗时应分别报告。
 
 ### 19.2 漏检工具
 
@@ -460,7 +478,7 @@ tentative_count == review_candidate_count
 | 同一工具多计 | `object_associator.py` | Track 绑定、距离、merge audit |
 | 多件工具少计 | Tracker、共现、合并策略 | 同帧对象和 shared track |
 | 内部对象正确但报告错误 | `report_generator.py` | 状态分区和 ID |
-| 运行缓慢 | `debug_events.py` | `--performance` 分阶段耗时 |
+| 运行缓慢 | `performance_profiler.py` | `performance.json`、`--performance` 分阶段耗时 |
 
 ## 21. 测试与修改安全线
 

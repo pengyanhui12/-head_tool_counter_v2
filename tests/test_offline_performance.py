@@ -1,5 +1,7 @@
-from core.debug_events import DebugStats
-from apps.offline_scan import print_performance_stats, resolve_performance_enabled
+from core.performance_profiler import (
+    PerformanceProfiler,
+    resolve_performance_enabled,
+)
 
 
 def test_performance_override_takes_precedence_over_config():
@@ -8,13 +10,16 @@ def test_performance_override_takes_precedence_over_config():
     assert resolve_performance_enabled({"enable_performance_stats": True}, None)
 
 
-def test_performance_table_is_printed_when_called(capsys):
-    stats = DebugStats()
-    stats.add_timing("quality_ms", 12.0)
+def test_performance_table_uses_pipeline_wall_time_label():
+    profiler = PerformanceProfiler(enabled=True, started_at=1.0)
+    profiler.record("quality", 12.0)
 
-    print_performance_stats(stats, wall_ms=20.0, total_frames=2)
+    output = profiler.format_report(
+        profiler.snapshot(total_frames=2, ended_at=1.02)
+    )
 
-    output = capsys.readouterr().out
     assert "Performance breakdown" in output
     assert "Quality evaluation" in output
     assert "Accounted coverage" in output
+    assert "Pipeline wall time" in output
+    assert "End-to-end" not in output

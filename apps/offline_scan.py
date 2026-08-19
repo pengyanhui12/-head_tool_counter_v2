@@ -4,7 +4,6 @@ import json
 import sys
 import time
 from collections import deque
-from contextlib import nullcontext
 from pathlib import Path
 
 import cv2
@@ -33,41 +32,10 @@ from core.evidence_extractor import EvidenceExtractor
 from core.session_store import SessionStore
 from core.config_loader import ConfigLoader
 from core.recovery_manager import RecoveryManager, RecoveryState
-from core.debug_events import DebugStats, PerfTimer, TimedMatcher
-
-
-PERFORMANCE_LABELS = {
-    "initialization_ms": "Initialization",
-    "video_decode_ms": "Video decode",
-    "quality_ms": "Quality evaluation",
-    "l2_inference_ms": "L2 inference",
-    "tracker_preview_ms": "Tracker preview",
-    "tracker_update_ms": "Tracker update",
-    "keyframe_decision_ms": "Keyframe decision",
-    "feature_match_ms": "Feature matching",
-    "recovery_ms": "Recovery",
-    "l1_inference_ms": "L1 inference",
-    "l3_inference_ms": "L3 inference",
-    "fusion_ms": "Fusion",
-    "graph_update_ms": "Graph update",
-    "projection_ms": "Projection",
-    "association_ms": "Association",
-    "coverage_update_ms": "Coverage update",
-    "end_window_ms": "End-window processing",
-    "final_review_ms": "Final review",
-    "mosaic_ms": "Global mosaic",
-    "evidence_ms": "Evidence extraction",
-    "session_store_ms": "Session storage",
-    "report_ms": "Report generation",
-    "event_log_io_ms": "Event/log I/O",
-    "debug_image_write_ms": "Debug image I/O",
-}
-
-
-def resolve_performance_enabled(config: dict, override: bool | None) -> bool:
-    if override is not None:
-        return override
-    return bool(config.get("enable_performance_stats", False))
+from core.performance_profiler import (
+    PerformanceProfiler,
+    resolve_performance_enabled,
+)
 
 
 def build_report_snapshot(report_generator, objects) -> tuple[dict, str]:
@@ -76,27 +44,6 @@ def build_report_snapshot(report_generator, objects) -> tuple[dict, str]:
         report_generator.generate_json_report(),
         report_generator.generate_csv_report(objects),
     )
-
-
-def print_performance_stats(
-    stats: DebugStats,
-    wall_ms: float,
-    total_frames: int,
-) -> None:
-    total_fps = total_frames / (wall_ms / 1000.0) if wall_ms > 0 else 0.0
-    print("\nPerformance breakdown:")
-    print(f"  End-to-end: {wall_ms / 1000.0:.3f}s ({total_fps:.1f} FPS)")
-    print(f"  {'Stage':<24} {'Total(ms)':>10} {'Calls':>8} {'Avg(ms)':>10} {'Wall%':>8}")
-    for field, total, calls, average in stats.performance_rows():
-        wall_pct = total / wall_ms * 100.0 if wall_ms > 0 else 0.0
-        print(
-            f"  {PERFORMANCE_LABELS[field]:<24} {total:>10.1f} "
-            f"{calls:>8d} {average:>10.3f} {wall_pct:>7.1f}%"
-        )
-    unaccounted = stats.unaccounted_ms(wall_ms)
-    print(f"  {'Unaccounted overhead':<24} {unaccounted:>10.1f} "
-          f"{'-':>8} {'-':>10} {unaccounted / wall_ms * 100.0:>7.1f}%")
-    print(f"  Accounted coverage: {stats.coverage_ratio(wall_ms) * 100.0:.1f}%")
 
 
 def build_raw_detections(tracked_detections, keyframe_id: int,
@@ -241,6 +188,8 @@ def run_pipeline(
     output_dir: str,
     performance: bool | None = None,
 ):
+    # Pipeline 墙钟计时从入口开始，明确包含配置加载和模块初始化。
+    pipeline_started_at = time.perf_counter()
     _proj_root = Path(__file__).resolve().parent.parent
     cfg_path = (Path(config_dir) if Path(config_dir).is_absolute()
                 else _proj_root / config_dir)
@@ -258,12 +207,10 @@ def run_pipeline(
     fcfg = detector_cfg.get("fusion", {})
     l3cfg = detector_cfg.get("l3", {})
     performance_enabled = resolve_performance_enabled(cfg, performance)
-    stats = DebugStats() if performance_enabled else None
-    wall_start = time.perf_counter()
-    initialization_start = time.perf_counter()
-
-    def timer(field_name: str):
-        return PerfTimer(stats, field_name) if stats is not None else nullcontext()
+    profiler = PerformanceProfiler(
+        enabled=performance_enabled,
+        started_at=pipeline_started_at,
+    )
 
     l2_interval = cfg.get("l2_interval_frames", 3)
     max_interval = cfg.get("max_keyframe_interval_frames", 30)
@@ -293,8 +240,7 @@ def run_pipeline(
         max_projected_area_ratio=mcfg.get("max_projected_area_ratio", 50.0),
         min_projected_area_ratio=mcfg.get("min_projected_area_ratio", 0.01),
     )
-    if stats is not None:
-        matcher = TimedMatcher(matcher, stats)
+    matcher = profiler.wrap_matcher(matcher)
     graph = HomographyGraph()
     selector = KeyframeSelector(
         max_interval=max_interval,
@@ -334,11 +280,10 @@ def run_pipeline(
     coverage = _build_coverage_map(coverage_cfg)
     status = StatusPanel()
     recovery_mgr = RecoveryManager(matcher=matcher)
-    if stats is not None:
-        stats.add_timing(
-            "initialization_ms",
-            (time.perf_counter() - initialization_start) * 1000.0,
-        )
+    profiler.record(
+        "initialization",
+        (time.perf_counter() - pipeline_started_at) * 1000.0,
+    )
 
     # State
     last_keyframe: Frame | None = None
@@ -356,12 +301,14 @@ def run_pipeline(
     frame_iterator = iter(reader.read())
     while True:
         try:
-            with timer("video_decode_ms"):
-                frame = next(frame_iterator)
+            frame = profiler.measure_success(
+                "video_decode",
+                lambda: next(frame_iterator),
+            )
         except StopIteration:
             break
         fc += 1
-        with timer("quality_ms"):
+        with profiler.measure("quality"):
             frame = quality.evaluate(frame)
         mapping_eligible = is_mapping_eligible(quality, frame)
         historical_keyframe = False
@@ -387,17 +334,17 @@ def run_pipeline(
         l2_was_run = should_run_l2(fc, l2_interval)
         l2_candidates = []
         if l2_was_run:
-            with timer("l2_inference_ms"):
+            with profiler.measure("l2_inference"):
                 l2_candidates = detector.detect(
                     image=frame.image, level="L2", frame_id=frame.frame_id,
                 )
 
-        with timer("tracker_preview_ms"):
+        with profiler.measure("tracker_preview"):
             preview = tracker.preview(l2_candidates, l2_was_run=l2_was_run)
 
         if not mapping_eligible:
             if l2_was_run:
-                with timer("tracker_update_ms"):
+                with profiler.measure("tracker_update"):
                     tracker.update(l2_candidates, frame_id=frame.frame_id)
             recovery_mgr.cache_frame(frame)
             continue
@@ -411,22 +358,22 @@ def run_pipeline(
             l3_regions=l3_regions,
         )
 
-        match_before = stats.feature_match_ms if stats is not None else 0.0
+        match_before = profiler.stage_total("feature_match")
         decision_start = time.perf_counter()
         keyframe_result = selector.evaluate(
             frame=frame,
             previous_keyframe=last_keyframe,
             trigger_context=trigger_context,
         )
-        if stats is not None:
-            elapsed = (time.perf_counter() - decision_start) * 1000.0
-            stats.add_timing(
-                "keyframe_decision_ms",
-                max(0.0, elapsed - (stats.feature_match_ms - match_before)),
-            )
+        profiler.record_exclusive(
+            "keyframe_decision",
+            started_at=decision_start,
+            excluded_stage="feature_match",
+            excluded_before_ms=match_before,
+        )
 
         if keyframe_result.decision == KeyframeDecision.ACCEPTED:
-            with timer("graph_update_ms"):
+            with profiler.measure("graph_update"):
                 if last_keyframe is None:
                     keyframe_id = graph.add_first_keyframe(frame_id=frame.frame_id)
                     frame.mapping_quality = 1.0
@@ -440,24 +387,24 @@ def run_pipeline(
                         frame.mapping_quality = float(keyframe_result.match_result.inlier_ratio)
                 H_kf_to_global = graph.get_transform(keyframe_id)
 
-            with timer("l1_inference_ms"):
+            with profiler.measure("l1_inference"):
                 l1_candidates = detector.detect(
                     image=frame.image, level="L1", frame_id=frame.frame_id,
                 )
 
             l3_candidates = []
             if trigger_context.l3_required:
-                with timer("l3_inference_ms"):
+                with profiler.measure("l3_inference"):
                     l3_candidates = detector.detect(
                         image=frame.image, level="L3", frame_id=frame.frame_id,
                         regions=trigger_context.l3_regions,
                     )
 
-            with timer("fusion_ms"):
+            with profiler.measure("fusion"):
                 fused_candidates = fusion.fuse(l1=l1_candidates, l3=l3_candidates)
             tracked = []
             if not historical_keyframe:
-                with timer("tracker_update_ms"):
+                with profiler.measure("tracker_update"):
                     tracked = tracker.update(fused_candidates, frame_id=frame.frame_id)
 
             if historical_keyframe:
@@ -473,7 +420,7 @@ def run_pipeline(
                     mapping_quality=frame.mapping_quality,
                 )
 
-            with timer("projection_ms"):
+            with profiler.measure("projection"):
                 global_detections = [
                     projector.project(
                         detection=rd,
@@ -483,13 +430,13 @@ def run_pipeline(
                     for rd in raw_detections
                 ]
 
-            with timer("association_ms"):
+            with profiler.measure("association"):
                 associator.ingest_frame(
                     frame_id=frame.frame_id,
                     global_detections=global_detections,
                 )
 
-            with timer("coverage_update_ms"):
+            with profiler.measure("coverage_update"):
                 projected_fov = projector.project_frame_corners(
                     image_shape=frame.image.shape,
                     H_keyframe_to_global=H_kf_to_global,
@@ -503,39 +450,42 @@ def run_pipeline(
             last_keyframe_node_id = keyframe_id
 
         elif keyframe_result.decision == KeyframeDecision.RECOVERY:
-            recovery_match_before = stats.feature_match_ms if stats is not None else 0.0
+            recovery_match_before = profiler.stage_total("feature_match")
             recovery_start = time.perf_counter()
             recovery_result = recovery_mgr.recover(
                 current_frame=frame, previous_keyframe=last_keyframe,
                 frame_buffer=frame_buffer, graph=graph,
                 keyframe_images=None,
             )
-            if stats is not None:
-                recovery_elapsed = (time.perf_counter() - recovery_start) * 1000.0
-                stats.add_timing(
-                    "recovery_ms",
-                    max(
-                        0.0,
-                        recovery_elapsed
-                        - (stats.feature_match_ms - recovery_match_before),
-                    ),
-                )
+            profiler.record_exclusive(
+                "recovery",
+                started_at=recovery_start,
+                excluded_stage="feature_match",
+                excluded_before_ms=recovery_match_before,
+            )
 
             if recovery_result.state == RecoveryState.RECOVERED and recovery_result.H_current_to_anchor is not None:
-                parent_id = recovery_result.anchor_node_id or last_keyframe_node_id
-                keyframe_id = graph.add_keyframe(
-                    frame_id=frame.frame_id,
-                    H_current_to_parent=recovery_result.H_current_to_anchor,
-                    parent_node_id=parent_id,
-                )
-                frame.mapping_quality = 0.5
-                H_kf_to_global = graph.get_transform(keyframe_id)
+                with profiler.measure("graph_update"):
+                    parent_id = recovery_result.anchor_node_id or last_keyframe_node_id
+                    keyframe_id = graph.add_keyframe(
+                        frame_id=frame.frame_id,
+                        H_current_to_parent=recovery_result.H_current_to_anchor,
+                        parent_node_id=parent_id,
+                    )
+                    frame.mapping_quality = 0.5
+                    H_kf_to_global = graph.get_transform(keyframe_id)
 
-                l1_candidates = detector.detect(
-                    image=frame.image, level="L1", frame_id=frame.frame_id,
-                )
-                fused_candidates = fusion.fuse(l1=l1_candidates, l3=[])
-                tracked = tracker.update(fused_candidates, frame_id=frame.frame_id)
+                with profiler.measure("l1_inference"):
+                    l1_candidates = detector.detect(
+                        image=frame.image, level="L1", frame_id=frame.frame_id,
+                    )
+                with profiler.measure("fusion"):
+                    fused_candidates = fusion.fuse(l1=l1_candidates, l3=[])
+                with profiler.measure("tracker_update"):
+                    tracked = tracker.update(
+                        fused_candidates,
+                        frame_id=frame.frame_id,
+                    )
 
                 raw_detections = build_raw_detections(
                     tracked_detections=tracked,
@@ -543,18 +493,20 @@ def run_pipeline(
                     sharpness=frame.sharpness_score,
                     mapping_quality=frame.mapping_quality,
                 )
-                global_detections = [
-                    projector.project(
-                        detection=rd,
-                        H_keyframe_to_global=H_kf_to_global,
-                        transform_version=graph.transform_version,
+                with profiler.measure("projection"):
+                    global_detections = [
+                        projector.project(
+                            detection=rd,
+                            H_keyframe_to_global=H_kf_to_global,
+                            transform_version=graph.transform_version,
+                        )
+                        for rd in raw_detections
+                    ]
+                with profiler.measure("association"):
+                    associator.ingest_frame(
+                        frame_id=frame.frame_id,
+                        global_detections=global_detections,
                     )
-                    for rd in raw_detections
-                ]
-                associator.ingest_frame(
-                    frame_id=frame.frame_id,
-                    global_detections=global_detections,
-                )
                 processed_keyframe_frame_ids.add(frame.frame_id)
                 recovery_mgr.reset()
                 last_keyframe = frame
@@ -565,61 +517,70 @@ def run_pipeline(
                 recovery_mgr.cache_detections(frame.frame_id, l2_candidates, frame.sharpness_score)
 
         elif l2_was_run:
-            with timer("tracker_update_ms"):
+            with profiler.measure("tracker_update"):
                 tracker.update(l2_candidates, frame_id=frame.frame_id)
 
     # Post-video
     print(f"\nProcessed {fc} frames, {graph.num_keyframes} keyframes accepted.")
 
     # End window
-    end_match_before = stats.feature_match_ms if stats is not None else 0.0
+    end_match_before = profiler.stage_total("feature_match")
     end_start = time.perf_counter()
     end_kfs = selector.select_end_keyframes(list(end_window_deque))
-    if stats is not None:
-        stats.add_timing(
-            "end_window_ms",
-            max(
-                0.0,
-                (time.perf_counter() - end_start) * 1000.0
-                - (stats.feature_match_ms - end_match_before),
-            ),
-        )
+    profiler.record_exclusive(
+        "end_window",
+        started_at=end_start,
+        excluded_stage="feature_match",
+        excluded_before_ms=end_match_before,
+    )
     for ekf in end_kfs:
         if ekf.frame_id in processed_keyframe_frame_ids:
             continue
-        end_eval_match_before = stats.feature_match_ms if stats is not None else 0.0
+        end_eval_match_before = profiler.stage_total("feature_match")
         end_eval_start = time.perf_counter()
         result = selector.evaluate(ekf, last_keyframe,
                                    KeyframeTriggerContext(force_end_candidate=True))
-        if stats is not None:
-            stats.add_timing(
-                "end_window_ms",
-                max(
-                    0.0,
-                    (time.perf_counter() - end_eval_start) * 1000.0
-                    - (stats.feature_match_ms - end_eval_match_before),
-                ),
-            )
+        profiler.record_exclusive(
+            "end_window",
+            started_at=end_eval_start,
+            excluded_stage="feature_match",
+            excluded_before_ms=end_eval_match_before,
+        )
         if result.decision == KeyframeDecision.ACCEPTED:
             try:
-                keyframe_id = graph.add_keyframe(
-                    frame_id=ekf.frame_id,
-                    H_current_to_parent=result.H_current_to_previous,
-                    parent_node_id=last_keyframe_node_id,
-                )
-                H_kf_to_global = graph.get_transform(keyframe_id)
-                l1_candidates = detector.detect(image=ekf.image, level="L1", frame_id=ekf.frame_id)
-                fused_candidates = fusion.fuse(l1=l1_candidates, l3=[])
+                with profiler.measure("graph_update"):
+                    keyframe_id = graph.add_keyframe(
+                        frame_id=ekf.frame_id,
+                        H_current_to_parent=result.H_current_to_previous,
+                        parent_node_id=last_keyframe_node_id,
+                    )
+                    H_kf_to_global = graph.get_transform(keyframe_id)
+                with profiler.measure("l1_inference"):
+                    l1_candidates = detector.detect(
+                        image=ekf.image,
+                        level="L1",
+                        frame_id=ekf.frame_id,
+                    )
+                with profiler.measure("fusion"):
+                    fused_candidates = fusion.fuse(l1=l1_candidates, l3=[])
                 raw_detections = build_untracked_raw_detections(
                     fused_candidates, keyframe_id, ekf.sharpness_score,
                     ekf.mapping_quality,
                 )
-                global_detections = [
-                    projector.project(detection=rd, H_keyframe_to_global=H_kf_to_global,
-                                      transform_version=graph.transform_version)
-                    for rd in raw_detections
-                ]
-                associator.ingest_frame(frame_id=ekf.frame_id, global_detections=global_detections)
+                with profiler.measure("projection"):
+                    global_detections = [
+                        projector.project(
+                            detection=rd,
+                            H_keyframe_to_global=H_kf_to_global,
+                            transform_version=graph.transform_version,
+                        )
+                        for rd in raw_detections
+                    ]
+                with profiler.measure("association"):
+                    associator.ingest_frame(
+                        frame_id=ekf.frame_id,
+                        global_detections=global_detections,
+                    )
                 processed_keyframe_frame_ids.add(ekf.frame_id)
                 last_keyframe = ekf
                 last_keyframe_frame_id = ekf.frame_id
@@ -628,11 +589,11 @@ def run_pipeline(
                 print(f"  End KF failed: frame {ekf.frame_id} — {e}")
 
     # Final review
-    with timer("final_review_ms"):
+    with profiler.measure("final_review"):
         associator.final_review()
         associator.map.assign_persistent_ids()
 
-    with timer("report_ms"):
+    with profiler.measure("report"):
         gen = ReportGenerator(object_map=associator.map)
         all_objects = associator.map.get_all()
         display_objects = get_display_objects(all_objects)
@@ -649,7 +610,7 @@ def run_pipeline(
         })
 
     from core.global_mosaic import generate_global_mosaic
-    with timer("mosaic_ms"):
+    with profiler.measure("mosaic"):
         generate_global_mosaic(
             video_path=video_path,
             graph=graph,
@@ -658,10 +619,10 @@ def run_pipeline(
         )
 
     extractor = EvidenceExtractor()
-    with timer("evidence_ms"):
+    with profiler.measure("evidence"):
         extractor.extract(video_path, display_objects, output_dir)
 
-    with timer("session_store_ms"):
+    with profiler.measure("session_store"):
         store = SessionStore(output_dir)
         store.create_session(video_path)
         store.save_report(json_report)
@@ -669,7 +630,7 @@ def run_pipeline(
     out = Path(output_dir)
     (out / "reports").mkdir(parents=True, exist_ok=True)
 
-    with timer("report_ms"):
+    with profiler.measure("report"):
         json_path = out / "reports" / "report.json"
         json_path.write_text(
             json.dumps(json_report, indent=2, ensure_ascii=False),
@@ -689,19 +650,16 @@ def run_pipeline(
     print(f"  REJECTED: {json_report['rejected_count']}")
     print(f"  Tracker time regressions: {tracker.time_regressions}")
     print(f"Reports: {out}/reports/")
-    if stats is not None:
-        print_performance_stats(
-            stats,
-            wall_ms=(time.perf_counter() - wall_start) * 1000.0,
-            total_frames=fc,
-        )
+    if performance_enabled:
+        performance_snapshot = profiler.save(out, total_frames=fc)
+        print("\n" + profiler.format_report(performance_snapshot))
 
 
 def main():
     parser = argparse.ArgumentParser(description="Head Tool Counter - Offline Scan")
-    parser.add_argument("--video", default=r"D:\杭州供电段\头戴设备作业工具识别\260814拍摄测试\d863fa0e831970c073fd4d8fbe42d559.mp4")
+    parser.add_argument("--video", default=r"D:\杭州供电段\头戴设备作业工具识别\260814拍摄测试\test.mp4")
     parser.add_argument("--config-dir", default="configs")
-    parser.add_argument("--output-dir", default="./outputs10")
+    parser.add_argument("--output-dir", default="./outputs11")
     parser.add_argument(
         "--performance",
         action="store_true",
