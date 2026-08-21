@@ -537,11 +537,21 @@ python -m pytest tests/test_effective_config.py -v
 9. `core/report_generator.py`：理解最终计数；
 10. `tests/`：理解不能破坏的业务不变量。
 
-## 23. Global Mosaic 生成流程
+## 23. 类别数量摘要输出
+
+离线入口支持可选开关：
+
+```powershell
+python -m apps.offline_scan --class-summary
+```
+
+开启后，`core/class_summary.py` 直接复用最终 `report.json` 中的 `total_objects` 和 `class_counts`，在控制台按类别名称排序输出数量，并保存 `reports/class_counts.json`。该摘要遵循正式计数语义，不包含 rejected 对象或仅供审核的 tentative 对象。开关默认关闭，关闭时不会创建额外摘要文件。
+
+## 24. Global Mosaic 生成流程
 
 `core/global_mosaic.py` 先根据正式计数对象和审核候选的投影角点、质心规划最终画布，再按原节点顺序融合抽样关键帧。视频在该阶段只打开一次，每个抽样关键帧最多执行一次 `warpPerspective()`；透明边界的目标缓冲区会显式清零，避免未初始化像素进入融合结果。网格、纹理、对象标注的绘制顺序保持不变。单帧读取失败时跳过该帧，视频无法打开或缺少有效对象坐标时不生成 Mosaic。
 
-## 24. 后续值得独立实施的能力
+## 25. 后续值得独立实施的能力
 
 以下内容目前尚未形成完整闭环，适合分别设计和测试：
 

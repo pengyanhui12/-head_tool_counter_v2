@@ -36,6 +36,11 @@ from core.performance_profiler import (
     PerformanceProfiler,
     resolve_performance_enabled,
 )
+from core.class_summary import (
+    build_class_summary,
+    format_class_summary,
+    save_class_summary,
+)
 
 
 def build_report_snapshot(report_generator, objects) -> tuple[dict, str]:
@@ -44,6 +49,22 @@ def build_report_snapshot(report_generator, objects) -> tuple[dict, str]:
         report_generator.generate_json_report(),
         report_generator.generate_csv_report(objects),
     )
+
+
+def _emit_class_summary_if_enabled(
+    report: dict,
+    output_dir: str | Path,
+    enabled: bool,
+) -> Path | None:
+    """按开关输出并保存类别摘要；关闭时不产生任何副作用。"""
+    if not enabled:
+        return None
+
+    summary = build_class_summary(report)
+    output_path = save_class_summary(summary, output_dir)
+    print("\n" + format_class_summary(summary))
+    print(f"Saved: {output_path}")
+    return output_path
 
 
 def build_raw_detections(tracked_detections, keyframe_id: int,
@@ -236,6 +257,7 @@ def run_pipeline(
     config_dir: str,
     output_dir: str,
     performance: bool | None = None,
+    class_summary: bool = False,
 ):
     # Pipeline 墙钟计时从入口开始，明确包含配置加载和模块初始化。
     pipeline_started_at = time.perf_counter()
@@ -670,6 +692,7 @@ def run_pipeline(
         )
         csv_path = out / "reports" / "report.csv"
         csv_path.write_text(csv_report, encoding="utf-8")
+    _emit_class_summary_if_enabled(json_report, out, enabled=class_summary)
     print(f"\nDone.")
     print(f"  Counted objects: {json_report['total_objects']}")
     print(f"  Review candidates: {json_report['review_candidate_count']}")
@@ -686,16 +709,21 @@ def run_pipeline(
         performance_snapshot = profiler.save(out, total_frames=fc)
         print("\n" + profiler.format_report(performance_snapshot))
 
-
+#  "D:\杭州供电段\头戴设备作业工具识别\260814拍摄测试\test.mp4"
 def main():
     parser = argparse.ArgumentParser(description="Head Tool Counter - Offline Scan")
     parser.add_argument("--video", default=r"D:\杭州供电段\头戴设备作业工具识别\260814拍摄测试\test.mp4")
     parser.add_argument("--config-dir", default="configs")
-    parser.add_argument("--output-dir", default="outputs12")
+    parser.add_argument("--output-dir", default="outputs14")
     parser.add_argument(
         "--performance",
         action="store_true",
         help="输出各处理环节的耗时、调用次数和平均耗时",
+    )
+    parser.add_argument(
+        "--class-summary",
+        action="store_true",
+        help="输出并保存正式计数对象的类别和数量",
     )
     args = parser.parse_args()
     run_pipeline(
@@ -703,6 +731,7 @@ def main():
         args.config_dir,
         args.output_dir,
         performance=True if args.performance else None,
+        class_summary=args.class_summary,
     )
 
 
